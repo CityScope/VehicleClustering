@@ -6,14 +6,14 @@
 model CityScope
 
 global {
-	string cityScopeCity<-"volpe";
+	string cityScopeCity<-"clustering";
 	string cityGISFolder <- "./../../includes/City/"+cityScopeCity;
 	// GIS FILES
-	file bound_shapefile <- file(cityGISFolder + "/Bounds.shp");
-	file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp");
-	file roads_shapefile <- file(cityGISFolder + "/Roads.shp");
-	file amenities_shapefile <- file(cityGISFolder + "/Amenities.shp");
-	file table_bound_shapefile <- file(cityGISFolder + "/table_bounds.shp");
+	file bound_shapefile <- file(cityGISFolder + "/BOUNDARY_CityBoundary.shp");
+	file buildings_shapefile <- file(cityGISFolder + "/CDD_LandUse.shp");
+	file roads_shapefile <- file(cityGISFolder + "/BASEMAP_Roads.shp");
+	//file amenities_shapefile <- file(cityGISFolder + "/Amenities.shp");
+	//file table_bound_shapefile <- file(cityGISFolder + "/table_bounds.shp");
 	file imageRaster <- file('./../../images/gama_black.png');
 	geometry shape <- envelope(bound_shapefile);
 	graph road_graph;
@@ -94,7 +94,7 @@ global {
 	}
 
 	action coreInit (float _version) {
-		create table from: table_bound_shapefile;
+		//create table from: table_bound_shapefile;
 		create building from: buildings_shapefile with: [usage::string(read("Usage")), scale::string(read("Scale")), nbFloors::1 + float(read("Floors"))] {
 			area <- shape.area;
 			perimeter <- shape.perimeter;
@@ -103,14 +103,14 @@ global {
 
 		create road from: roads_shapefile;
 		road_graph <- as_edge_graph(road);
-		if (realAmenity = true) {
+		/*if (realAmenity = true) {
 			create amenity from: amenities_shapefile {
 				scale <- scale_string[rnd(2)];
 				fromGrid <- false;
 				size <- 10.0 + rnd(20);
 			}
 
-		}
+		}*/
 
 		if (cityMatrix = true) {
 			do initGrid(_version);
