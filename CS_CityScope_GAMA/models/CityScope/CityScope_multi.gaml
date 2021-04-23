@@ -5,10 +5,10 @@
 */
 model CityScope
 
-import "CityScope_main.gaml"
+//import "CityScope_main.gaml"
 
 
-global
+/*global
 {
 }
 
@@ -33,7 +33,7 @@ experiment CityScopeMulti type: gui parent: CityScopeMain
 
 	}
 
-}
+}*/
 
 
 

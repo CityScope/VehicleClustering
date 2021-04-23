@@ -32,8 +32,8 @@ global {
 	// INIT PARAMETERS
 	float minimum_cycle_duration <- 0.02;
 	bool cityMatrix <- false;
-	bool onlineGrid <- true; // In case cityIOServer is not working or if no internet connection
-	bool realAmenity <- true;
+	//bool onlineGrid <- true; // In case cityIOServer is not working or if no internet connection
+	//bool realAmenity <- true;
 	bool initpop<-true;
 
 	/////////// CITYMATRIX   //////////////
@@ -43,10 +43,10 @@ global {
 	list<float> current_density_array;
 	// Toggle and slider are controlled by the user at the physical table.
 	// Their values are read from the cityIOServer over HTTP.
-	int toggle1;
+	//int toggle1;
 	int slider1;
-	map<int, list>
-	citymatrix_map_settings <- [-2::["DarkGreen", "DarkGreen"],-1::["Green", "Green"], 0::["R", "L"], 1::["R", "M"], 2::["R", "S"], 3::["O", "L"], 4::["O", "M"], 5::["O", "S"], 6::["A", "Road"], 7::["A", "Plaza"], 8::["Pa", "Park"], 9::["P", "Parking"]];
+	//map<int, list>
+	//citymatrix_map_settings <- [-2::["DarkGreen", "DarkGreen"],-1::["Green", "Green"], 0::["R", "L"], 1::["R", "M"], 2::["R", "S"], 3::["O", "L"], 4::["O", "M"], 5::["O", "S"], 6::["A", "Road"], 7::["A", "Plaza"], 8::["Pa", "Park"], 9::["P", "Parking"]];
 	map<string, rgb>
 	color_map <- ["R"::#white, "O"::#gray, "S"::#gamablue, "M"::#gamaorange, "L"::#gamared, "DarkGreen"::#darkgreen,"Green"::#green, "Plaza"::#white, "Road"::#black, "Park"::#black, "Parking"::rgb(50, 50, 50)];
 	list scale_string <- ["S", "M", "L"];
@@ -145,10 +145,9 @@ global {
 
 	}
 
-	action createAmenityv1{
+	/*action createAmenityv1{
 		cityMatrixCell <- cityMatrixData["grid"];
 		density_array <- list<float>(map(cityMatrixData["objects"])["density"]);
-		toggle1 <- int(map(cityMatrixData["objects"])["toggle1"]);
 		slider1 <- int(map(cityMatrixData["objects"])["slider1"]);
 		loop l over: cityMatrixCell {
 			create amenity {
@@ -171,9 +170,9 @@ global {
 
 		}
 		
-	}
+	}*/
 		
-	action createAmenityv2{
+	/*action createAmenityv2{
 		list<int> gridCells <- cityMatrixData["grid"];
 		int nrows<-int(map(map(cityMatrixData["header"])["spatial"])["nrows"]);
 		int ncols<-int(map(map(cityMatrixData["header"])["spatial"])["ncols"]);
@@ -199,7 +198,7 @@ global {
 				}
 			}			
 		}
-	}
+	}*/
 	
 	action updateDynamicGridAccordingToDensityArray{
 		density_array <- map(cityMatrixData["objects"])["density"];
@@ -267,12 +266,12 @@ global {
 			cityMatrixData <- json_file(BACKUP_DATA).contents;
 			write #current_error + "Connection to Internet lost or cityIO is offline - CityMatrix is a local version";
 		}
-		if(_version=1.0){
+		/*if(_version=1.0){
 			do createAmenityv1;	
-		}
-		if(_version=2.1){
+		}*/
+		/*if(_version=2.1){
 			do createAmenityv2;
-		}
+		}*/
 		// The dynamic slider is for now only used with the 1.0 scanner (grasshopper volpe)
 		if(_version=1.0){
 			ask amenity {
@@ -288,7 +287,7 @@ global {
 		do initGrid(cityIOVersion);
 	}
 
-	reflex updateGraph when: (drawInteraction = true or toggle1 = 7) {
+	reflex updateGraph when: (drawInteraction = true) {
 		interaction_graph <- graph<people, people>(people as_distance_graph (distance + distance * slider1));
 	}
 
@@ -367,7 +366,7 @@ species building schedules: [] {
 		draw shape color: color_map[scale];
 	}
 
-	aspect demoScreen {
+	/*aspect demoScreen {
 		if (toggle1 = 1) {
 			draw shape color: color_map[usage];
 		}
@@ -386,7 +385,7 @@ species building schedules: [] {
 
 		}
 
-	}
+	}*/
 
 }
 
@@ -480,10 +479,9 @@ species people skills: [moving] {
 	}
 
 	aspect scale {
-		if (toggle1 != 1) {
 			if (!fromTheGrid) {
 				draw circle(2 #m) color: color_map[scale];
-				if (toggle1 = 9 and curMovingMode = "travelling" and scale = "S") {
+				if (curMovingMode = "travelling" and scale = "S") {
 				/*if (showPEV){
 		      draw obj_file("../includes/"+cityScopeCity+"/pev.obj",-90::{1,0,0}) color:#gamablue size:100 rotate:heading;
 		  	}*/
@@ -494,15 +492,6 @@ species people skills: [moving] {
 			}
 
 		}
-
-	}
-
-	aspect scaleTable {
-		if (toggle1 > 4) {
-			draw circle(2 #m) color: color_map[scale];
-		}
-
-	}
 
 	aspect trajectory {
 		if (curMovingMode = "travelling") {
@@ -546,17 +535,17 @@ species amenity parent: building schedules: [] {
 				draw shape rotated_by -angle color: rgb(color.red, color.green, color.blue, 75);
 			}
 
-		} else {
+		} /*else {
 			if (toggle1 = 6) {
 				draw circle(size) empty: true border: #white color: #white;
 				draw circle(size) color: rgb(255, 255, 255, 125);
-			}
+			}*/
 
 		}
 
 	}
 
-	aspect onTable {
+	/*aspect onTable {
 		if (!fromGrid) {
 			if (toggle1 = 6) {
 				draw circle(size) empty: true border: #white color: #white;
@@ -567,7 +556,7 @@ species amenity parent: building schedules: [] {
 
 	}
 
-}
+}*/
 
 species table {
 
@@ -606,7 +595,7 @@ experiment CityScopeMain type: gui virtual: true {
 
 			}
 
-			graphics "interaction_graph" {
+			/*graphics "interaction_graph" {
 				if (interaction_graph != nil and (drawInteraction = true or toggle1 = 7)) {
 					loop eg over: interaction_graph.edges {
 						people src <- interaction_graph source_of eg;
@@ -617,7 +606,7 @@ experiment CityScopeMain type: gui virtual: true {
 
 				}
 
-			}
+			}*/
 
 		}
 

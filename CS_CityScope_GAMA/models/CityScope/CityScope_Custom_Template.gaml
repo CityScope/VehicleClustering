@@ -10,11 +10,11 @@
 model CityScope_Custom_Template
 
 
-import "CityScope_main.gaml"
+//import "CityScope_main.gaml"
 
 /* Insert your model definition here */
 
-global{
+/*global{
 	
 	init{
 		create CustomSpecies number:10;
@@ -40,5 +40,5 @@ experiment CustomizedExperiment type:gui parent:CityScopeMain{
 			species CustomSpecies aspect:base;
 		}
 	}
-}
+}*/
 
