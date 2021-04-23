@@ -647,7 +647,7 @@ experiment CityScopeVolpeDemo type: gui parent: CityScopeMain autorun: true {
 	float minimum_cycle_duration <- 0.02;
 	output {
 		
-		display CityScopeTable   type:opengl background:#black fullscreen:2 toolbar:false rotate:0 synchronized:true
+		/*display CityScopeTable   type:opengl background:#black fullscreen:2 toolbar:false rotate:0 synchronized:true
 		camera_pos: {1153.2363,1038.0652,1210.9433} camera_look_pos: {1153.2392,1038.0443,-0.0028} camera_up_vector: {0.1381,0.9904,0.0}{
 	
 			species amenity aspect: onTable;
@@ -666,11 +666,11 @@ experiment CityScopeVolpeDemo type: gui parent: CityScopeMain autorun: true {
 				draw rectangle(300, 225) rotated_by 9.74 color: #black at: {725, 625, 10};
 			}
 
-		}
+		}*/
 		
 		display CityScope type: opengl parent: CityScopeVirtual toolbar: false {
 		}
-		
+	
 
 	}
 
@@ -679,10 +679,10 @@ experiment CityScopeVolpeDemo type: gui parent: CityScopeMain autorun: true {
 experiment CityScopeVolpeDemoExpe type: gui parent: CityScopeMain autorun: true {
 	float minimum_cycle_duration <- 0.02;
 	output {
-		display CityScope type: opengl parent: CityScopeVirtualExperimental toolbar: false {
-		}
+		//display CityScope type: opengl parent: CityScopeVirtualExperimental toolbar: false {
+		//}
 
-		display CityScopeTable type: opengl background: #black fullscreen:2  toolbar: false rotate: 180 synchronized: true camera_pos:
+		/*display CityScopeTable type: opengl background: #black fullscreen:2  toolbar: false rotate: 180 synchronized: true camera_pos:
 		{1369.1261241323866, 939.6915242287623, 1345.1870238795268} camera_look_pos: {1369.1293916321506, 939.6682747598774, -6.435029977022782E-4} camera_up_vector:
 		{0.13917310095974558, 0.9902680685878096, 1.7453299527680555E-5} {
 			species amenity aspect: onTable;
@@ -701,7 +701,7 @@ experiment CityScopeVolpeDemoExpe type: gui parent: CityScopeMain autorun: true 
 				draw rectangle(300, 225) rotated_by 9.74 color: #black at: {725, 625, 10};
 			}
 
-		}
+		}*/
 
 	}
 
