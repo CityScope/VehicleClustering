@@ -209,7 +209,7 @@ experiment clustering type: gui {
         species road aspect: base ;
         species people aspect: base ;
         species docking aspect: base ;
-        species bike aspect: base ;
+        species bike aspect: realistic ;
         graphics "text" {
 				draw "day" + string(current_day) + " - " + string(current_hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
 				{world.shape.width * 0.8, world.shape.height * 0.975};

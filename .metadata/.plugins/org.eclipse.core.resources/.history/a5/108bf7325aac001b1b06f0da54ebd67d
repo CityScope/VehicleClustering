@@ -138,9 +138,7 @@ global {
 					myself.distanceToDocking <- int(point(roadNetwork.vertices[i]) distance_to self.location);
 					loop y from: 0 to: length(dockingLocation) - 1 {
 						if (point(roadNetwork.vertices[dockingLocation[y]]) = self.location){
-							//Assign next vertice to closest docking
 							myself.towardDocking <- point(roadNetwork.vertices[allPairs[dockingLocation[y],i]]);
-							//Juan: I don't understand this last statement
 							if (myself.towardDocking=point(roadNetwork.vertices[i])){
 								myself.towardDocking <- point(roadNetwork.vertices[dockingLocation[y]]);
 							}
@@ -151,14 +149,12 @@ global {
 				type <- 'roadIntersection';				
 				loop y from: 0 to: length(dockingLocation) - 1 {
 					if (i=dockingLocation[y]){
-						type <- 'Docking&roadIntersection';
+						type <- 'Deposit&roadIntersection';
 					}
 				}	
 								
 			}
-		}
-		
-		//Juan: Analyze controller inserted here	 
+		}	 
 
 
 
@@ -191,6 +187,37 @@ species road  {
 }
 
 
+species people skills:[moving]{
+    rgb color <- #yellow ;
+    building living_place <- nil ;
+    building working_place <- nil ;
+    int start_work ;
+    int end_work  ;
+    string objective ;
+    point the_target <- nil ;
+    
+    reflex time_to_work when: current_date.hour = start_work and objective = "resting"{
+    objective <- "working" ;
+    the_target <- any_location_in (working_place);
+    }
+    
+    reflex time_to_go_home when: current_date.hour = end_work and objective = "working"{
+    objective <- "resting" ;
+    the_target <- any_location_in (living_place); 
+    }
+    
+    reflex move when: the_target != nil {
+    do goto target: the_target on: the_graph ; 
+    if the_target = location {
+        the_target <- nil ;
+    }
+    }
+    
+    aspect base {
+    draw circle(10) color: color border: #black;
+    }
+}
+
 experiment clustering type: gui {
     parameter "Shapefile for the buildings:" var: buildings_shapefile category: "GIS" ;
     parameter "Shapefile for the roads:" var: roads_shapefile category: "GIS" ;
@@ -204,12 +231,12 @@ experiment clustering type: gui {
     parameter "maximal speed" var: max_speed category: "People" max: 10 #km/#h;
         
     output {
-    display city_display type:opengl background: #black draw_env: false{	
+    display city_display type:opengl background: #black draw_env: false{
+    //display city_display type:opengl draw_env: false{	
         species building aspect: type ;
         species road aspect: base ;
         species people aspect: base ;
         species docking aspect: base ;
-        species bike aspect: base ;
         graphics "text" {
 				draw "day" + string(current_day) + " - " + string(current_hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
 				{world.shape.width * 0.8, world.shape.height * 0.975};

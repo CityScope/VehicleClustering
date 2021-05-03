@@ -8,7 +8,6 @@
 
 model Parameters
 
-import "./clustering.gaml"
 /* Insert your model definition here */
 global{
 	//-------------------------------------------------------------My Parameters----------------------------------------------------------------------------------

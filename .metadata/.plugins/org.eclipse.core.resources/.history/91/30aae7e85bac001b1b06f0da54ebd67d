@@ -81,7 +81,6 @@ species bike skills:[moving] {
 	aspect base{
 		draw circle(10) color:#brown border: #black;
 	}
-    //Juan: Aspect Realistic is not yet working
     aspect realistic {
 		draw triangle(15)  color: rgb(25*1.1,25*1.6,200) rotate: heading + 90;
 		if lowBattery{

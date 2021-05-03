@@ -191,6 +191,37 @@ species road  {
 }
 
 
+species people skills:[moving]{
+    rgb color <- #yellow ;
+    building living_place <- nil ;
+    building working_place <- nil ;
+    int start_work ;
+    int end_work  ;
+    string objective ;
+    point the_target <- nil ;
+    
+    reflex time_to_work when: current_date.hour = start_work and objective = "resting"{
+    objective <- "working" ;
+    the_target <- any_location_in (working_place);
+    }
+    
+    reflex time_to_go_home when: current_date.hour = end_work and objective = "working"{
+    objective <- "resting" ;
+    the_target <- any_location_in (living_place); 
+    }
+    
+    reflex move when: the_target != nil {
+    do goto target: the_target on: the_graph ; 
+    if the_target = location {
+        the_target <- nil ;
+    }
+    }
+    
+    aspect base {
+    draw circle(10) color: color border: #black;
+    }
+}
+
 experiment clustering type: gui {
     parameter "Shapefile for the buildings:" var: buildings_shapefile category: "GIS" ;
     parameter "Shapefile for the roads:" var: roads_shapefile category: "GIS" ;
@@ -209,7 +240,7 @@ experiment clustering type: gui {
         species road aspect: base ;
         species people aspect: base ;
         species docking aspect: base ;
-        species bike aspect: base ;
+        species bike aspect: realistic ;
         graphics "text" {
 				draw "day" + string(current_day) + " - " + string(current_hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
 				{world.shape.width * 0.8, world.shape.height * 0.975};
