@@ -21,10 +21,11 @@ global {
 	file shape_file_bounds <- file(cityGISFolder + "/BOUNDARY_CityBoundary.shp");
 	file shape_file_buildings <- file(cityGISFolder + "/CDD_LandUse.shp");
 	file shape_file_roads <- file(cityGISFolder + "/BASEMAP_Roads.shp");
-	file dockingStations <- file(cityGISFolder + "/holaaa");
 	file imageRaster <- file('./../../images/gama_black.png');
 	geometry shape <- envelope(shape_file_bounds);
+	file dockingStations <- file(cityGISFolder + "/dockingStations.shp");
     int nb_people <- 100;
+    int nb_docking;
     int min_work_start <- 6;
     int max_work_start <- 8;
     int min_work_end <- 16; 
@@ -34,22 +35,24 @@ global {
     graph the_graph;
     //rgb backgroundColor<-#white;
     map<string, rgb>
-    color_map <- ["Residence"::#white, "Office"::#gray, "Road"::#black];
+    color_map <- ["Residential"::#white, "Office"::#gray, "Other"::#black];
     
     init {
     create building from: shape_file_buildings with: [type::string(read ("Category"))] {
-        if type="Office" {
-        color <- #blue ;
-        }
-        if type="Residential" {
-        color <- #green ;
-        }
+    		if(type!="Office" and type!="Residential"){
+    			type <- "Other";
+    		}
         }
     
     create road from: shape_file_roads ; 
     the_graph <- as_edge_graph(road);
     
-    create docking from: dockingStations ; 
+    /*create docking from: dockingStations ;
+    nb_docking <- docking count (each touches shape);*/
+    //list<docking> list_dockings <- docking where (each touches shape);
+    
+    create docking from: dockingStations ;
+    
     
     list<building> residential_buildings <- building where (each.type="Residential");
     list<building> office_buildings <- building where (each.type="Residential");
@@ -62,7 +65,7 @@ global {
         objective <- "resting";
         location <- any_location_in (one_of (residential_buildings));
     }
-    
+        
     }
 }
 
@@ -78,6 +81,9 @@ species building {
 		draw shape color: rgb(50, 50, 50, 125);
 	}
     
+    aspect type{
+		draw shape color: color_map[type];
+	}
 }
 
 species road  {
@@ -90,7 +96,14 @@ species road  {
 species docking  {
     rgb color <- #blue ;
     aspect base {
-      draw shape color: color ;
+      draw circle(10) color: color border: #black;
+    }
+}
+
+species station  {
+    rgb color <- #blue ;
+    aspect base {
+    	draw circle(10) color: color border: #black;
     }
 }
 
@@ -138,12 +151,13 @@ experiment clustering type: gui {
     parameter "maximal speed" var: max_speed category: "People" max: 10 #km/#h;
         
     output {
-    //display city_display type:opengl background: #black draw_env: false{
-    display city_display type:opengl draw_env: false{	
-        species building aspect: default ;
+    display city_display type:opengl background: #black draw_env: false{
+    //display city_display type:opengl draw_env: false{	
+        species building aspect: type ;
         species road aspect: base ;
         species people aspect: base ;
         species docking aspect: base ;
+        //species station aspect: base ;
         graphics "text" {
 				draw "day" + string(current_day) + " - " + string(current_hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
 				{world.shape.width * 0.8, world.shape.height * 0.975};
