@@ -1,0 +1,13 @@
+/**
+* Name: Vehicles
+* Based on the internal empty template. 
+* Author: Juan
+* Tags: 
+*/
+
+
+model Vehicles
+
+import "./clustering.gaml"
+/* Insert your model definition here */
+

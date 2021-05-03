@@ -8,8 +8,6 @@
 
 model clustering
 
-import "./Vehicles.gaml"
-
 global {
     float step <- 10 #mn;
     int current_hour update: (time / #hour) mod 24;
@@ -92,6 +90,13 @@ species road  {
     rgb color <- #black ;
     aspect base {
        draw shape color: rgb(125, 125, 125);
+    }
+}
+
+species docking  {
+    rgb color <- #blue ;
+    aspect base {
+      draw circle(10) color: color border: #black;
     }
 }
 

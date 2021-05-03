@@ -8,7 +8,7 @@
 
 model clustering
 
-import "./Vehicles.gaml"
+import "./../models/Vehicles.gaml"
 
 global {
     float step <- 10 #mn;
@@ -95,6 +95,12 @@ species road  {
     }
 }
 
+species docking  {
+    rgb color <- #blue ;
+    aspect base {
+      draw circle(10) color: color border: #black;
+    }
+}
 
 species people skills:[moving]{
     rgb color <- #yellow ;

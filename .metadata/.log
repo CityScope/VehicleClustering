@@ -264,3 +264,119 @@ Command-line arguments:  -os win32 -ws win32 -arch x86_64 -data @noDefault
 !ENTRY org.apache.log4j 4 0 2021-05-03 18:23:14.897
 !MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.TypeDefinitionImpl is not assignable to the reference VariableRef.ref
 
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 18:40:06.739
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 18:40:06.742
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 18:40:14.066
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 18:40:14.068
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 18:50:25.497
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 18:50:25.499
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 18:50:26.690
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 18:51:15.323
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 18:51:15.902
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 18:51:55.108
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:06:18.054
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:06:22.601
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:06:23.964
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:06:25.533
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:06:26.889
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:06:56.019
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:06:57.632
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:06:58.477
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:28:17.448
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:28:19.497
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:28:20.544
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:28:21.450
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:28:25.169
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:28:26.253
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:28:28.065
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:28:29.482
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:28:32.719
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:40:29.288
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 19:40:45.400
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
+
