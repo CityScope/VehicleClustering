@@ -1,0 +1,16 @@
+/**
+* Name: Parameters
+* Based on the internal empty template. 
+* Author: Juan
+* Tags: 
+*/
+
+
+model Parameters
+
+/* Insert your model definition here */
+global{
+	//-------------------------------------------------------------My Parameters----------------------------------------------------------------------------------
+	//Number of Bikes to generate. Juan: Change this so nb is generated according to real GIS Data.
+	int bikeNum <- 25 min: 1 max: 1000 parameter: "Nb Vehicle:" category: "Initial";		
+	
