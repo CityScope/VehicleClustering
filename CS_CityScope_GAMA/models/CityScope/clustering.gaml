@@ -8,23 +8,28 @@
 
 model clustering
 
-import "./Vehicles.gaml"
+import "./Agents.gaml"
 
 global {
+	date starting_date <- #now;
+	//---------------------------------------------------------Performance Measures-----------------------------------------------------------------------------
+	int randomID;
+	//-------------------------------------------------------------------Necessary Variables--------------------------------------------------------------------------------------------------
+
     float step <- 10 #mn;
     int current_hour update: (time / #hour) mod 24;
 	//Implement a reflex to update current day. See City Scope Main. TBD
 	int current_day <- 0;
-	date starting_date <- date("2021-04-23-00-00-00");
+	
 	
  	string cityScopeCity<-"clustering";
 	string cityGISFolder <- "./../../includes/City/"+cityScopeCity;
 	// GIS FILES
-	file shape_file_bounds <- file(cityGISFolder + "/BOUNDARY_CityBoundary.shp");
-	file shape_file_buildings <- file(cityGISFolder + "/CDD_LandUse.shp");
-	file shape_file_roads <- file(cityGISFolder + "/BASEMAP_Roads.shp");
+	file bound_shapefile <- file(cityGISFolder + "/BOUNDARY_CityBoundary.shp");
+	file buildings_shapefile <- file(cityGISFolder + "/CDD_LandUse.shp");
+	file roads_shapefile <- file(cityGISFolder + "/BASEMAP_Roads.shp");
 	file imageRaster <- file('./../../images/gama_black.png');
-	geometry shape <- envelope(shape_file_bounds);
+	geometry shape <- envelope(bound_shapefile);
 	file dockingStations <- file(cityGISFolder + "/dockingStations.shp");
     int nb_people <- 100;
     int nb_docking;
@@ -38,23 +43,38 @@ global {
     //rgb backgroundColor<-#white;
     map<string, rgb>
     color_map <- ["Residential"::#white, "Office"::#gray, "Other"::#black];
+
+
+	//-------------------------------------Species Creation-----------------------------------------------------------------------------------------------------------------------
     
     init {
-    create building from: shape_file_buildings with: [type::string(read ("Category"))] {
+	//---------------------------------------------------PERFORMANCE-----------------------------------------------    	
+	randomID <- rnd (10000);
+    create building from: buildings_shapefile with: [type::string(read ("Category"))] {
     		if(type!="Office" and type!="Residential"){
     			type <- "Other";
     		}
         }
     
-    create road from: shape_file_roads ; 
+    create road from: roads_shapefile ; 
     the_graph <- as_edge_graph(road);
     
-    /*create docking from: dockingStations ;
-    nb_docking <- docking count (each touches shape);*/
-    //list<docking> list_dockings <- docking where (each touches shape);
+	//------------------------------------------BIKE SPECIES-------------------------------------------------------------			
+	create pheromoneRoad from: roads_shapefile{
+		pheromone <- 0.0;
+	}    
+ 
+	// ---------------------------------------The Road Network----------------------------------------------
+	roadNetwork <- as_edge_graph(pheromoneRoad) ;   
+	
+	// Next move to the shortest path between each point in the graph
+	matrix allPairs <- all_pairs_shortest_path (roadNetwork);    
     
+	// -------------------------------------Location of the charging stations----------------------------------------   
     create docking from: dockingStations ;
     
+	// -------------------------------------------The Bikes -----------------------------------------
+
     
     list<building> residential_buildings <- building where (each.type="Residential");
     list<building> office_buildings <- building where (each.type="Residential");
@@ -128,9 +148,9 @@ species people skills:[moving]{
 }
 
 experiment clustering type: gui {
-    parameter "Shapefile for the buildings:" var: shape_file_buildings category: "GIS" ;
-    parameter "Shapefile for the roads:" var: shape_file_roads category: "GIS" ;
-    parameter "Shapefile for the bounds:" var: shape_file_bounds category: "GIS" ;
+    parameter "Shapefile for the buildings:" var: buildings_shapefile category: "GIS" ;
+    parameter "Shapefile for the roads:" var: roads_shapefile category: "GIS" ;
+    parameter "Shapefile for the bounds:" var: bound_shapefile category: "GIS" ;
     parameter "Number of people agents:" var: nb_people category: "People" ;
     parameter "Earliest hour to start work" var: min_work_start category: "People" min: 2 max: 8;
     parameter "Latest hour to start work" var: max_work_start category: "People" min: 8 max: 12;

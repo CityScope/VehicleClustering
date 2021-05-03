@@ -380,3 +380,51 @@ Command-line arguments:  -os win32 -ws win32 -arch x86_64 -data @noDefault
 !ENTRY org.apache.log4j 4 0 2021-05-03 19:40:45.400
 !MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.VarDefinitionImpl is not assignable to the reference TypeRef.ref
 
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 20:44:54.623
+!MESSAGE org.eclipse.xtext.ui.editor.validation.ValidationJob  - Error running validator
+
+!STACK 0
+org.eclipse.emf.ecore.resource.impl.ResourceSetImpl$1DiagnosticWrappedException: org.eclipse.core.internal.resources.ResourceException: Resource '/CS_CityScope_GAMA/models/CityScope/Vehicles.gaml' does not exist.
+	at org.eclipse.emf.ecore.resource.impl.ResourceSetImpl.handleDemandLoadException(ResourceSetImpl.java:319)
+	at org.eclipse.emf.ecore.resource.impl.ResourceSetImpl.demandLoadHelper(ResourceSetImpl.java:278)
+	at org.eclipse.xtext.resource.XtextResourceSet.getResource(XtextResourceSet.java:265)
+	at org.eclipse.xtext.resource.SynchronizedXtextResourceSet.getResource(SynchronizedXtextResourceSet.java:25)
+	at msi.gama.lang.gaml.indexer.GamlResourceIndexer.lambda$2(GamlResourceIndexer.java:228)
+	at msi.gama.util.IMap.forEachPair(IMap.java:431)
+	at msi.gama.lang.gaml.indexer.GamlResourceIndexer.validateImportsOf(GamlResourceIndexer.java:227)
+	at msi.gama.lang.gaml.resource.GamlResource.buildCompleteDescription(GamlResource.java:150)
+	at msi.gama.lang.gaml.resource.GamlResource.validate(GamlResource.java:176)
+	at msi.gama.lang.gaml.validation.GamlResourceValidator.validate(GamlResourceValidator.java:57)
+	at org.eclipse.xtext.ui.editor.validation.ValidationJob$1.exec(ValidationJob.java:91)
+	at org.eclipse.xtext.ui.editor.validation.ValidationJob$1.exec(ValidationJob.java:1)
+	at org.eclipse.xtext.util.concurrent.CancelableUnitOfWork.exec(CancelableUnitOfWork.java:26)
+	at org.eclipse.xtext.resource.OutdatedStateManager.exec(OutdatedStateManager.java:91)
+	at org.eclipse.xtext.ui.editor.model.XtextDocument$XtextDocumentLocker.internalReadOnly(XtextDocument.java:527)
+	at org.eclipse.xtext.ui.editor.model.XtextDocument$XtextDocumentLocker.readOnly(XtextDocument.java:499)
+	at org.eclipse.xtext.ui.editor.model.XtextDocument.readOnly(XtextDocument.java:138)
+	at org.eclipse.xtext.ui.editor.validation.ValidationJob.createIssues(ValidationJob.java:86)
+	at org.eclipse.xtext.ui.editor.validation.ValidationJob.run(ValidationJob.java:67)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+Caused by: org.eclipse.core.internal.resources.ResourceException: Resource '/CS_CityScope_GAMA/models/CityScope/Vehicles.gaml' does not exist.
+	at org.eclipse.core.internal.resources.Resource.checkExists(Resource.java:330)
+	at org.eclipse.core.internal.resources.Resource.checkAccessible(Resource.java:204)
+	at org.eclipse.core.internal.resources.File.getContents(File.java:278)
+	at org.eclipse.core.internal.resources.File.getContents(File.java:271)
+	at org.eclipse.emf.ecore.resource.impl.PlatformResourceURIHandlerImpl$WorkbenchHelper.createPlatformResourceInputStream(PlatformResourceURIHandlerImpl.java:207)
+	at org.eclipse.emf.ecore.resource.impl.PlatformResourceURIHandlerImpl.createInputStream(PlatformResourceURIHandlerImpl.java:525)
+	at org.eclipse.xtext.resource.ExternalContentSupport$ExternalContentAwareURIHandler.createInputStream(ExternalContentSupport.java:74)
+	at org.eclipse.emf.ecore.resource.impl.ExtensibleURIConverterImpl.createInputStream(ExtensibleURIConverterImpl.java:360)
+	at org.eclipse.xtext.resource.XtextResourceSet$1.createInputStream(XtextResourceSet.java:298)
+	at org.eclipse.emf.ecore.resource.impl.ResourceImpl.load(ResourceImpl.java:1314)
+	at org.eclipse.emf.ecore.resource.impl.ResourceSetImpl.demandLoad(ResourceSetImpl.java:259)
+	at org.eclipse.emf.ecore.resource.impl.ResourceSetImpl.demandLoadHelper(ResourceSetImpl.java:274)
+	... 18 more
+Caused by: java.lang.Exception: Resource '/CS_CityScope_GAMA/models/CityScope/Vehicles.gaml' does not exist.
+	at org.eclipse.core.internal.resources.ResourceException.provideStackTrace(ResourceException.java:42)
+	at org.eclipse.core.internal.resources.ResourceException.<init>(ResourceException.java:38)
+	... 30 more
+
+!ENTRY org.apache.log4j 4 0 2021-05-03 20:59:02.175
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.TypeDefinitionImpl is not assignable to the reference VariableRef.ref
+
