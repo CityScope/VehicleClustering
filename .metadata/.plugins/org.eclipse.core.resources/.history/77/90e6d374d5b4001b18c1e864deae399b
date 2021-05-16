@@ -35,7 +35,7 @@ global {
 	file roads_shapefile <- file(cityGISFolder + "/Roads.shp");
 	file imageRaster <- file('./../../images/gama_black.png');
 	geometry shape <- envelope(bound_shapefile);
-	//file dockingStations <- file(cityGISFolder + "/dockingStations.shp");
+	file dockingStations <- file(cityGISFolder + "/dockingStations.shp");
 	//file dockingStations <- file("./../../includes/City/clustering" + "/dockingStations.shp");
     int nb_chargingStation;
     int min_work_start <- 6;
@@ -87,10 +87,10 @@ global {
 	    
 		// -------------------------------------Location of the charging stations----------------------------------------   
 
-	    //from docking locations to closest intersection
+	    /*//from docking locations to closest intersection
 	    list<int> tmpDist;
 	    
-	    /*//Juan: for docking stations obtained from file
+	    //Juan: for docking stations obtained from file
 	    create docking from: dockingStations ;
 	    loop station from:0 to:length(docking)-1 {
 	    	tmpDist <- [];
@@ -271,7 +271,7 @@ experiment clustering type: gui {
         species pheromoneRoad aspect: base ;
         species tagRFID aspect: base ;
         species people aspect: base ;
-        species chargingStation aspect: base ;
+        species docking aspect: base ;
         species bike aspect: base ; 
         graphics "text" {
 				draw "day" + string(current_day) + " - " + string(current_hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:

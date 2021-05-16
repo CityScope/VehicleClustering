@@ -271,7 +271,7 @@ experiment clustering type: gui {
         species pheromoneRoad aspect: base ;
         species tagRFID aspect: base ;
         species people aspect: base ;
-        species chargingStation aspect: base ;
+        species docking aspect: base ;
         species bike aspect: base ; 
         graphics "text" {
 				draw "day" + string(current_day) + " - " + string(current_hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:

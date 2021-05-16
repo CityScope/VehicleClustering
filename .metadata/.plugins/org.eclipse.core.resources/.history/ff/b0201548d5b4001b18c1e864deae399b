@@ -37,7 +37,7 @@ global {
 	geometry shape <- envelope(bound_shapefile);
 	//file dockingStations <- file(cityGISFolder + "/dockingStations.shp");
 	//file dockingStations <- file("./../../includes/City/clustering" + "/dockingStations.shp");
-    int nb_chargingStation;
+    int nb_docking;
     int min_work_start <- 6;
     int max_work_start <- 8;
     int min_work_end <- 16; 
@@ -68,8 +68,8 @@ global {
 	    		}
 	        }
 	    
-	    /*create road from: roads_shapefile ; 
-	    the_graph <- as_edge_graph(road);*/
+	    create road from: roads_shapefile ; 
+	    the_graph <- as_edge_graph(road);
 	    
 		//------------------------------------------BIKE SPECIES-------------------------------------------------------------			
 	    
@@ -86,38 +86,14 @@ global {
 		matrix allPairs <- all_pairs_shortest_path (roadNetwork);    
 	    
 		// -------------------------------------Location of the charging stations----------------------------------------   
-
-	    //from docking locations to closest intersection
-	    list<int> tmpDist;
-	    
-	    /*//Juan: for docking stations obtained from file
-	    create docking from: dockingStations ;
-	    loop station from:0 to:length(docking)-1 {
-	    	tmpDist <- [];
-	    	loop vertice from:0 to:length(roadNetwork.vertices)-1{
-	    		add (point(roadNetwork.vertices[vertice])) distance_to docking[station].location to: tmpDist;
-	    	}
-	    	loop vertice from:0 to: length(tmpDist)-1{
-	    		if(min(tmpDist)=tmpDist[vertice]){
-	    			add vertice to: dockingLocation;
-	    			break;
-	    		}
-	    	}
-	    }
-	    
-	    //Asign docking locations the new locations
-	    loop station from:0 to:length(docking)-1 {
-	    	docking[station].location <- roadNetwork.vertices[dockingLocation[station]];
-	    }*/
-
+		
 		loop i from: 0 to: length(roadNetwork.vertices) - 1 {
 			create intersection {
 			location <- point (roadNetwork.vertices[i]);
 		}
 		}
-
 		//K-Means		
-		//Create a list of list containing for each docking a list composed of its x and y values
+		//Create a list of list containing for each vertice a list composed of its x and y values
 		list<list> instances <- intersection collect ([each.location.x, each.location.y]);
 
 			
@@ -137,7 +113,8 @@ global {
 			add mean(coordinatesVertices) to: coordinatesCentroids;
 		}    
 	    
-
+	    //from docking locations to closest intersection
+	    list<int> tmpDist;
 
 		loop centroid from:0 to:length(coordinatesCentroids)-1 {
 			tmpDist <- [];
@@ -146,16 +123,34 @@ global {
 			}	
 			loop vertices from:0 to: length(tmpDist)-1{
 				if(min(tmpDist)=tmpDist[vertices]){
-					add vertices to: chargingStationLocation;
+					add vertices to: dockingLocation;
 					break;
 				}
 			}	
 		}
 	    
-
-	    loop i from: 0 to: length(chargingStationLocation) - 1 {
-			create chargingStation{
-				location <- point(roadNetwork.vertices[chargingStationLocation[i]]);
+	    //Juan: for docking stations obtaind from file
+	    /*create docking from: dockingStations ;
+	    loop station from:0 to:length(docking)-1 {
+	    	tmpDist <- [];
+	    	loop vertice from:0 to:length(roadNetwork.vertices)-1{
+	    		add (point(roadNetwork.vertices[vertice])) distance_to docking[station].location to: tmpDist;
+	    	}
+	    	loop vertice from:0 to: length(tmpDist)-1{
+	    		if(min(tmpDist)=tmpDist[vertice]){
+	    			add vertice to: dockingLocation;
+	    			break;
+	    		}
+	    	}
+	    }
+	    
+	    //Asign docking locations the new locations
+	    loop station from:0 to:length(docking)-1 {
+	    	docking[station].location <- roadNetwork.vertices[dockingLocation[station]];
+	    }*/
+	    loop i from: 0 to: length(dockingLocation) - 1 {
+			create docking{
+				location <- point(roadNetwork.vertices[dockingLocation[i]]);
 			}
 		}
 		
@@ -196,24 +191,24 @@ global {
 				pheromones <- [0.0,0.0,0.0,0.0,0.0];
 				pheromonesToward <- neighbors_of(roadNetwork,roadNetwork.vertices[i]);  //to know what edge is related  to that amount of pheromone
 				
-				// Find the closest chargingPoint and set towardChargingStation and distanceToChargingStation
-				ask chargingStation closest_to self {
-					myself.distanceToChargingStation <- int(point(roadNetwork.vertices[i]) distance_to self.location);
-					loop y from: 0 to: length(chargingStationLocation) - 1 {
-						if (point(roadNetwork.vertices[chargingStationLocation[y]]) = self.location){
-							//Assign next vertice to closest charging  station
-							myself.towardChargingStation <- point(roadNetwork.vertices[allPairs[chargingStationLocation[y],i]]);
-							//Juan: I think this is if next node is already charging station
-							if (myself.towardChargingStation=point(roadNetwork.vertices[i])){
-								myself.towardChargingStation <- point(roadNetwork.vertices[chargingStationLocation[y]]);
+				// Find the closest chargingPoint and set towardDocking and distanceToDocking
+				ask docking closest_to self {
+					myself.distanceToDocking <- int(point(roadNetwork.vertices[i]) distance_to self.location);
+					loop y from: 0 to: length(dockingLocation) - 1 {
+						if (point(roadNetwork.vertices[dockingLocation[y]]) = self.location){
+							//Assign next vertice to closest docking
+							myself.towardDocking <- point(roadNetwork.vertices[allPairs[dockingLocation[y],i]]);
+							//Juan: I think this is if next node is already docking station
+							if (myself.towardDocking=point(roadNetwork.vertices[i])){
+								myself.towardDocking <- point(roadNetwork.vertices[dockingLocation[y]]);
 							}
 							break;
 						}				
 					}					
 				}				
 				type <- 'roadIntersection';				
-				loop y from: 0 to: length(chargingStationLocation) - 1 {
-					if (i=chargingStationLocation[y]){
+				loop y from: 0 to: length(dockingLocation) - 1 {
+					if (i=dockingLocation[y]){
 						type <- 'Docking&roadIntersection';
 					}
 				}
@@ -271,7 +266,7 @@ experiment clustering type: gui {
         species pheromoneRoad aspect: base ;
         species tagRFID aspect: base ;
         species people aspect: base ;
-        species chargingStation aspect: base ;
+        species docking aspect: base ;
         species bike aspect: base ; 
         graphics "text" {
 				draw "day" + string(current_day) + " - " + string(current_hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:

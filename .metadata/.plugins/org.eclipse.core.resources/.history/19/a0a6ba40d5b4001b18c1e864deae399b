@@ -20,7 +20,6 @@ global{
 	float diffusion <- (1-exploratoryRate) * 0.5;
 	graph roadNetwork;
 	list<int> dockingLocation;
-	list<int> chargingStationLocation;
 }
 
 species pheromoneRoad {
@@ -34,15 +33,10 @@ species pheromoneRoad {
 	}
 }
 
+
+
 species docking{
-	aspect base {
-			draw circle(10) color:#blue;		
-	}
-}
-
-
-
-species chargingStation{
+    int trash;
 	int bikes;
 	aspect base {
 			draw circle(10) color:#blue;		
@@ -67,8 +61,8 @@ species tagRFID {
 	list<geometry> pheromonesToward;
 	int lastUpdate;
 	
-	geometry towardChargingStation;
-	int distanceToChargingStation;
+	geometry towardDocking;
+	int distanceToDocking;
 
 	aspect base{
 		draw circle(10) color:#purple border: #black;
@@ -90,7 +84,7 @@ species bike skills:[moving] {
 	int batteryLife;
 	float speedDist; 
 	
-	int lastDistanceToChargingStation;
+	int lastDistanceToDocking;
 	
 	bool lowBattery;	
 	bool carrying;
@@ -180,10 +174,10 @@ species bike skills:[moving] {
 		}
 		else{				
 			ask tagRFID closest_to(self){
-				myself.lastDistanceToChargingStation <- self.distanceToChargingStation;
+				myself.lastDistanceToDocking <- self.distanceToDocking;
 				
 				// If enough batteryLife follow the pheromone 
-				if(myself.batteryLife < myself.lastDistanceToChargingStation/myself.speedDist){ 
+				if(myself.batteryLife < myself.lastDistanceToDocking/myself.speedDist){ 
 					myself.lowBattery <- true;
 				}
 				else{
@@ -237,21 +231,21 @@ species bike skills:[moving] {
 		else{				
 			ask tagRFID closest_to(self) {
 				// Update direction and distance from closest Docking station
-				myself.target <- point(self.towardChargingStation);
-				myself.lastDistanceToChargingStation <- self.distanceToChargingStation;
+				myself.target <- point(self.towardDocking);
+				myself.lastDistanceToDocking <- self.distanceToDocking;
 				
 				
 			}
 			do updatePheromones;
 			source <- location;
 			// Recover wandering status, delete pheromones over Deposits
-			loop i from: 0 to: length(chargingStationLocation) - 1 {
-					if(location = point(roadNetwork.vertices[chargingStationLocation[i]])){
+			loop i from: 0 to: length(dockingLocation) - 1 {
+					if(location = point(roadNetwork.vertices[dockingLocation[i]])){
 						ask tagRFID closest_to(self){
 							self.pheromones <- [0.0,0.0,0.0,0.0,0.0];
 						}
 						
-						ask chargingStation closest_to(self){
+						ask docking closest_to(self){
 							if(myself.carrying){
 								//self.trash <- self.trash + carriableTrashAmount;
 								myself.carrying <- false;
