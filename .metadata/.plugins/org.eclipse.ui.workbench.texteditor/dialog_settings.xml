@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
-		<item key="selection" value="one_of"/>
+		<item key="selection" value="create bike"/>
 		<item key="wrap" value="true"/>
 		<item key="casesensitive" value="false"/>
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
-			<item value="one_of"/>
+			<item value="create bike"/>
+			<item value="create people"/>
+			<item value="create peo`ple"/>
 			<item value="create"/>
+			<item value="speed"/>
+			<item value="create peopl"/>
+			<item value="create poe"/>
+			<item value="one_of"/>
 			<item value="die"/>
 			<item value="imageRaster"/>
 			<item value="lowbatt"/>
@@ -17,19 +23,13 @@
 			<item value="battery"/>
 			<item value="lastDistanceToDeposit"/>
 			<item value="create build"/>
-			<item value="create dep"/>
-			<item value="depositNum"/>
-			<item value="vertice"/>
-			<item value="roads_shapefile"/>
-			<item value="road_graph"/>
-			<item value="get_distance"/>
 		</list>
 		<list key="replacehistory">
 		</list>
 	</section>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
-		<item key="DIALOG_X_ORIGIN" value="427"/>
-		<item key="DIALOG_Y_ORIGIN" value="361"/>
+		<item key="DIALOG_X_ORIGIN" value="184"/>
+		<item key="DIALOG_Y_ORIGIN" value="383"/>
 		<item key="DIALOG_WIDTH" value="284"/>
 		<item key="DIALOG_HEIGHT" value="391"/>
 		<item key="DIALOG_FONT_NAME" value="1|Segoe UI|9.0|0|WINDOWS|1|-12|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI"/>
