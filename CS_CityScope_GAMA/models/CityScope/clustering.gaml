@@ -23,10 +23,7 @@ global {
 	geometry shape <- envelope(bound_shapefile);
 	graph roadNetwork;
 	list<int> chargingStationLocation;
-  
-	//Print for debugging
-    int here <- 0 ;
-	
+  	
 
     	// ---------------------------------------Species Creation----------------------------------------------
     init {
@@ -139,7 +136,7 @@ global {
 			location <- point(one_of(roadNetwork.vertices)); 
 			target <- location; 
 			source <- location;
-			carrying <- false;
+			picking <- false;
 			lowBattery <- false;
 			pheromoneToDiffuse <- 0.0;
 			pheromoneMark <- 0.0;
@@ -229,10 +226,5 @@ experiment clustering type: gui {
 				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
 			}
     }
-      display chart_display refresh: every(1#cycles) {
-      chart "Here" type: series size: {1, 0.5} position: {0, 0.5}{
-       data "here" value: here style: line color: #red ;
-      }
-     }
     }
 }
