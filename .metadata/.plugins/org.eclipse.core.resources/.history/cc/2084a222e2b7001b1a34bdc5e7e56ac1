@@ -13,12 +13,17 @@ import "./clustering.gaml"
 
 global{
 	//-----------------------------------------------------Bike Parameters--------------------------------------------------
-
+	//graph roadNetwork;
+	list<int> dockingLocation;
+	list<int> chargingStationLocation;
 }
 
 species pheromoneRoad {
 	float pheromone;
 	int lastUpdate;
+	aspect pheromoneLevel {
+		draw shape  color: rgb(125,125,150);
+	}
 	aspect base {
 		draw shape color: rgb(125, 125, 125);
 	}
@@ -32,6 +37,16 @@ species docking{
 
 species building {
     string type; 
+    rgb color <- #black  ;
+    
+    aspect base {
+    draw shape color: color ;
+    }
+    
+    aspect default {
+		draw shape color: rgb(50, 50, 50, 125);
+	}
+    
     aspect type{
 		draw shape color: color_map[type];
 	}
@@ -41,6 +56,9 @@ species chargingStation{
 	int bikes;
 	aspect base {
 			draw circle(10) color:#blue;		
+	}
+	aspect realistic{
+		draw circle(10) color:rgb(107,171,158);
 	}
 }
 
@@ -52,7 +70,7 @@ species intersection{
 
 species tagRFID {
 	int id;
-	//bool checked;
+	bool checked;
 	string type;
 	
 	list<float> pheromones;
@@ -86,10 +104,12 @@ species bike skills:[moving] {
 	
 	bool lowBattery;	
 	bool carrying;
-	
-	bool avaliable <- true ;
+		
 	people rider <- nil ;	
-
+	aspect base{
+		draw circle(10) color:#brown border: #black;
+	}
+    //Juan: Aspect Realistic is not yet working
     aspect realistic {
 		draw triangle(15)  color: rgb(25*1.1,25*1.6,200) rotate: heading + 90;
 		if lowBattery{
@@ -102,7 +122,7 @@ species bike skills:[moving] {
 
 
 	action updatePheromones{
-		list<tagRFID>closeTag <- tagRFID at_distance 100;
+		list<tagRFID>closeTag <- tagRFID at_distance 10;
 		ask closeTag closest_to(self){
 			loop j from:0 to: (length(self.pheromonesToward)-1) {					
 							
@@ -262,7 +282,7 @@ species bike skills:[moving] {
 	}
 	reflex carrying when: (carrying and !lowBattery){
 		//my_path <- self.goto(on:roadNetwork, target:target, speed:speedDist, return_path: true);
-		do goto target: target on: roadNetwork ; 
+		do goto target: target on: the_graph ; 
 	    if target = location {
 	        target <- nil ;
 	        create ride {
@@ -314,7 +334,7 @@ species people skills:[moving]{
     	call_bike <- false ;
 	    closest_int <- (intersection closest_to(self)).location ;
 	    do callBike;
-	    do goto target: closest_int on: roadNetwork ; 	
+	    do goto target: closest_int on: the_graph ; 	
     }
     
     
@@ -323,12 +343,10 @@ species people skills:[moving]{
     }
     
     action callBike {
-    	list<bike>avaliableBikes <- bike where (each.avaliable = true) ;
-    	ask avaliableBikes closest_to(self){
+    	ask bike closest_to(self){
     		self.target <- myself.closest_int;
     		self.carrying <- true;
     		self.rider <- myself ;
-    		self.avaliable <- false ;
     	}
     }
 }
@@ -352,7 +370,7 @@ species ride skills:[moving]{
 	float r_speedDist; 
 			
 	reflex move {
-		do goto target: the_target on: roadNetwork ;
+		do goto target: the_target on: the_graph ;
 		ask rider {
 			do die ;
 		}
@@ -370,22 +388,23 @@ species ride skills:[moving]{
 			}
 			create bike {
 				self.location <- (intersection closest_to myself).location ;
-				target <- self.location ; 
-				source <- self.location ;
+				self.target <- self.location ; 
+				self.source <- self.location ;
 				carrying <- false;
 				lowBattery <- false;
-				speedDist <- myself.r_speedDist ;
+				speedDist <- 1.0;
 				//Values to change
 				pheromoneToDiffuse <- myself.r_pheromoneToDiffuse ;
 				pheromoneMark <- myself.r_pheromoneMark ;
 				batteryLife <- myself.r_batteryLife ;
+				speedDist <- myself.r_speedDist ;
 			}
 			do die;
 		} 
 	}
-    aspect realistic {
-		draw triangle(15)  color: #gamagreen rotate: heading + 90;
-	}
+	aspect base {
+    draw circle(10) color: #green border: #green;
+    }
 }
 
 

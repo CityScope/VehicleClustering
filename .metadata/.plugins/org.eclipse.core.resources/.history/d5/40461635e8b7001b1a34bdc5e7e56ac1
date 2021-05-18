@@ -370,22 +370,24 @@ species ride skills:[moving]{
 			}
 			create bike {
 				self.location <- (intersection closest_to myself).location ;
-				target <- self.location ; 
-				source <- self.location ;
+				self.target <- self.location ; 
+				self.source <- self.location ;
+				avaliable <- true;
 				carrying <- false;
 				lowBattery <- false;
-				speedDist <- myself.r_speedDist ;
+				speedDist <- 1.0;
 				//Values to change
 				pheromoneToDiffuse <- myself.r_pheromoneToDiffuse ;
 				pheromoneMark <- myself.r_pheromoneMark ;
 				batteryLife <- myself.r_batteryLife ;
+				speedDist <- myself.r_speedDist ;
 			}
 			do die;
 		} 
 	}
-    aspect realistic {
-		draw triangle(15)  color: #gamagreen rotate: heading + 90;
-	}
+	aspect base {
+    draw circle(10) color: #green border: #green;
+    }
 }
 
 

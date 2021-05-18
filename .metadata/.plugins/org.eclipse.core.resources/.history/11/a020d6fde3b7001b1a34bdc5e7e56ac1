@@ -141,11 +141,10 @@ global {
 			source <- location;
 			carrying <- false;
 			lowBattery <- false;
+			speedDist <- 1.0;
 			pheromoneToDiffuse <- 0.0;
 			pheromoneMark <- 0.0;
 			batteryLife <- rnd(maxBatteryLife);
-			//Juan: change to random when update battery behavior
-			//speedDist <- rnd(maxSpeedDist);
 			speedDist <- maxSpeedDist;
 		}
 	    
@@ -218,11 +217,11 @@ experiment clustering type: gui {
     display city_display type:opengl background: #black draw_env: false{	
         species building aspect: type ;
         species pheromoneRoad aspect: base ;
-        //species tagRFID aspect: base ;
+        species tagRFID aspect: base ;
         species people aspect: base ;
         species chargingStation aspect: base ;
         species bike aspect: realistic ;
-        species ride aspect: realistic ; 
+        species ride aspect: base ; 
         graphics "text" {
 				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
 				{world.shape.width * 0.8, world.shape.height * 0.975};

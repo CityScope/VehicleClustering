@@ -20,14 +20,13 @@ global{
 	float maxSpeedDist <- 2.5; // about 5.5  m/s for PEV (it can be changed accordingly to different robot specification)
 	//Number of docking stations
 	int dockingNum <- 2;
-	//Number of charging stations
-	int nb_chargingStation;
 	//Number of people
 	int nb_people <- 1;
 	//Simulation time step
 	float step <- 10 #mn;
 	//Number of charging stations
 	//PEOPLE'S Parameters
+	int nb_chargingStation;
     int min_work_start <- 6;
     int max_work_start <- 8;
     int min_work_end <- 16; 
@@ -39,26 +38,5 @@ global{
 	float evaporation <- 0.5;
 	float exploratoryRate <- 0.8;
 	float diffusion <- (1-exploratoryRate) * 0.5; 
-	//GIS FILES To Upload
-	//Case 1 - Urban Swarms Map
- 	string cityScopeCity<-"UrbanSwarm";
-	string cityGISFolder <- "./../../includes/City/"+cityScopeCity;
-	file bound_shapefile <- file(cityGISFolder + "/Bounds.shp");
-	file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp");
-	file roads_shapefile <- file(cityGISFolder + "/Roads.shp");
-	map<string, rgb> color_map <- ["R"::#white, "O"::#gray, "Other"::#black];	
-	//Case 2 - Cambridge Map
-	/*
-	string cityScopeCity<-"clustering";
-	string cityGISFolder <- "./../../includes/City/"+cityScopeCity;
-	file bound_shapefile <- file(cityGISFolder + "/BOUNDARY_CityBoundary.shp");
-	file buildings_shapefile <- file(cityGISFolder + "/CDD_LandUse.shp");
-	file roads_shapefile <- file(cityGISFolder + "/TRANS_CenterLines.shp");
-	file dockingStations <- file(cityGISFolder + "/dockingStations.shp");
-	file dockingStations <- file("./../../includes/City/clustering" + "/dockingStations.shp");
-	map<string, rgb> color_map <- ["Residential"::#white, "Office"::#gray, "Other"::#black];
-	 */
-	//Image File
-	file imageRaster <- file('./../../images/gama_black.png');
 			
 }	

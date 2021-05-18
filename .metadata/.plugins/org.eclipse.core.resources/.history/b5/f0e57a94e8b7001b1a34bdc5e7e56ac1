@@ -144,9 +144,7 @@ global {
 			pheromoneToDiffuse <- 0.0;
 			pheromoneMark <- 0.0;
 			batteryLife <- rnd(maxBatteryLife);
-			//Juan: change to random when update battery behavior
-			//speedDist <- rnd(maxSpeedDist);
-			speedDist <- maxSpeedDist;
+			speedDist <- rnd(maxSpeedDist);
 		}
 	    
 		// -------------------------------------------The People -----------------------------------------

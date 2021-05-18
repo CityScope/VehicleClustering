@@ -383,9 +383,9 @@ species ride skills:[moving]{
 			do die;
 		} 
 	}
-    aspect realistic {
-		draw triangle(15)  color: #gamagreen rotate: heading + 90;
-	}
+	aspect base {
+    draw circle(10) color: #green border: #green;
+    }
 }
 
 

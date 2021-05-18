@@ -21,9 +21,8 @@ global {
 
 
 	geometry shape <- envelope(bound_shapefile);
-	graph roadNetwork;
-	list<int> chargingStationLocation;
-  
+    graph the_graph;
+    
 	//Print for debugging
     int here <- 0 ;
 	
@@ -36,25 +35,20 @@ global {
 	    		if(type!="Office" and type!="Residential"){
 	    			type <- "Other";
 	    		}
-	        }
-	    
-	    list<building> residential_buildings <- building where (each.type="Residential");
-	    list<building> office_buildings <- building where (each.type="Office");*/
+	        }*/
 	    create building from: buildings_shapefile with: [type::string(read ("Usage"))] {
 	    		if(type!="O" and type!="R"){
 	    			type <- "Other";
 	    		}
 	        }
-	        
-
-	    list<building> residential_buildings <- building where (each.type="R");
-	    list<building> office_buildings <- building where (each.type="O");
 	    
-		// ---------------------------------------The Road Network----------------------------------------------
-		    
+		// ---------------------------------------The Road Network----------------------------------------------    
 		create pheromoneRoad from: roads_shapefile{
 			pheromone <- 0.0;
-		}		
+		}
+		
+		//Juan: is this roadNetwork necessary? Having already the_graph
+		//roadNetwork <- as_edge_graph(pheromoneRoad) ;
 		roadNetwork <- as_edge_graph(pheromoneRoad) ;   
 		// Next move to the shortest path between each point in the graph
 		matrix allPairs <- all_pairs_shortest_path (roadNetwork);    
@@ -62,11 +56,9 @@ global {
 		// -------------------------------------Location of the charging stations----------------------------------------   
 
 	    //from docking locations to closest intersection
-	    list<int> tmpDist;	    
-  
+	    list<int> tmpDist;
 	    
 	    /*//Juan: for docking stations obtained from file
-	    list<int> dockingLocation;
 	    create docking from: dockingStations ;
 	    loop station from:0 to:length(docking)-1 {
 	    	tmpDist <- [];
@@ -96,6 +88,8 @@ global {
 		//Create a list of list containing for each docking a list composed of its x and y values
 		list<list> instances <- intersection collect ([each.location.x, each.location.y]);
 
+			
+			
 		//from the vertices list, create k groups  with the Kmeans algorithm (https://en.wikipedia.org/wiki/K-means_clustering)
 		list<list<int>> clusters_kmeans <- list<list<int>>(kmeans(instances, dockingNum));
 
@@ -136,20 +130,22 @@ global {
 	    
 		// -------------------------------------------The Bikes -----------------------------------------
 		create bike number:bikeNum{						
-			location <- point(one_of(roadNetwork.vertices)); 
-			target <- location; 
-			source <- location;
-			carrying <- false;
-			lowBattery <- false;
-			pheromoneToDiffuse <- 0.0;
-			pheromoneMark <- 0.0;
-			batteryLife <- rnd(maxBatteryLife);
-			//Juan: change to random when update battery behavior
-			//speedDist <- rnd(maxSpeedDist);
-			speedDist <- maxSpeedDist;
-		}
+					location <- point(one_of(roadNetwork.vertices)); 
+					target <- location; 
+					source <- location;
+					carrying <- false;
+					lowBattery <- false;
+					speedDist <- 1.0;
+					pheromoneToDiffuse <- 0.0;
+					pheromoneMark <- 0.0;
+					batteryLife <- rnd(maxBatteryLife);
+					speedDist <- maxSpeedDist;
+				}
 	    
-		// -------------------------------------------The People -----------------------------------------
+	    //list<building> residential_buildings <- building where (each.type="Residential");
+	    list<building> residential_buildings <- building where (each.type="R");
+	    //list<building> office_buildings <- building where (each.type="Office");
+	    list<building> office_buildings <- building where (each.type="O");
 	    create people number: nb_people {
 	        start_work <- rnd (min_work_start, max_work_start);
 	        end_work <- rnd(min_work_end, max_work_end);
@@ -162,10 +158,10 @@ global {
 		loop i from: 0 to: length(roadNetwork.vertices) - 1 {
 			create tagRFID{ 								
 				id <- i;
-				//checked <- false;					
+				checked <- false;					
 				location <- point(roadNetwork.vertices[i]); 
 				pheromones <- [0.0,0.0,0.0,0.0,0.0];
-				pheromonesToward <- neighbors_of(roadNetwork,roadNetwork.vertices[i]);  //to know what edge is related to that amount of pheromone
+				pheromonesToward <- neighbors_of(roadNetwork,roadNetwork.vertices[i]);  //to know what edge is related  to that amount of pheromone
 				
 				// Find the closest chargingPoint and set towardChargingStation and distanceToChargingStation
 				ask chargingStation closest_to self {
@@ -185,7 +181,7 @@ global {
 				type <- 'roadIntersection';				
 				loop y from: 0 to: length(chargingStationLocation) - 1 {
 					if (i=chargingStationLocation[y]){
-						type <- 'chargingStation&roadIntersection';
+						type <- 'Docking&roadIntersection';
 					}
 				}
 								
@@ -198,7 +194,29 @@ global {
     }
 }
 
+species building {
+    string type; 
+    rgb color <- #black  ;
+    
+    aspect base {
+    draw shape color: color ;
+    }
+    
+    aspect default {
+		draw shape color: rgb(50, 50, 50, 125);
+	}
+    
+    aspect type{
+		draw shape color: color_map[type];
+	}
+}
 
+species road  {
+    rgb color <- #black ;
+    aspect base {
+       draw shape color: rgb(125, 125, 125);
+    }
+}
 
 
 experiment clustering type: gui {
@@ -218,15 +236,15 @@ experiment clustering type: gui {
     display city_display type:opengl background: #black draw_env: false{	
         species building aspect: type ;
         species pheromoneRoad aspect: base ;
-        //species tagRFID aspect: base ;
+        species tagRFID aspect: base ;
         species people aspect: base ;
         species chargingStation aspect: base ;
-        species bike aspect: realistic ;
-        species ride aspect: realistic ; 
+        species bike aspect: base ;
+        species ride aspect: base ; 
         graphics "text" {
-				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
-				{world.shape.width * 0.8, world.shape.height * 0.975};
-				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
+				//draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
+				//{world.shape.width * 0.8, world.shape.height * 0.975};
+				//draw imageRaster size: 40 #px at: {world.shape.width * 0.97, world.shape.height * 0.95};
 			}
     }
       display chart_display refresh: every(1#cycles) {
