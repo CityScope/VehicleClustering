@@ -96,7 +96,7 @@ species bike skills:[moving] {
 
 
 	action updatePheromones{
-		list<tagRFID>closeTag <- tagRFID at_distance 1000;
+		list<tagRFID>closeTag <- tagRFID at_distance 100;
 		ask closeTag closest_to(self){
 			loop j from:0 to: (length(self.pheromonesToward)-1) {					
 							
@@ -230,12 +230,12 @@ species bike skills:[moving] {
 			}
 		}
 	}
-	reflex pickUp when: picking{
+	action pickUp {
 		do goto target: target on: roadNetwork ; 
 	    if target = location {
 	        target <- nil ;
 	        create ride {
-	        	self.riderTarget <- myself.rider.the_target ;
+	        	self.the_target <- myself.rider.the_target ;
 	        	//Save rider characteristics
 	        	self.r_objective <- myself.rider.objective ;
 	        	self.r_living_place <- myself.rider.living_place ;
@@ -248,9 +248,7 @@ species bike skills:[moving] {
 				self.r_batteryLife <- myself.batteryLife;
 				self.r_speedDist <- myself.speedDist;
 				//Save Path nodes
-				self.intTarget <- (intersection closest_to(self.riderTarget)).location ;
-				self.total_path <- path_between(roadNetwork, myself.location, self.intTarget) ;
-				//self.total_path <- path_between(roadNetwork, myself.location, myself.rider.the_target) ;
+				self.total_path <- path_between(roadNetwork, myself.location, myself.rider.the_target) ;
 				self.target <- total_path.vertices[0] ;
 	        }
         	ask self.rider {
@@ -305,6 +303,7 @@ species people skills:[moving]{
 	    		self.target <- myself.closest_int;
 	    		self.rider <- myself ;
 	    		self.picking <- true ;
+	    		do pickUp ;
 	    	}
 	    	do goto target: closest_int on: roadNetwork ; 		    	
     	}
@@ -317,8 +316,7 @@ species people skills:[moving]{
 species ride skills:[moving]{
 	bike rided <- nil;
 	people rider <- nil;
-	point riderTarget <- nil;
-	point intTarget <- nil ;
+	point the_target <- nil ;
 	
 	//Rider characteristics
     building r_living_place <- nil ;
@@ -354,7 +352,7 @@ species ride skills:[moving]{
 		draw triangle(15)  color: #gamagreen rotate: heading + 90;
 	}	
 	action updatePheromones{
-		list<tagRFID>closeTag <- tagRFID at_distance 1000;
+		list<tagRFID>closeTag <- tagRFID at_distance 100;
 		ask closeTag closest_to(self){
 			loop j from:0 to: (length(self.pheromonesToward)-1) {					
 							
@@ -405,7 +403,7 @@ species ride skills:[moving]{
 			pathIndex <- pathIndex +1 ;			
 			do updatePheromones;
 			source <- location;
-			if(location=intTarget){
+			if(location=the_target){
 				create people {
 					living_place <- myself.r_living_place ;
 					working_place <- myself.r_working_place ;
@@ -413,7 +411,6 @@ species ride skills:[moving]{
 			        end_work <- myself.r_end_work;
 			        objective <- myself.r_objective;
 			        location <- myself.location;
-			        do goto target: myself.riderTarget on: roadNetwork ;
 				}
 				create bike {
 					location <- (intersection closest_to myself).location ;
