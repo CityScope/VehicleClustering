@@ -23,10 +23,7 @@ global {
 	geometry shape <- envelope(bound_shapefile);
 	graph roadNetwork;
 	list<int> chargingStationLocation;
-  
-	//Print for debugging
-    int here <- 0 ;
-	
+  	
 
     	// ---------------------------------------Species Creation----------------------------------------------
     init {
@@ -139,12 +136,13 @@ global {
 			location <- point(one_of(roadNetwork.vertices)); 
 			target <- location; 
 			source <- location;
-			carrying <- false;
+			picking <- false;
 			lowBattery <- false;
-			speedDist <- 1.0;
 			pheromoneToDiffuse <- 0.0;
 			pheromoneMark <- 0.0;
 			batteryLife <- rnd(maxBatteryLife);
+			//Juan: change to random when update battery behavior
+			//speedDist <- rnd(maxSpeedDist);
 			speedDist <- maxSpeedDist;
 		}
 	    
@@ -221,17 +219,12 @@ experiment clustering type: gui {
         species people aspect: base ;
         species chargingStation aspect: base ;
         species bike aspect: realistic ;
-        species ride aspect: base ; 
+        species ride aspect: realistic ; 
         graphics "text" {
 				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
 				{world.shape.width * 0.8, world.shape.height * 0.975};
 				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
 			}
     }
-      display chart_display refresh: every(1#cycles) {
-      chart "Here" type: series size: {1, 0.5} position: {0, 0.5}{
-       data "here" value: here style: line color: #red ;
-      }
-     }
     }
 }

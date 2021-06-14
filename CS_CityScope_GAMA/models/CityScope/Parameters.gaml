@@ -15,7 +15,7 @@ global{
 	//Number of Bikes to generate. Juan: Change this so nb is generated according to real GIS Data.
 	int bikeNum <- 5 min: 1 max: 1000 parameter: "Nb Vehicle:" category: "Initial";
 	//Max battery life of bikes.
-	int maxBatteryLife <- 200; // 2 h for PEV considering each cycle as 10 seconds in the real world
+	int maxBatteryLife <- 25000; //Maximum number of meters with the battery
 	//Max speed distance of Bikes
 	float maxSpeedDist <- 2.5; // about 5.5  m/s for PEV (it can be changed accordingly to different robot specification)
 	//Number of docking stations

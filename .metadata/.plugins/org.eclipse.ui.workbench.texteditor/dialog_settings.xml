@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
-		<item key="selection" value="maxSpeedDist"/>
+		<item key="selection" value="battery"/>
 		<item key="wrap" value="true"/>
 		<item key="casesensitive" value="false"/>
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="battery"/>
 			<item value="maxSpeedDist"/>
 			<item value="the_graph"/>
 			<item value="randomid"/>
@@ -22,7 +23,6 @@
 			<item value="create poe"/>
 			<item value="one_of"/>
 			<item value="die"/>
-			<item value="imageRaster"/>
 		</list>
 		<list key="replacehistory">
 			<item value=""/>

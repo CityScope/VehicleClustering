@@ -75,6 +75,7 @@ species bike skills:[moving] {
 	float pheromoneMark; 
 	
 	int batteryLife;
+	int currentBattery;
 	float speedDist; 
 	
 	int lastDistanceToChargingStation;
