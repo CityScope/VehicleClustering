@@ -181,13 +181,13 @@ global {
 		
 		
 		if(realAmenity = true){
-          create amenity from: amenities_shapefile{
-		    scale <- scale_string[rnd(2)];	
-		    fromGrid<-false;
-		    size<-10+rnd(20);
-		  }		
+          	create amenity from: amenities_shapefile{
+		    	scale <- scale_string[rnd(2)];	
+		    	fromGrid<-false;
+		    	size<-10+rnd(20);
+			  }
         }
-       	
+
 
         angle <- -9.74;
 	    center <-{1007,632};
@@ -242,48 +242,48 @@ global {
 		// -------------------------------------Location of the Deposits----------------------------------------
 		//K-Means
 		//Create a list of list containing for each trashBin agent a list composed of its x and y values
-			list<list> instances <- trashBin collect ([each.location.x, each.location.y]);
-			
-			//from the previous list, create k groups  with the Kmeans algorithm (https://en.wikipedia.org/wiki/K-means_clustering)
-			list<list<int>> clusters_kmeans <- list<list<int>>(kmeans(instances, depositNum));
-			
-			//from clustered trashBin to centroids locations
-			int groupIndex <- 0;
-			list<point> coordinatesCentroids <- [];
-			loop cluster over: clusters_kmeans {
-				groupIndex <- groupIndex + 1;
-					list<point> coordinatesTrashBin <- [];
-					rgb col <- rnd_color(255);
-					loop TB over: cluster {
-						add trashBin[TB].location to: coordinatesTrashBin; 
-						ask trashBin[TB]{
-							color <- col;
-							group <- groupIndex;
-						}
+		list<list> instances <- trashBin collect ([each.location.x, each.location.y]);
+
+		//from the previous list, create k groups  with the Kmeans algorithm (https://en.wikipedia.org/wiki/K-means_clustering)
+		list<list<int>> clusters_kmeans <- list<list<int>>(kmeans(instances, depositNum));
+		
+		//from clustered trashBin to centroids locations
+		int groupIndex <- 0;
+		list<point> coordinatesCentroids <- [];
+		loop cluster over: clusters_kmeans {
+			groupIndex <- groupIndex + 1;
+				list<point> coordinatesTrashBin <- [];
+				rgb col <- rnd_color(255);
+				loop TB over: cluster {
+					add trashBin[TB].location to: coordinatesTrashBin; 
+					ask trashBin[TB]{
+						color <- col;
+						group <- groupIndex;
 					}
-				add mean(coordinatesTrashBin) to: coordinatesCentroids;
+				}
+			add mean(coordinatesTrashBin) to: coordinatesCentroids;
+		}
+		
+		//from centroids locations to closest intersection
+		list<int> depositLocationKmeans;
+		
+		list<int> tmpDist;
+		
+		loop centroid from:0 to:length(coordinatesCentroids)-1 {
+			tmpDist <- [];
+			loop vertices from:0 to:length(roadNetwork.vertices)-1{
+				add (point(roadNetwork.vertices[vertices]) distance_to coordinatesCentroids[centroid]) to: tmpDist;
 			}
-			
-			//from centroids locations to closest intersection
-			list<int> depositLocationKmeans;
-			
-			list<int> tmpDist;
-			
-			loop centroid from:0 to:length(coordinatesCentroids)-1 {
-				tmpDist <- [];
-				loop vertices from:0 to:length(roadNetwork.vertices)-1{
-					add (point(roadNetwork.vertices[vertices]) distance_to coordinatesCentroids[centroid]) to: tmpDist;					
-				}	
-				loop vertices from:0 to: length(tmpDist)-1{
-					if(min(tmpDist)=tmpDist[vertices]){
-						add vertices to: depositLocationKmeans;
-						break;
-					}
-				}	
+			loop vertices from:0 to: length(tmpDist)-1{
+				if(min(tmpDist)=tmpDist[vertices]){
+					add vertices to: depositLocationKmeans;
+					break;
+				}
 			}
-			
-			// Final Outcome K-means
-			depositLocation <- depositLocationKmeans;
+		}
+		
+		// Final Outcome K-means
+		depositLocation <- depositLocationKmeans;
 		
 		// -------------------------------------------The Robots or the Truck -----------------------------------------
 		if (truckOrRobots=true){
@@ -306,7 +306,7 @@ global {
 				batteryLife <- rnd(maxBatteryLife);
 				speedDist <- maxSpeedDist;
 			}		
-		}else{
+		} else {
 			create truck number:robotNum{	
 				location <- one_of(road);  
 				//target <- point(roadNetwork.vertices[1]); 
@@ -314,11 +314,11 @@ global {
 				speedDist <- 1;  
 				timeToStart <- 0;
 				currentRoad <- 1;	
-				}
+			}
 		}
 		// ----------------------------------The RFIDs tag on each road intersection------------------------
 		loop i from: 0 to: length(roadNetwork.vertices) - 1 {
-			create tagRFID{ 								
+			create tagRFID { 								
 				id <- i;
 				checked <- false;					
 				location <- point(roadNetwork.vertices[i]); 
@@ -329,9 +329,9 @@ global {
 				ask deposit closest_to self {
 					myself.distanceToDeposit <- int(point(roadNetwork.vertices[i]) distance_to self.location);
 					loop y from: 0 to: length(depositLocation) - 1 {
-						if (point(roadNetwork.vertices[depositLocation[y]]) = self.location){
+						if (point(roadNetwork.vertices[depositLocation[y]]) = self.location) {
 							myself.towardDeposit <- point(roadNetwork.vertices[allPairs[depositLocation[y],i]]);
-							if (myself.towardDeposit=point(roadNetwork.vertices[i])){
+							if (myself.towardDeposit=point(roadNetwork.vertices[i])) {
 								myself.towardDeposit <- point(roadNetwork.vertices[depositLocation[y]]);
 							}
 							break;
@@ -350,31 +350,30 @@ global {
 		
 			
 		create controller;
-		//---------------------------------------END SWARMBOT SPECIES-------------------------------------------------------------
-
 	}
+
+	//---------------------------------------END SWARMBOT SPECIES-------------------------------------------------------------
 	
-	action initPop{
-		  ask people {do die;}
-		  int nbPeopleToCreatePerBuilding;
-		  ask building where  (each.usage="R"){ 
+	action initPop {
+		ask people {do die;}
+		int nbPeopleToCreatePerBuilding;
+		ask building where  (each.usage="R") { 
 		    nbPeopleToCreatePerBuilding <- int((self.scale="S") ? (area/density_map[2])*nbFloors: ((self.scale="M") ? (area/density_map[1])*nbFloors:(area/density_map[0])*nbFloors));
 		    //do createPop(10,self,false);	
 		    do createPop(nbPeopleToCreatePerBuilding/pop_scale,self,false);			
-		  }
-		  if(length(density_array)>0){
-			  ask amenity where  (each.usage="R"){	
-				  	float nb <- (self.scale ="L") ? density_array[0] : ((self.scale ="M") ? density_array[1] :density_array[2]);
-				  	do createPop(1+nb/3,self,true);
-			  }
-			  write "initPop from density array" + density_array + " nb people: " + length(people); 
-		  }
-		  else{
-		  	write "density array is empty";
-		  }
-		  
-		  do assignPopularity();
 		}
+		if(length(density_array)>0){
+			ask amenity where  (each.usage="R"){	
+				float nb <- (self.scale ="L") ? density_array[0] : ((self.scale ="M") ? density_array[1] :density_array[2]);
+				do createPop(1+nb/3,self,true);
+			}
+			write "initPop from density array" + density_array + " nb people: " + length(people); 
+		} else {
+		  	write "density array is empty";
+		}
+
+		do assignPopularity();
+	}
 	
 	action stop_experiment {
 		ask experiment {
@@ -387,76 +386,75 @@ global {
   			do die;
   		}
 		if(onlineGrid = true){
-		  cityMatrixData <- json_file(cityIOUrl).contents;
-		  if (length(list(cityMatrixData["grid"])) = nil){
-		  	cityMatrixData <- json_file("https://cityio.media.mit.edu/api/table/citymatrix_volpe").contents;
-		  }
-	    }
-	    else{
-	      cityMatrixData <- json_file("../includes/cityIO_Kendall.json").contents;
+		  	cityMatrixData <- json_file(cityIOUrl).contents;
+		  	if (length(list(cityMatrixData["grid"])) = nil){
+		  		cityMatrixData <- json_file("https://cityio.media.mit.edu/api/table/citymatrix_volpe").contents;
+		  	}
+	    } else {
+	      	cityMatrixData <- json_file("../includes/cityIO_Kendall.json").contents;
 	    }	
 		cityMatrixCell <- cityMatrixData["grid"];
 		density_array <- cityMatrixData["objects"]["density"];
 		toggle1 <- int(cityMatrixData["objects"]["toggle1"]);	
 		loop l over: cityMatrixCell { 
-		      create amenity {
-		      	  id <-int(l["type"]);
-		      	  x<-l["x"];
-		      	  y<-l["y"];
-				  location <- {	center.x + (13-l["x"])*brickSize,	center.y+ l["y"]*brickSize};  
-				  location<- {(location.x * cos(angle) + location.y * sin(angle)),-location.x * sin(angle) + location.y * cos(angle)};
-				  shape <- square(brickSize*0.9) at_location location;	
-				  size<-10+rnd(10);
-				  fromGrid<-true;  
-				  scale <- citymatrix_map_settings[id][1];
-				  usage<-citymatrix_map_settings[id][0];
-				  color<-color_map[scale];
-				  if(id!=-1 and id!=-2 and id!=7){
-				  	density<-density_array[id];
-				  }
-              }	        
+		    create amenity {
+		    	id <-int(l["type"]);
+		      	x<-l["x"];
+		      	y<-l["y"];
+				location <- {	center.x + (13-l["x"])*brickSize,	center.y+ l["y"]*brickSize};  
+				location<- {(location.x * cos(angle) + location.y * sin(angle)),-location.x * sin(angle) + location.y * cos(angle)};
+				shape <- square(brickSize*0.9) at_location location;	
+				size<-10+rnd(10);
+				fromGrid<-true;  
+				scale <- citymatrix_map_settings[id][1];
+				usage<-citymatrix_map_settings[id][0];
+				color<-color_map[scale];
+				if(id!=-1 and id!=-2 and id!=7){
+					density<-density_array[id];
+				}
+			}
         }
         ask amenity{
-          if ((x = 0 and y = 0) and fromGrid = true){
-            do die;
-          }
+			if ((x = 0 and y = 0) and fromGrid = true){
+				do die;
+			}
         }
 		cityMatrixData <- json_file(cityIOUrl).contents;
 		density_array <- cityMatrixData["objects"]["density"];
 		
 		if(cycle>10 and dynamicPop =true){
-		if(current_density_array[0] < density_array[0]){
-			float tmp<-length(people where each.fromTheGrid) * (density_array[0]/current_density_array[0] -1);
-			do generateSquarePop(tmp,"L");			
-		}
-		if(current_density_array[0] > density_array[0]){
-			float tmp<-length(people where (each.fromTheGrid))*(1-density_array[0]/current_density_array[0]);
-			ask tmp  among (people where (each.fromTheGrid and each.scale="L")){
-				do die;
+			if(current_density_array[0] < density_array[0]){
+				float tmp<-length(people where each.fromTheGrid) * (density_array[0]/current_density_array[0] -1);
+				do generateSquarePop(tmp,"L");			
+			}
+			if(current_density_array[0] > density_array[0]){
+				float tmp<-length(people where (each.fromTheGrid))*(1-density_array[0]/current_density_array[0]);
+				ask tmp  among (people where (each.fromTheGrid and each.scale="L")){
+					do die;
+				}
+			}
+			if(current_density_array[1] < density_array[1]){
+				float tmp<-length(people where each.fromTheGrid) * (density_array[1]/current_density_array[1] -1);
+				do generateSquarePop(tmp,"M");	
+			}
+			if(current_density_array[1] > density_array[1]){
+				float tmp<-length(people where (each.fromTheGrid))*(1-density_array[1]/current_density_array[1]);
+				ask tmp  among (people where (each.fromTheGrid and each.scale="M")){
+					do die;
+				}
+			}
+			if(current_density_array[2] < density_array[2]){
+				float tmp<-length(people where each.fromTheGrid) * (density_array[2]/current_density_array[2] -1);
+				do generateSquarePop(tmp,"S");
+			}
+			if(current_density_array[2] > density_array[2]){
+				float tmp<-length(people where (each.fromTheGrid))*(1-density_array[2]/current_density_array[2]);
+				ask tmp  among (people where (each.fromTheGrid and each.scale="S")){
+					do die;
+				}
 			}
 		}
-		if(current_density_array[1] < density_array[1]){
-			float tmp<-length(people where each.fromTheGrid) * (density_array[1]/current_density_array[1] -1);
-			do generateSquarePop(tmp,"M");	
-		}
-		if(current_density_array[1] > density_array[1]){
-			float tmp<-length(people where (each.fromTheGrid))*(1-density_array[1]/current_density_array[1]);
-			ask tmp  among (people where (each.fromTheGrid and each.scale="M")){
-				do die;
-			}
-		}
-		if(current_density_array[2] < density_array[2]){
-			float tmp<-length(people where each.fromTheGrid) * (density_array[2]/current_density_array[2] -1);
-			do generateSquarePop(tmp,"S");
-		}
-		if(current_density_array[2] > density_array[2]){
-			float tmp<-length(people where (each.fromTheGrid))*(1-density_array[2]/current_density_array[2]);
-			ask tmp  among (people where (each.fromTheGrid and each.scale="S")){
-				do die;
-			}
-		}
-		}
-        current_density_array<-density_array;		
+		current_density_array<-density_array;		
 	}
 	
 
@@ -496,9 +494,6 @@ global {
 		ask trashBin{
 			kml_export <- kml_export add_geometry (circle(10),1.0,color,color);
 		}
-				
-
-		
 	}
 	
 	reflex add_dynamic_objects_to_kml{
@@ -514,22 +509,22 @@ global {
 		
 	action generateSquarePop(int nb, string _scale){
 		create people number:nb	{
-				living_place <- one_of(amenity where (each.scale=_scale and each.fromGrid));
-				location <- any_location_in (living_place);
-				scale <- _scale;	
-				speed <- min_speed + rnd (max_speed - min_speed) ;
-				initialSpeed <-speed;
-				time_to_work <- min_work_start + rnd (max_work_start - min_work_start) ;
-				time_to_lunch <- min_lunch_start + rnd (max_lunch_start - min_lunch_start) ;
-				time_to_rework <- min_rework_start + rnd (max_rework_start - min_rework_start) ;
-				time_to_dinner <- min_dinner_start + rnd (max_dinner_start - min_dinner_start) ;
-				time_to_sleep <- min_work_end + rnd (max_work_end - min_work_end) ;
-				working_place <- one_of(building  where (each.usage="O" and each.scale=scale)) ;
-				eating_place <- one_of(amenity where (each.scale=scale )) ;
-				dining_place <- one_of(amenity where (each.scale=scale )) ;
-				objective <- "resting";
-				fromTheGrid<-true; 
-			}
+			living_place <- one_of(amenity where (each.scale=_scale and each.fromGrid));
+			location <- any_location_in (living_place);
+			scale <- _scale;	
+			speed <- min_speed + rnd (max_speed - min_speed) ;
+			initialSpeed <-speed;
+			time_to_work <- min_work_start + rnd (max_work_start - min_work_start) ;
+			time_to_lunch <- min_lunch_start + rnd (max_lunch_start - min_lunch_start) ;
+			time_to_rework <- min_rework_start + rnd (max_rework_start - min_rework_start) ;
+			time_to_dinner <- min_dinner_start + rnd (max_dinner_start - min_dinner_start) ;
+			time_to_sleep <- min_work_end + rnd (max_work_end - min_work_end) ;
+			working_place <- one_of(building  where (each.usage="O" and each.scale=scale)) ;
+			eating_place <- one_of(amenity where (each.scale=scale )) ;
+			dining_place <- one_of(amenity where (each.scale=scale )) ;
+			objective <- "resting";
+			fromTheGrid<-true; 
+		}
 	}
 }
 
@@ -542,23 +537,23 @@ species building schedules: [] {
 	float perimeter;
 	
 	action createPop (int nb, building bd,bool fromGrid){
-	  create people number: nb { 
-  		living_place <- bd;
-		location <- any_location_in (living_place);
-		scale <- bd.scale;	
-		speed <- min_speed + rnd (max_speed - min_speed);
-		initialSpeed <-speed;
-		time_to_work <- min_work_start + rnd (max_work_start - min_work_start) ;
-		time_to_lunch <- min_lunch_start + rnd (max_lunch_start - min_lunch_start) ;
-		time_to_rework <- min_rework_start + rnd (max_rework_start - min_rework_start) ;
-		time_to_dinner <- min_dinner_start + rnd (max_dinner_start - min_dinner_start) ;
-		time_to_sleep <- min_work_end + rnd (max_work_end - min_work_end) ;
-		working_place <- one_of(building  where (each.usage="O" and each.scale=scale)) ;
-		eating_place <- one_of(amenity where (each.scale=scale )) ;
-		dining_place <- one_of(amenity where (each.scale=scale )) ;
-		objective <- "resting";
-		fromTheGrid<-fromGrid;  
-	  }
+		create people number: nb { 
+			living_place <- bd;
+			location <- any_location_in (living_place);
+			scale <- bd.scale;	
+			speed <- min_speed + rnd (max_speed - min_speed);
+			initialSpeed <-speed;
+			time_to_work <- min_work_start + rnd (max_work_start - min_work_start) ;
+			time_to_lunch <- min_lunch_start + rnd (max_lunch_start - min_lunch_start) ;
+			time_to_rework <- min_rework_start + rnd (max_rework_start - min_rework_start) ;
+			time_to_dinner <- min_dinner_start + rnd (max_dinner_start - min_dinner_start) ;
+			time_to_sleep <- min_work_end + rnd (max_work_end - min_work_end) ;
+			working_place <- one_of(building  where (each.usage="O" and each.scale=scale)) ;
+			eating_place <- one_of(amenity where (each.scale=scale )) ;
+			dining_place <- one_of(amenity where (each.scale=scale )) ;
+			objective <- "resting";
+			fromTheGrid<-fromGrid;  
+		}
 	}
 	
 	aspect base {	
@@ -583,13 +578,13 @@ species building schedules: [] {
 		}
 		if(toggle1=2){
 			if(usage="O"){
-			  draw shape color: color_map[scale];
+				draw shape color: color_map[scale];
 			}
 			
 		}
 		if(toggle1=3){
 			if(usage="R"){
-			  draw shape color: color_map[scale];
+				draw shape color: color_map[scale];
 			}
 		}
 	}
@@ -623,7 +618,6 @@ species barrel parent:Litter{
 	
 	action set_color(rgb new_color){
 		circle_color <- new_color;
-		
 	}
 }
 
@@ -656,10 +650,10 @@ experiment selfOrganizedGarbageCollectionVisual type: gui {
         	{
 		  		map<string,rgb> list_of_existing_species <- map<string,rgb>(["RFID"::#green,"Deposit"::#blue,"Robot"::#cyan,"TrashBin"::#orange]);
             	loop i from: 0 to: length(list_of_existing_species) -1 {
-             	//draw list_of_existing_species.keys[i] at: { 40#px, (i+1)*20#px } color: #black font: font("Helvetica", 18, #bold) perspective:false;
-              	//draw circle(10#px) at: { 20#px, (i+1)*20#px } color: list_of_existing_species.values[i]  border: #white; 			
-		  	} 				
-		}
+					//draw list_of_existing_species.keys[i] at: { 40#px, (i+1)*20#px } color: #black font: font("Helvetica", 18, #bold) perspective:false;
+					//draw circle(10#px) at: { 20#px, (i+1)*20#px } color: list_of_existing_species.values[i]  border: #white; 			
+				} 				
+			}
     	}	
 	}
 }
@@ -693,10 +687,10 @@ experiment pheromoneExploitationGarbageCollectionVisual type: gui {
         	{
 		  		map<string,rgb> list_of_existing_species <- map<string,rgb>(["RFID"::#green,"Deposit"::#blue,"Robot"::#cyan,"TrashBin"::#orange]);
             	loop i from: 0 to: length(list_of_existing_species) -1 {
-             	//draw list_of_existing_species.keys[i] at: { 40#px, (i+1)*20#px } color: #black font: font("Helvetica", 18, #bold) perspective:false;
-              	//draw circle(10#px) at: { 20#px, (i+1)*20#px } color: list_of_existing_species.values[i]  border: #white; 			
-		  	} 				
-		}
+					//draw list_of_existing_species.keys[i] at: { 40#px, (i+1)*20#px } color: #black font: font("Helvetica", 18, #bold) perspective:false;
+					//draw circle(10#px) at: { 20#px, (i+1)*20#px } color: list_of_existing_species.values[i]  border: #white; 			
+				} 				
+			}
     	}	
 	}
 }
@@ -729,10 +723,10 @@ experiment randomExplorationGarbageCollectionVisual type: gui {
         	{
 		  		map<string,rgb> list_of_existing_species <- map<string,rgb>(["RFID"::#green,"Deposit"::#blue,"Robot"::#cyan,"TrashBin"::#orange]);
             	loop i from: 0 to: length(list_of_existing_species) -1 {
-             	//draw list_of_existing_species.keys[i] at: { 40#px, (i+1)*20#px } color: #black font: font("Helvetica", 18, #bold) perspective:false;
-              	//draw circle(10#px) at: { 20#px, (i+1)*20#px } color: list_of_existing_species.values[i]  border: #white; 			
-		  	} 				
-		}
+					//draw list_of_existing_species.keys[i] at: { 40#px, (i+1)*20#px } color: #black font: font("Helvetica", 18, #bold) perspective:false;
+					//draw circle(10#px) at: { 20#px, (i+1)*20#px } color: list_of_existing_species.values[i]  border: #white; 			
+				} 				
+			}
     	}	
 	}
 }

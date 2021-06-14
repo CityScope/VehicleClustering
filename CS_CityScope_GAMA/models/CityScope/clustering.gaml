@@ -30,18 +30,18 @@ global {
     	// ---------------------------------------Buildings----------------------------------------------
 	    //Juan: Adapt this depending on GIS data
 	    /*create building from: buildings_shapefile with: [type::string(read ("Category"))] {
-	    		if(type!="Office" and type!="Residential"){
-	    			type <- "Other";
-	    		}
-	        }
+			if(type!="Office" and type!="Residential"){
+				type <- "Other";
+			}
+		}
 	    
 	    list<building> residential_buildings <- building where (each.type="Residential");
 	    list<building> office_buildings <- building where (each.type="Office");*/
 	    create building from: buildings_shapefile with: [type::string(read ("Usage"))] {
-	    		if(type!="O" and type!="R"){
-	    			type <- "Other";
-	    		}
-	        }
+			if(type!="O" and type!="R"){
+				type <- "Other";
+			}
+		}
 	        
 
 	    list<building> residential_buildings <- building where (each.type="R");
@@ -85,8 +85,8 @@ global {
 
 		loop i from: 0 to: length(roadNetwork.vertices) - 1 {
 			create intersection {
-			location <- point (roadNetwork.vertices[i]);
-		}
+				location <- point (roadNetwork.vertices[i]);
+			}
 		}
 
 		//K-Means		
@@ -101,10 +101,10 @@ global {
 		list<point> coordinatesCentroids <- [];
 		loop cluster over: clusters_kmeans {
 			groupIndex <- groupIndex + 1;
-				list<point> coordinatesVertices <- [];
-				loop i over: cluster {
-					add point (roadNetwork.vertices[i]) to: coordinatesVertices; 
-				}
+			list<point> coordinatesVertices <- [];
+			loop i over: cluster {
+				add point (roadNetwork.vertices[i]) to: coordinatesVertices; 
+			}
 			add mean(coordinatesVertices) to: coordinatesCentroids;
 		}    
 	    
@@ -113,7 +113,7 @@ global {
 		loop centroid from:0 to:length(coordinatesCentroids)-1 {
 			tmpDist <- [];
 			loop vertices from:0 to:length(roadNetwork.vertices)-1{
-				add (point(roadNetwork.vertices[vertices]) distance_to coordinatesCentroids[centroid]) to: tmpDist;					
+				add (point(roadNetwork.vertices[vertices]) distance_to coordinatesCentroids[centroid]) to: tmpDist;
 			}	
 			loop vertices from:0 to: length(tmpDist)-1{
 				if(min(tmpDist)=tmpDist[vertices]){
@@ -184,14 +184,9 @@ global {
 					if (i=chargingStationLocation[y]){
 						type <- 'chargingStation&roadIntersection';
 					}
-				}
-								
+				}			
 			}
-		}
-		
-
-
-	        
+		} 
     }
 }
 
@@ -212,19 +207,19 @@ experiment clustering type: gui {
     parameter "maximal speed" var: max_speed category: "People" max: 10 #km/#h;
         
     output {
-    display city_display type:opengl background: #black draw_env: false{	
-        species building aspect: type ;
-        species pheromoneRoad aspect: base ;
-        //species tagRFID aspect: base ;
-        species people aspect: base ;
-        species chargingStation aspect: base ;
-        species bike aspect: realistic ;
-        species ride aspect: realistic ; 
-        graphics "text" {
+		display city_display type:opengl background: #black draw_env: false{	
+			species building aspect: type ;
+			species pheromoneRoad aspect: base ;
+			//species tagRFID aspect: base ;
+			species people aspect: base ;
+			species chargingStation aspect: base ;
+			species bike aspect: realistic ;
+			species ride aspect: realistic ; 
+			graphics "text" {
 				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
 				{world.shape.width * 0.8, world.shape.height * 0.975};
 				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
 			}
-    }
+		}
     }
 }

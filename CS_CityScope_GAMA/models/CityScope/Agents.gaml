@@ -21,7 +21,7 @@ species pheromoneRoad {
 
 species docking{
 	aspect base {
-			draw circle(10) color:#blue;		
+		draw circle(10) color:#blue;		
 	}
 }
 
@@ -35,13 +35,13 @@ species building {
 species chargingStation{
 	int bikes;
 	aspect base {
-			draw circle(10) color:#blue;		
+		draw circle(10) color:#blue;		
 	}
 }
 
 species intersection{
 	aspect base {
-			draw circle(10) color:#green;		
+		draw circle(10) color:#green;		
 	}
 }
 
@@ -101,26 +101,25 @@ species bike skills:[moving] {
 		ask closeTag closest_to(self){
 			loop j from:0 to: (length(self.pheromonesToward)-1) {					
 							
-							self.pheromones[j] <- self.pheromones[j] + myself.pheromoneToDiffuse - (singlePheromoneMark * evaporation * (cycle - self.lastUpdate));					
-							
-							if (self.pheromones[j]<0.001){
-								self.pheromones[j] <- 0;
-							}	
-							
-							if(myself.picking){								
-								if (self.pheromonesToward[j]=myself.source){
-									self.pheromones[j] <- self.pheromones[j] + myself.pheromoneMark ;									
-								}
-																	
-							}
-							//Saturation
-							if (self.pheromones[j]>50*singlePheromoneMark){
-									self.pheromones[j] <- 50*singlePheromoneMark;
-								}
+				self.pheromones[j] <- self.pheromones[j] + myself.pheromoneToDiffuse - (singlePheromoneMark * evaporation * (cycle - self.lastUpdate));					
+				
+				if (self.pheromones[j]<0.001){
+					self.pheromones[j] <- 0;
+				}	
+				
+				if(myself.picking){								
+					if (self.pheromonesToward[j]=myself.source){
+						self.pheromones[j] <- self.pheromones[j] + myself.pheromoneMark ;
+					}
 				}
-				// Update tagRFID and pheromoneToDiffuse
-				self.lastUpdate <- cycle;				
-				myself.pheromoneToDiffuse <- max(self.pheromones)*diffusion;
+				//Saturation
+				if (self.pheromones[j]>50*singlePheromoneMark){
+					self.pheromones[j] <- 50*singlePheromoneMark;
+				}
+			}
+			// Update tagRFID and pheromoneToDiffuse
+			self.lastUpdate <- cycle;				
+			myself.pheromoneToDiffuse <- max(self.pheromones)*diffusion;
 		}
 		ask pheromoneRoad closest_to(self){	
 			point p <- farthest_point_to (self , self.location);
@@ -132,7 +131,7 @@ species bike skills:[moving] {
 				}	
 								
 				if(myself.picking){
-						self.pheromone <- self.pheromone + myself.pheromoneMark ;
+					self.pheromone <- self.pheromone + myself.pheromoneMark ;
 				}	
 				self.lastUpdate <- cycle;				
 			}							
@@ -178,19 +177,18 @@ species bike skills:[moving] {
 								if flip(exploratoryRate){	
 									myself.target <- point(self.pheromonesToward[j]);
 									break;	
-									}	
-									else {
-										myself.target <- point(self.pheromonesToward[rnd(length(self.pheromonesToward)-1)]);
-										break;
-									}			
-								}											
-							}
-						}				
-					}
+								} else {
+									myself.target <- point(self.pheromonesToward[rnd(length(self.pheromonesToward)-1)]);
+									break;
+								}			
+							}											
+						}
+					}				
 				}
-				do updatePheromones;
-				source <- location;
 			}
+			do updatePheromones;
+			source <- location;
+		}
 	}
 	//Implement logic for charging
 	reflex toCharge when: lowBattery{
@@ -199,8 +197,7 @@ species bike skills:[moving] {
 		if (target != location) {
 			//collision avoidance time
 			do updatePheromones;
-		}		
-		else{				
+		} else {				
 			ask tagRFID closest_to(self) {
 				// Update direction and distance from closest Docking station
 				myself.target <- point(self.towardChargingStation);
@@ -210,28 +207,28 @@ species bike skills:[moving] {
 			source <- location;
 			// Recover wandering status, delete pheromones over Deposits
 			loop i from: 0 to: length(chargingStationLocation) - 1 {
-					if(location = point(roadNetwork.vertices[chargingStationLocation[i]])){
-						ask tagRFID closest_to(self){
-							self.pheromones <- [0.0,0.0,0.0,0.0,0.0];
-						}
-						
-						ask chargingStation closest_to(self){
-							if(myself.picking){
-								//self.trash <- self.trash + carriableTrashAmount;
-								myself.picking <- false;
-								myself.pheromoneMark <- 0.0;
-							}					
-							if(myself.lowBattery){
-								self.bikes <- self.bikes + 1;
-								myself.lowBattery <- false;
-								myself.batteryLife <- maxBatteryLife;
-							}							
-						}
+				if(location = point(roadNetwork.vertices[chargingStationLocation[i]])){
+					ask tagRFID closest_to(self){
+						self.pheromones <- [0.0,0.0,0.0,0.0,0.0];
 					}
+					
+					ask chargingStation closest_to(self){
+						if(myself.picking){
+							//self.trash <- self.trash + carriableTrashAmount;
+							myself.picking <- false;
+							myself.pheromoneMark <- 0.0;
+						}					
+						if(myself.lowBattery){
+							self.bikes <- self.bikes + 1;
+							myself.lowBattery <- false;
+							myself.batteryLife <- maxBatteryLife;
+						}							
+					}
+				}
 			}
 		}
 	}
-	reflex pickUp when: picking{
+	reflex pickUp when: picking {
 		do goto target: target on: roadNetwork ; 
 	    if target = location {
 	        target <- nil ;
@@ -263,7 +260,7 @@ species bike skills:[moving] {
 	
 }
 
-species people skills:[moving]{
+species people skills:[moving] {
     rgb color <- #yellow ;
     building living_place <- nil ;
     building working_place <- nil ;
@@ -279,13 +276,13 @@ species people skills:[moving]{
 	    objective <- "working" ;
 	    the_target <- any_location_in (working_place);
 	    call_bike <- true ;
-	    }
+	}
     
     reflex time_to_go_home when: current_date.hour = end_work and objective = "working"{
 	    objective <- "resting" ;
 	    the_target <- any_location_in (living_place);
 	    call_bike <- true ;
-	    }
+	}
     
     reflex to_intersection when: call_bike = true {
     	call_bike <- false ;
@@ -295,7 +292,7 @@ species people skills:[moving]{
     
     
     aspect base {
-    draw circle(10) color: color border: #black;
+		draw circle(10) color: color border: #black;
     }
     
     action callBike {
@@ -308,14 +305,13 @@ species people skills:[moving]{
 	    		self.picking <- true ;
 	    	}
 	    	do goto target: closest_int on: roadNetwork ; 		    	
-    	}
-    	else{
+    	} else {
     		location <- the_target ;
     	}   	
     }
 }
 
-species ride skills:[moving]{
+species ride skills:[moving] {
 	bike rided <- nil;
 	people rider <- nil;
 	point riderTarget <- nil;
@@ -354,31 +350,30 @@ species ride skills:[moving]{
     aspect realistic {
 		draw triangle(15)  color: #gamagreen rotate: heading + 90;
 	}	
-	action updatePheromones{
+	action updatePheromones {
 		list<tagRFID>closeTag <- tagRFID at_distance 1000;
 		ask closeTag closest_to(self){
 			loop j from:0 to: (length(self.pheromonesToward)-1) {					
 							
-							self.pheromones[j] <- self.pheromones[j] + myself.pheromoneToDiffuse - (singlePheromoneMark * evaporation * (cycle - self.lastUpdate));					
-							
-							if (self.pheromones[j]<0.001){
-								self.pheromones[j] <- 0;
-							}	
-							
-							if(myself.carrying){								
-								if (self.pheromonesToward[j]=myself.source){
-									self.pheromones[j] <- self.pheromones[j] + myself.pheromoneMark ;									
-								}
-																	
-							}
-							//Saturation
-							if (self.pheromones[j]>50*singlePheromoneMark){
-									self.pheromones[j] <- 50*singlePheromoneMark;
-								}
+				self.pheromones[j] <- self.pheromones[j] + myself.pheromoneToDiffuse - (singlePheromoneMark * evaporation * (cycle - self.lastUpdate));					
+				
+				if (self.pheromones[j]<0.001){
+					self.pheromones[j] <- 0;
 				}
-				// Update tagRFID and pheromoneToDiffuse
-				self.lastUpdate <- cycle;				
-				myself.pheromoneToDiffuse <- max(self.pheromones)*diffusion;
+				
+				if(myself.carrying){								
+					if (self.pheromonesToward[j]=myself.source){
+						self.pheromones[j] <- self.pheromones[j] + myself.pheromoneMark ;
+					}
+				}
+				//Saturation
+				if (self.pheromones[j]>50*singlePheromoneMark){
+					self.pheromones[j] <- 50*singlePheromoneMark;
+				}
+			}
+			// Update tagRFID and pheromoneToDiffuse
+			self.lastUpdate <- cycle;				
+			myself.pheromoneToDiffuse <- max(self.pheromones)*diffusion;
 		}
 		ask pheromoneRoad closest_to(self){	
 			point p <- farthest_point_to (self , self.location);
@@ -401,8 +396,7 @@ species ride skills:[moving]{
 						
 		if (target != location) {
 			do updatePheromones;
-		}		
-		else{				
+		} else{				
 			pathIndex <- pathIndex +1 ;			
 			do updatePheromones;
 			source <- location;
@@ -432,9 +426,7 @@ species ride skills:[moving]{
 			}
 			target <- point(total_path.vertices[pathIndex]);
 		}
-		}
-			
-
+	}
 }
 
 
