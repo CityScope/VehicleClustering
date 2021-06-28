@@ -9,8 +9,8 @@
 model Agents
 
 import "./clustering.gaml"
-/* Insert your model definition here */
 
+//stores road shapes, also stores pheremone level
 species pheromoneRoad {
 	float pheromone;
 	int lastUpdate;
@@ -71,8 +71,8 @@ species bike skills:[moving] {
 	path my_path; 
 	point source;
 	
-	float pheromoneToDiffuse;
-	float pheromoneMark; 
+	float pheromoneToDiffuse; //represents a store of pheremone (a bike can't expend more than this amount). Pheremone is restored by ___
+	float pheromoneMark;  //initialized to 0, never updated. Unsure what this represents
 	
 	int batteryLife;
 	int currentBattery;
@@ -81,9 +81,9 @@ species bike skills:[moving] {
 	int lastDistanceToChargingStation;
 	
 	bool lowBattery;	
-	bool picking <- false ;
+	bool picking <- false;
 	
-	people rider <- nil ;	
+	people rider <- nil; //The person I am going to pick up (never actually rides, both objects die and are replaced by a ride object)
 
     aspect realistic {
 		draw triangle(15)  color: rgb(25*1.1,25*1.6,200) rotate: heading + 90;
@@ -94,10 +94,13 @@ species bike skills:[moving] {
 			draw triangle(15) color: rgb(175*1.1,175*1.6,200) rotate: heading + 90;
 		}
 	}
-
-
+	
+	
+	//Dump my pheremone at the nearest tag, pick up some from same tag via diffusion, add more pheremone to a random endpoint of the road I'm on
 	action updatePheromones{
+		
 		list<tagRFID>closeTag <- tagRFID at_distance 1000;
+		// ask the nearest tag to: add _all_ of my pheremone to it, update evaporation, and cap at (0, 50). If I am picking someone up, add 0 to pheremone tag (???). Set my pheremone levels to whatever the tag has diffused to me
 		ask closeTag closest_to(self){
 			loop j from:0 to: (length(self.pheromonesToward)-1) {					
 							
@@ -105,7 +108,7 @@ species bike skills:[moving] {
 				
 				if (self.pheromones[j]<0.001){
 					self.pheromones[j] <- 0;
-				}	
+				}
 				
 				if(myself.picking){								
 					if (self.pheromonesToward[j]=myself.source){
@@ -122,19 +125,19 @@ species bike skills:[moving] {
 			myself.pheromoneToDiffuse <- max(self.pheromones)*diffusion;
 		}
 		ask pheromoneRoad closest_to(self){	
-			point p <- farthest_point_to (self , self.location);
-			if (myself.location distance_to p < 1){			
-				self.pheromone <- self.pheromone + myself.pheromoneToDiffuse - (singlePheromoneMark * evaporation * (cycle - self.lastUpdate));					
-								
+			point p <- farthest_point_to (self , self.location); //Farthest point of the road from the location (center?) of the road. This likely evaluates to a randomly chosen endpoint. Should be precomputed? I dont think the location or shape of the road ever changes
+			if (myself.location distance_to p < 1){
+				//add _all_ my pheremone to this road, update evaporation, cap at (0, infinity). If I'm picking someone up, add 0
+				self.pheromone <- self.pheromone + myself.pheromoneToDiffuse - (singlePheromoneMark * evaporation * (cycle - self.lastUpdate));
 				if (self.pheromone<0.01){
 					self.pheromone <- 0.0;
 				}	
 								
 				if(myself.picking){
-					self.pheromone <- self.pheromone + myself.pheromoneMark ;
-				}	
-				self.lastUpdate <- cycle;				
-			}							
+					self.pheromone <- self.pheromone + myself.pheromoneMark;
+				}
+				self.lastUpdate <- cycle;
+			}
 		}
 	}
 	
@@ -142,27 +145,27 @@ species bike skills:[moving] {
 		my_path <- self.goto(on:roadNetwork, target:target, speed:speedDist, return_path: true);				
 		if (target != location) { 
 			do updatePheromones;
-		}
-		else {				
+		} else {
 			ask tagRFID closest_to(self){
 				myself.lastDistanceToChargingStation <- self.distanceToChargingStation;
-				
+
 				// If enough batteryLife follow the pheromone 
 				if(myself.batteryLife < myself.lastDistanceToChargingStation/myself.speedDist){ 
 					myself.lowBattery <- true;
-				}
-				else{
+				} else {
 				
 					list<float> edgesPheromones <-self.pheromones;
 					
 					if(mean(edgesPheromones)=0){ 
 						// No pheromones,choose a random direction
 						myself.target <- point(self.pheromonesToward[rnd(length(self.pheromonesToward)-1)]);
-					}
-					else{  
-						// Follow strongest pheromone trail (with exploratoryRate Probability if the last path has the strongest pheromone)					
-						float maxPheromone <- max(edgesPheromones);	
-						//*
+					} else{
+						// Follow strongest pheremone trail with p=exploratoryRate^2 if we just came from this direction, or p=exploratoryRate if not. Else, chose random direction
+						// TODO: this random probability function can be better weighted by relative pheremone levels
+						
+						
+						// Pick strongest pheromone trail (with exploratoryRate Probability if the last path has the strongest pheromone)					
+						float maxPheromone <- max(edgesPheromones);
 						loop j from:0 to:(length(self.pheromonesToward)-1) {					
 							if (maxPheromone = edgesPheromones[j]) and (myself.source = point(self.pheromonesToward[j])){
 								edgesPheromones[j]<- flip(exploratoryRate)? edgesPheromones[j] : 0.0;					
@@ -170,7 +173,7 @@ species bike skills:[moving] {
 						}
 						maxPheromone <- max(edgesPheromones);	
 
-								
+						
 						// Follow strongest pheromone trail (with exploratoryRate Probability in any case)			
 						loop j from:0 to:(length(self.pheromonesToward)-1) {			
 							if (maxPheromone = edgesPheromones[j]){
@@ -180,7 +183,7 @@ species bike skills:[moving] {
 								} else {
 									myself.target <- point(self.pheromonesToward[rnd(length(self.pheromonesToward)-1)]);
 									break;
-								}			
+								}
 							}											
 						}
 					}				
@@ -297,7 +300,7 @@ species people skills:[moving] {
     
     action callBike {
     	list<bike>avaliableBikes <- bike where (each.picking = false and each.lowBattery = false) ;
-    	//If no avaliable bikes, automatic transport to destiny
+    	//If no avaliable bikes, automatic transport to destiny (walk home?)
     	if(!empty(avaliableBikes)){
 	    	ask avaliableBikes closest_to(self){
 	    		self.target <- myself.closest_int;
