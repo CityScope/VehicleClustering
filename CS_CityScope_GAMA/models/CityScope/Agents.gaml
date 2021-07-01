@@ -10,16 +10,17 @@ model Agents
 
 import "./clustering.gaml"
 
-//stores road shapes, also stores pheremone level
+
 species pheromoneRoad {
-	float pheromone;
+	//stores road shapes and pheromone levels
+	float pheromone <- 0.0; //probably should not store pheromone levels
 	int lastUpdate;
 	aspect base {
 		draw shape color: rgb(125, 125, 125);
 	}
 }
 
-species docking{
+species dockingStation {
 	aspect base {
 		draw circle(10) color:#blue;		
 	}
@@ -27,12 +28,12 @@ species docking{
 
 species building {
     string type; 
-    aspect type{
+    aspect type {
 		draw shape color: color_map[type];
 	}
 }
 
-species chargingStation{
+species chargingStation {
 	int bikes;
 	aspect base {
 		draw circle(10) color:#blue;		
@@ -52,6 +53,7 @@ species tagRFID {
 	
 	list<float> pheromones;
 	list<geometry> pheromonesToward;
+	
 	int lastUpdate;
 	
 	geometry towardChargingStation;
@@ -62,36 +64,45 @@ species tagRFID {
 	}
 	
 	aspect realistic{
-		draw circle(1+10*float(max(pheromones)/2)) color:rgb(107,171,158);
+		draw circle(1+5*max(pheromones)) color:rgb(107,171,158);
 	}
 }
 
+
 species bike skills:[moving] {
 	point target;
-	path my_path; 
+	point targetIntersection;
+	path myPath;
+	path totalPath; 
 	point source;
+	
+	int pathIndex;
+	
 	
 	float pheromoneToDiffuse; //represents a store of pheremone (a bike can't expend more than this amount). Pheremone is restored by ___
 	float pheromoneMark;  //initialized to 0, never updated. Unsure what this represents
 	
-	int batteryLife;
-	int currentBattery;
-	float speedDist; 
+	int batteryLife; //Number of meters we can travel on current battery
+//	float speed;
 	
 	int lastDistanceToChargingStation;
 	
 	bool lowBattery;	
 	bool picking <- false;
+	bool carrying <- false;
 	
-	people rider <- nil; //The person I am going to pick up (never actually rides, both objects die and are replaced by a ride object)
+	people rider <- nil;
 
     aspect realistic {
-		draw triangle(15)  color: rgb(25*1.1,25*1.6,200) rotate: heading + 90;
-		if lowBattery{
+		
+		if lowBattery {
 			draw triangle(15) color: #darkred rotate: heading + 90;
-		}
-		if (picking){
+		} else if picking {
 			draw triangle(15) color: rgb(175*1.1,175*1.6,200) rotate: heading + 90;
+		} else if carrying {
+			draw triangle(15)  color: #gamagreen rotate: heading + 90;
+		} else {
+			draw triangle(15)  color: rgb(25*1.1,25*1.6,200) rotate: heading + 90;
 		}
 	}
 	
@@ -110,11 +121,13 @@ species bike skills:[moving] {
 					self.pheromones[j] <- 0;
 				}
 				
-				if(myself.picking){								
+				
+				if(myself.picking or myself.carrying){								
 					if (self.pheromonesToward[j]=myself.source){
 						self.pheromones[j] <- self.pheromones[j] + myself.pheromoneMark ;
 					}
 				}
+				
 				//Saturation
 				if (self.pheromones[j]>50*singlePheromoneMark){
 					self.pheromones[j] <- 50*singlePheromoneMark;
@@ -125,24 +138,25 @@ species bike skills:[moving] {
 			myself.pheromoneToDiffuse <- max(self.pheromones)*diffusion;
 		}
 		ask pheromoneRoad closest_to(self){	
-			point p <- farthest_point_to (self , self.location); //Farthest point of the road from the location (center?) of the road. This likely evaluates to a randomly chosen endpoint. Should be precomputed? I dont think the location or shape of the road ever changes
-			if (myself.location distance_to p < 1){
-				//add _all_ my pheremone to this road, update evaporation, cap at (0, infinity). If I'm picking someone up, add 0
-				self.pheromone <- self.pheromone + myself.pheromoneToDiffuse - (singlePheromoneMark * evaporation * (cycle - self.lastUpdate));
+			point p <- farthest_point_to (self , self.location);
+			if (myself.location distance_to p < 1){			
+				self.pheromone <- self.pheromone + myself.pheromoneToDiffuse - (singlePheromoneMark * evaporation * (cycle - self.lastUpdate));					
+								
 				if (self.pheromone<0.01){
 					self.pheromone <- 0.0;
 				}	
 								
-				if(myself.picking){
+				if(myself.carrying or myself.carrying){
 					self.pheromone <- self.pheromone + myself.pheromoneMark;
-				}
-				self.lastUpdate <- cycle;
+				}	
+				self.lastUpdate <- cycle;				
 			}
 		}
 	}
 	
-	reflex searching when: (!picking and !lowBattery){		
-		my_path <- self.goto(on:roadNetwork, target:target, speed:speedDist, return_path: true);				
+	
+	reflex searching when: (!picking and !lowBattery and !carrying){		
+		myPath <- self.goto(on:roadNetwork, target:target, speed:speed, return_path: true);				
 		if (target != location) { 
 			do updatePheromones;
 		} else {
@@ -150,7 +164,7 @@ species bike skills:[moving] {
 				myself.lastDistanceToChargingStation <- self.distanceToChargingStation;
 
 				// If enough batteryLife follow the pheromone 
-				if(myself.batteryLife < myself.lastDistanceToChargingStation/myself.speedDist){ 
+				if(myself.batteryLife < myself.lastDistanceToChargingStation/myself.speed){ 
 					myself.lowBattery <- true;
 				} else {
 				
@@ -195,7 +209,7 @@ species bike skills:[moving] {
 	}
 	//Implement logic for charging
 	reflex toCharge when: lowBattery{
-		my_path <- self.goto(on:roadNetwork, target:target, speed:speedDist, return_path: true);
+		myPath <- self.goto(on:roadNetwork, target:target, speed:speed, return_path: true);
 		
 		if (target != location) {
 			//collision avoidance time
@@ -234,87 +248,90 @@ species bike skills:[moving] {
 	reflex pickUp when: picking {
 		do goto target: target on: roadNetwork ; 
 	    if target = location {
-	        target <- nil ;
-	        create ride {
-	        	self.riderTarget <- myself.rider.the_target ;
-	        	//Save rider characteristics
-	        	self.r_objective <- myself.rider.objective ;
-	        	self.r_living_place <- myself.rider.living_place ;
-	        	self.r_working_place <- myself.rider.working_place ;
-	        	self.r_start_work <- myself.rider.start_work ;
-	        	self.r_end_work <- myself.rider.end_work ;
-	        	//Save bike characteristics
-				self.r_pheromoneToDiffuse <- myself.pheromoneToDiffuse ;
-				self.r_pheromoneMark <- myself.pheromoneMark ; 
-				self.r_batteryLife <- myself.batteryLife;
-				self.r_speedDist <- myself.speedDist;
-				//Save Path nodes
-				self.intTarget <- (intersection closest_to(self.riderTarget)).location ;
-				self.total_path <- path_between(roadNetwork, myself.location, self.intTarget) ;
-				//self.total_path <- path_between(roadNetwork, myself.location, myself.rider.the_target) ;
-				self.target <- total_path.vertices[0] ;
+	        targetIntersection <- (intersection closest_to(rider.target)).location;
+	        totalPath <- path_between(roadNetwork, location, targetIntersection);
+	        pathIndex <- 0;
+	        target <- totalPath.vertices[pathIndex];
+	        
+	        ask rider {
+	        	state <- "captured";
 	        }
-        	ask self.rider {
-				do die ;
-			}
-			do die ;
     	}
 	}
-	
+	reflex carrying when: carrying {
+		myPath <- goto(on:roadNetwork, target:target, speed:speed, return_path: true);
+		
+		do updatePheromones;
+		
+		if (target = location) {
+			pathIndex <- pathIndex +1 ;			
+			do updatePheromones;
+			source <- location;
+			target <- point(totalPath.vertices[pathIndex]);
+		}
+		
+		if(location=targetIntersection){
+			ask rider {
+				location <- myself.location;
+				state <- "free";
+			}
+		}
+	}
 }
 
 species people skills:[moving] {
     rgb color <- #yellow ;
-    building living_place <- nil ;
-    building working_place <- nil ;
-    int start_work ;
-    int end_work  ;
+    building living_place;
+    building working_place;
+    int start_work;
+    int end_work;
     string objective ;
-    point the_target <- nil ;
-    point closest_int <- nil;
+    point target;
+    point closestIntersection;
+    
     bool call_bike <- false;
-
     
-    reflex time_to_work when: current_date.hour = start_work and objective = "resting"{
-	    objective <- "working" ;
-	    the_target <- any_location_in (working_place);
-	    call_bike <- true ;
-	}
-    
-    reflex time_to_go_home when: current_date.hour = end_work and objective = "working"{
-	    objective <- "resting" ;
-	    the_target <- any_location_in (living_place);
-	    call_bike <- true ;
-	}
-    
-    reflex to_intersection when: call_bike = true {
-    	call_bike <- false ;
-	    closest_int <- (intersection closest_to(self)).location ;
-	    do callBike;
-    }
-    
-    
-    aspect base {
-		draw circle(10) color: color border: #black;
-    }
-    
-    action callBike {
+    string state <- "free" among: ["free", "captured"];
+	
+	action callBike {
+		closestIntersection <- (intersection closest_to(self)).location ;
+		
     	list<bike>avaliableBikes <- bike where (each.picking = false and each.lowBattery = false) ;
     	//If no avaliable bikes, automatic transport to destiny (walk home?)
     	if(!empty(avaliableBikes)){
 	    	ask avaliableBikes closest_to(self){
-	    		self.target <- myself.closest_int;
-	    		self.rider <- myself ;
-	    		self.picking <- true ;
+	    		self.target <- myself.closestIntersection;
+	    		self.rider <- myself;
+	    		self.picking <- true;
 	    	}
-	    	do goto target: closest_int on: roadNetwork ; 		    	
+	    	do goto target: closestIntersection on: roadNetwork ; 		    	
     	} else {
-    		location <- the_target ;
-    	}   	
+    		location <- target; //teleport home??
+    	}
+    }
+    
+    reflex time_to_work when: current_date.hour = start_work and objective = "resting"{
+	    objective <- "working" ;
+	    target <- any_location_in (working_place);
+	    
+	    do callBike;
+	}
+    
+    reflex time_to_go_home when: current_date.hour = end_work and objective = "working"{
+	    objective <- "resting" ;
+	    target <- any_location_in (living_place);
+	    
+	    do callBike;
+	}
+    
+    aspect base {
+		if state != "captured" {
+			draw circle(10) color: color border: #black;
+		}
     }
 }
 
-species ride skills:[moving] {
+/*species ride skills:[moving] {
 	bike rided <- nil;
 	people rider <- nil;
 	point riderTarget <- nil;
@@ -394,43 +411,8 @@ species ride skills:[moving] {
 			}							
 		}
 	}
-	reflex carrying {		
-		my_path <- self.goto(on:roadNetwork, target:target, speed:r_speedDist, return_path: true);
-						
-		if (target != location) {
-			do updatePheromones;
-		} else{				
-			pathIndex <- pathIndex +1 ;			
-			do updatePheromones;
-			source <- location;
-			if(location=intTarget){
-				create people {
-					living_place <- myself.r_living_place ;
-					working_place <- myself.r_working_place ;
-					start_work <- myself.r_start_work;
-			        end_work <- myself.r_end_work;
-			        objective <- myself.r_objective;
-			        location <- myself.location;
-			        do goto target: myself.riderTarget on: roadNetwork ;
-				}
-				create bike {
-					location <- (intersection closest_to myself).location ;
-					target <- location ; 
-					source <- location ;
-					picking <- false;
-					lowBattery <- false;
-					speedDist <- myself.r_speedDist ;
-					//Values to change
-					pheromoneToDiffuse <- myself.r_pheromoneToDiffuse ;
-					pheromoneMark <- myself.r_pheromoneMark ;
-					batteryLife <- myself.r_batteryLife ;
-				}
-				do die;
-			}
-			target <- point(total_path.vertices[pathIndex]);
-		}
-	}
-}
+	
+}*/
 
 
 
