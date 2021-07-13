@@ -68,7 +68,6 @@ species tagRFID {
 	}
 }
 
-
 species bike skills:[moving] {
 	point target;
 	point targetIntersection;
@@ -78,9 +77,8 @@ species bike skills:[moving] {
 	
 	int pathIndex;
 	
-	
 	float pheromoneToDiffuse; //represents a store of pheremone (a bike can't expend more than this amount). Pheremone is restored by ___
-	float pheromoneMark;  //initialized to 0, never updated. Unsure what this represents
+	float pheromoneMark; //initialized to 0, never updated. Unsure what this represents
 	
 	int batteryLife; //Number of meters we can travel on current battery
 //	float speed;
@@ -94,7 +92,6 @@ species bike skills:[moving] {
 	people rider <- nil;
 
     aspect realistic {
-		
 		if lowBattery {
 			draw triangle(15) color: #darkred rotate: heading + 90;
 		} else if picking {
@@ -255,7 +252,10 @@ species bike skills:[moving] {
 	        
 	        ask rider {
 	        	state <- "captured";
+	        	write("Picked up a rider");
 	        }
+	        picking <- false;
+	        carrying <- true;
     	}
 	}
 	reflex carrying when: carrying {
@@ -263,18 +263,21 @@ species bike skills:[moving] {
 		
 		do updatePheromones;
 		
-		if (target = location) {
+		
+		//TODO: we will sometimes skip this branch because we are _almost_ but not quite at targetIntersection. This breaks the program
+		if(location=targetIntersection){
+			write("Arrived at target intersection");
+			ask rider {
+				location <- myself.location;
+				state <- "free";
+				write("dropped off rider");
+			}
+			carrying <- false;
+		} else if (target = location) {
 			pathIndex <- pathIndex +1 ;			
 			do updatePheromones;
 			source <- location;
 			target <- point(totalPath.vertices[pathIndex]);
-		}
-		
-		if(location=targetIntersection){
-			ask rider {
-				location <- myself.location;
-				state <- "free";
-			}
 		}
 	}
 }
@@ -285,18 +288,18 @@ species people skills:[moving] {
     building working_place;
     int start_work;
     int end_work;
-    string objective ;
+    string objective <- "resting" among: ["resting", "working"];
     point target;
     point closestIntersection;
     
-    bool call_bike <- false;
+    //bool call_bike <- false;
     
-    string state <- "free" among: ["free", "captured"];
+    string state <- "free" among: ["free", "captured"]; //This variable can only be one of a few values, like an Enum in other languages
 	
 	action callBike {
-		closestIntersection <- (intersection closest_to(self)).location ;
+		closestIntersection <- (intersection closest_to(self)).location;
 		
-    	list<bike>avaliableBikes <- bike where (each.picking = false and each.lowBattery = false) ;
+    	list<bike>avaliableBikes <- bike where (each.picking = false and each.lowBattery = false);
     	//If no avaliable bikes, automatic transport to destiny (walk home?)
     	if(!empty(avaliableBikes)){
 	    	ask avaliableBikes closest_to(self){
@@ -330,89 +333,5 @@ species people skills:[moving] {
 		}
     }
 }
-
-/*species ride skills:[moving] {
-	bike rided <- nil;
-	people rider <- nil;
-	point riderTarget <- nil;
-	point intTarget <- nil ;
-	
-	//Rider characteristics
-    building r_living_place <- nil ;
-    building r_working_place <- nil ;
-    int r_start_work ;
-    int r_end_work  ;
-    string r_objective ;
-    
-    //Rided characteristics
-	float r_pheromoneToDiffuse;
-	float r_pheromoneMark; 
-	int r_batteryLife;
-	float r_speedDist;
-	
-	
-	point target;
-	path my_path;
-	path total_path;
-	int pathIndex <- 0; 
-	point source;
-	
-	float pheromoneToDiffuse;
-	float pheromoneMark; 
-	
-	int batteryLife; 
-	
-	int lastDistanceToChargingStation;
-	
-	//Juan: look how to eliminate this parameter. Separate bike from ride behavior
-	bool carrying <- true;
-	 
-    aspect realistic {
-		draw triangle(15)  color: #gamagreen rotate: heading + 90;
-	}	
-	action updatePheromones {
-		list<tagRFID>closeTag <- tagRFID at_distance 1000;
-		ask closeTag closest_to(self){
-			loop j from:0 to: (length(self.pheromonesToward)-1) {					
-							
-				self.pheromones[j] <- self.pheromones[j] + myself.pheromoneToDiffuse - (singlePheromoneMark * evaporation * (cycle - self.lastUpdate));					
-				
-				if (self.pheromones[j]<0.001){
-					self.pheromones[j] <- 0;
-				}
-				
-				if(myself.carrying){								
-					if (self.pheromonesToward[j]=myself.source){
-						self.pheromones[j] <- self.pheromones[j] + myself.pheromoneMark ;
-					}
-				}
-				//Saturation
-				if (self.pheromones[j]>50*singlePheromoneMark){
-					self.pheromones[j] <- 50*singlePheromoneMark;
-				}
-			}
-			// Update tagRFID and pheromoneToDiffuse
-			self.lastUpdate <- cycle;				
-			myself.pheromoneToDiffuse <- max(self.pheromones)*diffusion;
-		}
-		ask pheromoneRoad closest_to(self){	
-			point p <- farthest_point_to (self , self.location);
-			if (myself.location distance_to p < 1){			
-				self.pheromone <- self.pheromone + myself.pheromoneToDiffuse - (singlePheromoneMark * evaporation * (cycle - self.lastUpdate));					
-								
-				if (self.pheromone<0.01){
-					self.pheromone <- 0.0;
-				}	
-								
-				if(myself.carrying){
-						self.pheromone <- self.pheromone + myself.pheromoneMark ;
-				}	
-				self.lastUpdate <- cycle;				
-			}							
-		}
-	}
-	
-}*/
-
 
 

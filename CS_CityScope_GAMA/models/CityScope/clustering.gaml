@@ -16,7 +16,6 @@ global {
 	//---------------------------------------------------------Performance Measures-----------------------------------------------------------------------------
 	//-------------------------------------------------------------------Necessary Variables--------------------------------------------------------------------------------------------------
 
-    	
 	// GIS FILES
 	geometry shape <- envelope(bound_shapefile);
 	graph roadNetwork;
@@ -47,7 +46,6 @@ global {
 	    list<int> tmpDist;
 
 		loop vertex over: roadNetwork.vertices {
-			write(type_of(vertex));
 			create intersection {
 				location <- point(vertex);
 			}
@@ -115,7 +113,7 @@ global {
 	        living_place <- one_of(residentialBuildings) ;
 	        working_place <- one_of(officeBuildings) ;
 	        objective <- "resting";
-	        location <- any_location_in (one_of (residentialBuildings));
+	        location <- any_location_in(living_place);
 	    }
 	 	// ----------------------------------The RFIDs tag on each road intersection------------------------
 		loop i from: 0 to: length(roadNetwork.vertices) - 1 {
@@ -156,18 +154,6 @@ global {
 
 
 experiment clustering type: gui {
-//    parameter "Shapefile for the buildings:" var: buildings_shapefile category: "GIS" ;
-//    parameter "Shapefile for the roads:" var: roads_shapefile category: "GIS" ;
-//    parameter "Shapefile for the bounds:" var: bound_shapefile category: "GIS" ;
-//    parameter "Number of people agents:" var: numPeople category: "People" ;
-//    parameter "Number of charging points:" var: numDockingStations category: "Docking" ;
-//    parameter "Earliest hour to start work" var: workStartMin category: "People" min: 2 max: 8;
-//    parameter "Latest hour to start work" var: workStartMax category: "People" min: 8 max: 12;
-//    parameter "Earliest hour to end work" var: workEndMin category: "People" min: 12 max: 16;
-//    parameter "Latest hour to end work" var: workEndMax category: "People" min: 16 max: 23;
-//    parameter "minimal speed" var: minSpeedPeople category: "People" min: 0.1 #km/#h ;
-//    parameter "maximal speed" var: maxSpeedPeople category: "People" max: 10 #km/#h;
-        
     output {
 		display city_display type:opengl background: #black draw_env: false{	
 			species building aspect: type ;

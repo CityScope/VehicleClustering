@@ -25,7 +25,7 @@ global {
 	
 	//----------------------Docking Parameters------------------------
 	//Number of docking stations
-	int numDockingStations <- 2 	min: 1 max: 1000 parameter: "Num Bikes:" category: "Initial";
+	int numDockingStations <- 2 	min: 1 max: 1000 parameter: "Num Docking Stations:" category: "Initial";
 	
 	//----------------------People Parameters------------------------
 	int numPeople <- 5 				min: 1 max: 1000 parameter: "Num People:" category: "Initial";
