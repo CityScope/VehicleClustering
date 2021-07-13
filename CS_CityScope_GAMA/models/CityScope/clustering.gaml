@@ -148,6 +148,10 @@ global {
 			}
 		} 
     }
+
+	action requestBike(people person) {
+		
+	}
 }
 
 

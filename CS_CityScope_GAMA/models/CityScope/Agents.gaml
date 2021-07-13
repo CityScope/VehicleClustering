@@ -24,6 +24,8 @@ species dockingStation {
 	aspect base {
 		draw circle(10) color:#blue;		
 	}
+	
+	reflex chargeBikes {}
 }
 
 species building {
@@ -68,7 +70,160 @@ species tagRFID {
 	}
 }
 
-species bike skills:[moving] {
+species people control: fsm skills: [moving] {
+	
+	rgb color <- #yellow ;
+    building living_place;
+    building working_place;
+    int start_work;
+    int end_work;
+    string objective <- "resting" among: ["resting", "working"];
+    point target;
+    point closestIntersection;
+    
+    aspect base {
+		if state != "riding" {
+			draw circle(10) color: color border: #black;
+		}
+    }
+    
+    
+    state stationary initial: true {}
+	state requesting_ride {}
+	state awaiting_ride {}
+	state riding {}
+	state walking {}
+}
+
+
+/*species people skills:[moving] {
+    rgb color <- #yellow ;
+    building living_place;
+    building working_place;
+    int start_work;
+    int end_work;
+    string objective <- "resting" among: ["resting", "working"];
+    point target;
+    point closestIntersection;
+    
+    //bool call_bike <- false;
+    
+    string state <- "free" among: ["free", "captured"]; //This variable can only be one of a few values, like an Enum in other languages
+	
+	action callBike {
+		closestIntersection <- (intersection closest_to(self)).location;
+		
+    	list<bike>avaliableBikes <- bike where (each.picking = false and each.lowBattery = false);
+    	//If no avaliable bikes, automatic transport to destiny (walk home?)
+    	if(!empty(avaliableBikes)){
+	    	ask avaliableBikes closest_to(self){
+	    		self.target <- myself.closestIntersection;
+	    		self.rider <- myself;
+	    		self.picking <- true;
+	    	}
+	    	do goto target: closestIntersection on: roadNetwork ; 		    	
+    	} else {
+    		location <- target; //teleport home??
+    	}
+    }
+    
+    reflex time_to_work when: current_date.hour = start_work and objective = "resting"{
+	    objective <- "working" ;
+	    target <- any_location_in (working_place);
+	    
+	    do callBike;
+	}
+    
+    reflex time_to_go_home when: current_date.hour = end_work and objective = "working"{
+	    objective <- "resting" ;
+	    target <- any_location_in (living_place);
+	    
+	    do callBike;
+	}
+    
+    aspect base {
+		if state != "captured" {
+			draw circle(10) color: color border: #black;
+		}
+    }
+}
+*/
+
+
+species bike control: fsm skills: [moving] {
+	point target;
+	point targetIntersection;
+	path myPath;
+	path totalPath; 
+	point source;
+	
+	int pathIndex;
+	
+	float pheromoneToDiffuse; //represents a store of pheremone (a bike can't expend more than this amount). Pheremone is restored by ___
+	float pheromoneMark; //initialized to 0, never updated. Unsure what this represents
+	
+	int batteryLife; //Number of meters we can travel on current battery
+//	float speed;
+	
+	int lastDistanceToChargingStation;
+	
+	bool lowBattery;	
+	bool picking <- false;
+	bool carrying <- false;
+	
+	people rider <- nil;
+
+    aspect realistic {
+		if lowBattery {
+			draw triangle(15) color: #darkred rotate: heading + 90;
+		} else if picking {
+			draw triangle(15) color: rgb(175*1.1,175*1.6,200) rotate: heading + 90;
+		} else if carrying {
+			draw triangle(15)  color: #gamagreen rotate: heading + 90;
+		} else {
+			draw triangle(15)  color: rgb(25*1.1,25*1.6,200) rotate: heading + 90;
+		}
+	}
+	
+	
+	
+	action updateRFIDEvaporation(tagRFID tag) {}
+	
+	float platooningCost(bike other) {
+		return 0;
+	}
+	float deplatooningCost(bike leader) {
+		return 0;
+	}
+	
+	float energyCost(float distance) {
+		return distance;
+	}
+	
+	reflex reduceBattery {}
+	
+	action depositePheromone {}
+	
+	reflex moveTowardTarget {}
+	
+	action chooseWanderDirection {}
+	
+	action evaluateMerges {}
+	
+	state idle initial: true {}
+	state low_battery {}
+	state getting_charge {}
+	state awaitingFollower {}
+	state following {
+		//transfer charge to host
+	}
+	state picking_up {}
+	state dropping_off {}
+	// fsm also has exit and enter blocks
+}
+
+
+/*species bike skills:[moving] {
 	point target;
 	point targetIntersection;
 	path myPath;
@@ -280,58 +435,4 @@ species bike skills:[moving] {
 			target <- point(totalPath.vertices[pathIndex]);
 		}
 	}
-}
-
-species people skills:[moving] {
-    rgb color <- #yellow ;
-    building living_place;
-    building working_place;
-    int start_work;
-    int end_work;
-    string objective <- "resting" among: ["resting", "working"];
-    point target;
-    point closestIntersection;
-    
-    //bool call_bike <- false;
-    
-    string state <- "free" among: ["free", "captured"]; //This variable can only be one of a few values, like an Enum in other languages
-	
-	action callBike {
-		closestIntersection <- (intersection closest_to(self)).location;
-		
-    	list<bike>avaliableBikes <- bike where (each.picking = false and each.lowBattery = false);
-    	//If no avaliable bikes, automatic transport to destiny (walk home?)
-    	if(!empty(avaliableBikes)){
-	    	ask avaliableBikes closest_to(self){
-	    		self.target <- myself.closestIntersection;
-	    		self.rider <- myself;
-	    		self.picking <- true;
-	    	}
-	    	do goto target: closestIntersection on: roadNetwork ; 		    	
-    	} else {
-    		location <- target; //teleport home??
-    	}
-    }
-    
-    reflex time_to_work when: current_date.hour = start_work and objective = "resting"{
-	    objective <- "working" ;
-	    target <- any_location_in (working_place);
-	    
-	    do callBike;
-	}
-    
-    reflex time_to_go_home when: current_date.hour = end_work and objective = "working"{
-	    objective <- "resting" ;
-	    target <- any_location_in (living_place);
-	    
-	    do callBike;
-	}
-    
-    aspect base {
-		if state != "captured" {
-			draw circle(10) color: color border: #black;
-		}
-    }
-}
-
-
+}*/
