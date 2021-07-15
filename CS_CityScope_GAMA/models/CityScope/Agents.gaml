@@ -12,9 +12,6 @@ import "./clustering.gaml"
 
 
 species pheromoneRoad {
-	//stores road shapes and pheromone levels
-	float pheromone <- 0.0; //probably should not store pheromone levels
-	int lastUpdate;
 	aspect base {
 		draw shape color: rgb(125, 125, 125);
 	}
@@ -70,6 +67,7 @@ species tagRFID {
 	}
 }
 
+
 species people control: fsm skills: [moving] {
 	
 	rgb color <- #yellow ;
@@ -77,9 +75,14 @@ species people control: fsm skills: [moving] {
     building working_place;
     int start_work;
     int end_work;
-    string objective <- "resting" among: ["resting", "working"];
-    point target;
+    
+    point final_destination; //Final destination for the trip
+    point target; //Interim destination; the thing we are currently moving toward
     point closestIntersection;
+    float waitTime;
+    
+    bike bikeToRide;
+    
     
     aspect base {
 		if state != "riding" {
@@ -87,12 +90,66 @@ species people control: fsm skills: [moving] {
 		}
     }
     
+    //Should we leave for work/home? Only if it is time, and we are not already there
+    bool timeToWork { return (current_date.hour = start_work) and !(self overlaps working_place); }
+    bool timeToSleep { return (current_date.hour = end_work) and !(self overlaps living_place); }
     
-    state stationary initial: true {}
-	state requesting_ride {}
-	state awaiting_ride {}
-	state riding {}
-	state walking {}
+    state idle initial: true {
+    	//Watch netflix at home or something
+    	enter { target <- nil; }
+    	
+    	transition to: requesting_bike when: timeToWork() {
+    		final_destination <- any_location_in (working_place);
+//    		write "going to work";
+    	}
+    	transition to: requesting_bike when: timeToSleep() {
+    		final_destination <- any_location_in (living_place);
+//    		write "going home";
+    	}
+    }
+	state requesting_bike {
+		//Ask the system for a bike, teleport home if wait is too long
+		
+		enter {
+			closestIntersection <- (intersection closest_to(self)).location;
+		}
+		
+		transition to: walking when: host.waitTime(self) <= maxWaitTime {
+			//Walk to closest intersection, ask a bike to meet me there
+			target <- closestIntersection;
+			bikeToRide <- host.requestBike(self);
+			write "getting a ride from " + bikeToRide;
+		}
+		transition to: idle {
+			//teleport home
+			location <- final_destination;
+			write "wait too long, teleported";
+		}
+	}
+	state awaiting_bike {
+		//Go to an intersection and wait for your bike
+		enter {
+			target <- nil;
+		}
+		
+		transition to: riding when: bikeToRide.state = "dropping_off" {}
+	}
+	state riding {
+		//do nothing, follow the bike around until it drops you off and you have to walk
+		transition to: walking when: bikeToRide.state != "dropping_off" {
+			target <- final_destination;
+		}
+		exit { bikeToRide <- nil; }
+		
+		location <- bikeToRide.location;
+	}
+	state walking {
+		//go to your destination or nearest intersection, then wait
+		transition to: idle when: location = final_destination {}
+		transition to: awaiting_bike when: location = target {}
+		
+		do goto target: target on: roadNetwork;
+	}
 }
 
 
@@ -149,7 +206,6 @@ species people control: fsm skills: [moving] {
 }
 */
 
-
 species bike control: fsm skills: [moving] {
 	point target;
 	point targetIntersection;
@@ -163,63 +219,247 @@ species bike control: fsm skills: [moving] {
 	float pheromoneMark; //initialized to 0, never updated. Unsure what this represents
 	
 	int batteryLife; //Number of meters we can travel on current battery
-//	float speed;
 	
 	int lastDistanceToChargingStation;
 	
-	bool lowBattery;	
-	bool picking <- false;
-	bool carrying <- false;
 	
 	people rider <- nil;
 
     aspect realistic {
-		if lowBattery {
-			draw triangle(15) color: #darkred rotate: heading + 90;
-		} else if picking {
-			draw triangle(15) color: rgb(175*1.1,175*1.6,200) rotate: heading + 90;
-		} else if carrying {
-			draw triangle(15)  color: #gamagreen rotate: heading + 90;
-		} else {
-			draw triangle(15)  color: rgb(25*1.1,25*1.6,200) rotate: heading + 90;
+		switch state {
+			match "low_battery" {
+				draw triangle(15) color: #darkred rotate: heading + 90;
+			}
+			match "picking_up" {
+				draw triangle(15) color: rgb(175*1.1,175*1.6,200) rotate: heading + 90;
+			}
+			match "dropping_off" {
+				draw triangle(15)  color: #gamagreen rotate: heading + 90;
+			}
+			default {
+				draw triangle(15)  color: rgb(25*1.1,25*1.6,200) rotate: heading + 90;
+			}
+		}
+	}
+	
+	
+	//transition from idle to picking_up. Called by the global scheduler
+	action pickUp(people person) {
+		rider <- person;
+	}
+	
+	
+	
+	//These are our cost functions, and will be the basis of how we decide to form platoons
+	float platooningCost(bike other) {
+		return 0;
+	}
+	float deplatooningCost(bike other) {
+		return 0;
+	}
+	action evaluatePlatoons {}
+	
+	
+	float energyCost(float distance) {
+		//This function will let us alter the efficiency of our bikes, if we decide to look into that
+		return distance;
+	}
+	
+	action reduceBattery {}
+	
+	action depositePheromone {}
+	
+	reflex moveTowardTarget when: target != nil {
+		//do goto
+		myPath <- goto(on:roadNetwork, target:target, speed:speed, return_path: true);
+		//determine distance
+		//reduce battery
+		//determine most recent RIFD tag
+		//update pheromones
+		//do updatePheromones;
+	}
+	
+	point chooseWanderTarget {
+		return nil;
+	}
+	
+	
+	
+	action evaporatePheromones(tagRFID tag) {}
+	//Dump my pheremone at the nearest tag, pick up some from same tag via diffusion, add more pheremone to a random endpoint of the road I'm on
+	action updatePheromones {
+		// ask the nearest tag to: add _all_ of my pheremone to it, update evaporation, and cap at (0, 50). If I am picking someone up, add 0 to pheremone tag (???). Set my pheremone levels to whatever the tag has diffused to me
+		ask tagRFID closest_to(self){
+			loop j from:0 to: (length(self.pheromonesToward)-1) {					
+							
+				self.pheromones[j] <- self.pheromones[j] + myself.pheromoneToDiffuse - (singlePheromoneMark * evaporation * (cycle - self.lastUpdate));					
+				
+				if (self.pheromones[j]<0.001){
+					self.pheromones[j] <- 0;
+				}
+				
+				
+				if(myself.state = "picking_up" or myself.state = "dropping_off") {
+					if (self.pheromonesToward[j]=myself.source){
+						self.pheromones[j] <- self.pheromones[j] + myself.pheromoneMark ;
+					}
+				}
+				
+				//Saturation
+				if (self.pheromones[j]>50*singlePheromoneMark){
+					self.pheromones[j] <- 50*singlePheromoneMark;
+				}
+			}
+			// Update tagRFID and pheromoneToDiffuse
+			self.lastUpdate <- cycle;				
+			myself.pheromoneToDiffuse <- max(self.pheromones)*diffusion;
 		}
 	}
 	
 	
 	
-	action updateRFIDEvaporation(tagRFID tag) {}
-	
-	float platooningCost(bike other) {
-		return 0;
+	state idle initial: true {
+		//wander the map, follow pheromones. Same as the old searching reflex
+		
+		//TODO: Why divide by speed??
+		transition to: low_battery when: batteryLife < lastDistanceToChargingStation/speed {}
+		transition to: picking_up when: rider != nil {}
+		transition to: following when: false {} //TODO
+		
+		
+		myPath <- self.goto(on:roadNetwork, target:target, speed:speed, return_path: true); 
+		
+		if (target = location) {
+			ask tagRFID closest_to(self){
+				myself.lastDistanceToChargingStation <- self.distanceToChargingStation;
+				
+				list<float> edgesPheromones <-self.pheromones;
+				
+				if(mean(edgesPheromones)=0){ 
+					// No pheromones,choose a random direction
+					myself.target <- point(self.pheromonesToward[rnd(length(self.pheromonesToward)-1)]);
+				} else{
+					// Follow strongest pheremone trail with p=exploratoryRate^2 if we just came from this direction, or p=exploratoryRate if not. Else, chose random direction
+					// TODO: this random probability function can be better weighted by relative pheremone levels
+					
+					// Pick strongest pheromone trail (with exploratoryRate Probability if the last path has the strongest pheromone)					
+					float maxPheromone <- max(edgesPheromones);
+					loop j from:0 to:(length(self.pheromonesToward)-1) {					
+						if (maxPheromone = edgesPheromones[j]) and (myself.source = point(self.pheromonesToward[j])){
+							edgesPheromones[j]<- flip(exploratoryRate)? edgesPheromones[j] : 0.0;					
+						}											
+					}
+					maxPheromone <- max(edgesPheromones);	
+
+					
+					// Follow strongest pheromone trail (with exploratoryRate Probability in any case)			
+					loop j from:0 to:(length(self.pheromonesToward)-1) {
+						if (maxPheromone = edgesPheromones[j]){
+							if flip(exploratoryRate){	
+								myself.target <- point(self.pheromonesToward[j]);
+								break;	
+							} else {
+								myself.target <- point(self.pheromonesToward[rnd(length(self.pheromonesToward)-1)]);
+								break;
+							}
+						}											
+					}
+				}				
+				
+			}
+			source <- location;
+		}
+		
+		do updatePheromones;
 	}
-	float deplatooningCost(bike leader) {
-		return 0;
+	
+	state low_battery {
+		//seek either a charging station or another vehicle
+		transition to: getting_charge when: false {} //TODO
+		transition to: awaiting_follower when: false {} //TODO
+		
+		
+		myPath <- goto(on:roadNetwork, target:target, speed:speed, return_path: true);
+		do updatePheromones;
+						
+		ask tagRFID closest_to(self) {
+			// Update direction and distance from closest Docking station
+			myself.target <- point(self.towardChargingStation);
+			myself.lastDistanceToChargingStation <- self.distanceToChargingStation;		
+		}
+		source <- location;
+		// Recover wandering status, delete pheromones over Deposits
+		loop i from: 0 to: length(chargingStationLocation) - 1 {
+			if(location = point(roadNetwork.vertices[chargingStationLocation[i]])){
+				ask tagRFID closest_to(self){
+					self.pheromones <- [0.0,0.0,0.0,0.0,0.0];
+				}
+			}
+		}
 	}
 	
-	float energyCost(float distance) {
-		return distance;
+	state getting_charge {
+		//sit at a charging station until charged
+		enter {
+			ask chargingStation closest_to(self) {
+				self.bikes <- self.bikes + 1;
+			}
+		}
+		transition to: idle when: batteryLife = maxBatteryLife {}
+		exit {
+			ask chargingStation closest_to(self) {
+				self.bikes <- self.bikes - 1;
+			}
+		}
 	}
 	
-	reflex reduceBattery {}
+	state awaiting_follower {
+		//sit at an intersection until a follower joins the platoon
+		
+		transition to: idle when: false {} //TODO
+	}
 	
-	action depositePheromone {}
-	
-	reflex moveTowardTarget {}
-	
-	action chooseWanderDirection {}
-	
-	action evaluateMerges {}
-	
-	state idle initial: true {}
-	state low_battery {}
-	state getting_charge {}
-	state awaitingFollower {}
 	state following {
-		//transfer charge to host
+		//transfer charge to host, follow them around the map
+		
+		transition to: idle when: false {} //TODO
 	}
-	state picking_up {}
-	state dropping_off {}
-	// fsm also has exit and enter blocks
+	
+	state picking_up {
+		//go to rider's location, pick them up
+		enter {
+			target <- rider.target; //Go to the rider's target (the closest intersection to them)
+		}
+		
+		transition to: dropping_off when: location=target {
+			write "picked up a rider";
+			
+			targetIntersection <- (intersection closest_to(rider.final_destination)).location;
+	        totalPath <- path_between(roadNetwork, location, targetIntersection);
+	        pathIndex <- 0;
+	        target <- totalPath.vertices[pathIndex];
+		}
+	}
+	
+	state dropping_off {
+		//go to rider's destination, drop them off
+		transition to: idle when: location=targetIntersection {
+			write("Arrived at target intersection");
+			ask rider {
+				location <- myself.location;
+				write("dropped off rider");
+			}
+			rider <- nil;
+		}
+		
+				
+		if location=target and target != targetIntersection {
+			pathIndex <- pathIndex +1;
+			source <- location;
+			target <- point(totalPath.vertices[pathIndex]);
+		}
+		
+	}
 }
 
 
@@ -236,7 +476,7 @@ species bike control: fsm skills: [moving] {
 	float pheromoneMark; //initialized to 0, never updated. Unsure what this represents
 	
 	int batteryLife; //Number of meters we can travel on current battery
-//	float speed;
+	//float speed;
 	
 	int lastDistanceToChargingStation;
 	

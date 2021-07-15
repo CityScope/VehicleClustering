@@ -17,7 +17,7 @@ global {
 	
 	//----------------------Bike Parameters------------------------
 	//Number of Bikes to generate. Juan: Change this so nb is generated according to real GIS Data.
-	int numBikes <- 5 				min: 1 max: 1000 parameter: "Num Bikes:" category: "Initial";
+	int numBikes <- 5 				min: 0 max: 1000 parameter: "Num Bikes:" category: "Initial";
 	//Max battery life of bikes - Maximum number of meters with the battery
 	int maxBatteryLife <- 25000 	min: 10000 max: 1000000 parameter: "Battery Capacity (m)" category: "Bike";
 	//speed of bikes - about 5.5  m/s for PEV (it can be changed accordingly to different robot specification)
@@ -28,7 +28,8 @@ global {
 	int numDockingStations <- 2 	min: 1 max: 1000 parameter: "Num Docking Stations:" category: "Initial";
 	
 	//----------------------People Parameters------------------------
-	int numPeople <- 5 				min: 1 max: 1000 parameter: "Num People:" category: "Initial";
+	int numPeople <- 5 				min: 0 max: 1000 parameter: "Num People:" category: "Initial";
+	float maxWaitTime <- 20#mn		min: 3#mn max: 60#mn parameter: "Max Wait Time:" category: "People";
     int workStartMin <- 6			min: 4 max: 12 parameter: "Min Work Start Time:" category: "People";
     int workStartMax <- 8			min: 4 max: 12 parameter: "Max Work Start Time:" category: "People";
     int workEndMin <- 16			min: 14 max: 24 parameter: "Min Work End Time:" category: "People";

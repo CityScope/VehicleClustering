@@ -20,7 +20,6 @@ global {
 	geometry shape <- envelope(bound_shapefile);
 	graph roadNetwork;
 	list<int> chargingStationLocation;
-  	
 
     // ---------------------------------------Agent Creation----------------------------------------------
     init {
@@ -97,8 +96,6 @@ global {
 		create bike number:numBikes{						
 			location <- point(one_of(roadNetwork.vertices)); 
 			target <- location;
-			picking <- false;
-			lowBattery <- false;
 			pheromoneToDiffuse <- 0.0;
 			pheromoneMark <- 0.0;
 			batteryLife <- rnd(maxBatteryLife);
@@ -112,8 +109,8 @@ global {
 	        end_work <- rnd(workEndMin, workEndMax);
 	        living_place <- one_of(residentialBuildings) ;
 	        working_place <- one_of(officeBuildings) ;
-	        objective <- "resting";
 	        location <- any_location_in(living_place);
+	        assert(location overlaps living_place);
 	    }
 	 	// ----------------------------------The RFIDs tag on each road intersection------------------------
 		loop i from: 0 to: length(roadNetwork.vertices) - 1 {
@@ -146,11 +143,24 @@ global {
 					}
 				}			
 			}
-		} 
-    }
-
-	action requestBike(people person) {
+		}
 		
+		write "FINISH INITIALIZATION";
+		
+    }
+	
+	
+	float waitTime(people person) { //returns wait time in #mn
+		return empty(bike where (each.state = "idle")) ? 200#mn : 10#mn;
+	}
+	bike requestBike(people person) { //pick a bike to go to pickup point, return this bike
+		bike b <- bike where (each.state = "idle") closest_to person;
+		if b != nil {
+			ask b {
+				do pickUp(person);
+			}
+		}
+		return b;
 	}
 }
 
@@ -173,4 +183,50 @@ experiment clustering type: gui {
 			}
 		}
     }
+}
+
+experiment one_person type: gui {
+	parameter var: numBikes init: 0;
+	parameter var: numPeople init: 1;
+	
+    output {
+		display city_display type:opengl background: #black draw_env: false{	
+			species building aspect: type ;
+			species pheromoneRoad aspect: base ;
+			//species tagRFID aspect: base ;
+			species people aspect: base ;
+			species chargingStation aspect: base ;
+			species bike aspect: realistic ;
+			graphics "text" {
+				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
+				{world.shape.width * 0.8, world.shape.height * 0.975};
+				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
+			}
+		}
+    }
+}
+
+experiment one_person_one_bike_gui type: gui {
+	parameter var: numBikes init: 1;
+	parameter var: numPeople init: 1;
+	
+    output {
+		display city_display type:opengl background: #black draw_env: false{	
+			species building aspect: type ;
+			species pheromoneRoad aspect: base ;
+			//species tagRFID aspect: base ;
+			species people aspect: base ;
+			species chargingStation aspect: base ;
+			species bike aspect: realistic ;
+			graphics "text" {
+				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
+				{world.shape.width * 0.8, world.shape.height * 0.975};
+				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
+			}
+		}
+    }
+}
+experiment one_person_one_bike {
+	parameter var: numBikes init: 1;
+	parameter var: numPeople init: 1;
 }
