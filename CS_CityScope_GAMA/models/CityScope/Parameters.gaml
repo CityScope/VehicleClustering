@@ -19,7 +19,7 @@ global {
 	//Number of Bikes to generate. Juan: Change this so nb is generated according to real GIS Data.
 	int numBikes <- 5 				min: 0 max: 1000 parameter: "Num Bikes:" category: "Initial";
 	//Max battery life of bikes - Maximum number of meters with the battery
-	int maxBatteryLife <- 25000 	min: 10000 max: 1000000 parameter: "Battery Capacity (m)" category: "Bike";
+	float maxBatteryLife <- 25000 #m	min: 10000#m max: 1000000#m parameter: "Battery Capacity (m):" category: "Bike";
 	//speed of bikes - about 5.5  m/s for PEV (it can be changed accordingly to different robot specification)
 	float BikeSpeed <- 2.5 #m/#s min: 1 #m/#s max: 15#m/#s parameter: "Bike Top Speed:" category:  "Bike";
 	

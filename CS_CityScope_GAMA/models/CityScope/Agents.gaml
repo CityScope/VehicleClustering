@@ -207,25 +207,7 @@ species people control: fsm skills: [moving] {
 */
 
 species bike control: fsm skills: [moving] {
-	point target;
-	point targetIntersection;
-	path myPath;
-	path totalPath; 
-	point source;
-	
-	int pathIndex;
-	
-	float pheromoneToDiffuse; //represents a store of pheremone (a bike can't expend more than this amount). Pheremone is restored by ___
-	float pheromoneMark; //initialized to 0, never updated. Unsure what this represents
-	
-	int batteryLife; //Number of meters we can travel on current battery
-	
-	int lastDistanceToChargingStation;
-	
-	
-	people rider <- nil;
-
-    aspect realistic {
+	aspect realistic {
 		switch state {
 			match "low_battery" {
 				draw triangle(15) color: #darkred rotate: heading + 90;
@@ -242,8 +224,26 @@ species bike control: fsm skills: [moving] {
 		}
 	}
 	
+	point target;
+	point targetIntersection;
+	path myPath;
+	path totalPath; 
+	point source;
+	
+	int pathIndex;
+	
+	float pheromoneToDiffuse; //represents a store of pheremone (a bike can't expend more than this amount). Pheremone is restored by ___
+	float pheromoneMark; //initialized to 0, never updated. Unsure what this represents
+	
+	int batteryLife; //Number of meters we can travel on current battery
+	
+	int lastDistanceToChargingStation;
+	
+    
+	
 	
 	//transition from idle to picking_up. Called by the global scheduler
+	people rider <- nil;	
 	action pickUp(people person) {
 		rider <- person;
 	}
@@ -260,34 +260,35 @@ species bike control: fsm skills: [moving] {
 	action evaluatePlatoons {}
 	
 	
-	float energyCost(float distance) {
-		//This function will let us alter the efficiency of our bikes, if we decide to look into that
+	action reduceBattery {}
+	float energyCost(float distance) { //This function will let us alter the efficiency of our bikes, if we decide to look into that
 		return distance;
 	}
 	
-	action reduceBattery {}
-	
-	action depositePheromone {}
-	
+	intersection lastIntersection;
 	reflex moveTowardTarget when: target != nil {
 		//do goto
 		myPath <- goto(on:roadNetwork, target:target, speed:speed, return_path: true);
 		//determine distance
 		//reduce battery
 		//determine most recent RIFD tag
-		//update pheromones
-		//do updatePheromones;
+		
+		//TODO: this doesnt make sense, we could (should) have crossed multiple intersections over the last move
+		//update pheromones exactly once, when we cross a new intersection
+		if lastIntersection != myPath.vertices[0] {
+			lastIntersection <- myPath.vertices[0];
+			do updatePheromones(lastIntersection);
+			
+			write "updating intersection " + lastIntersection;
+		}
 	}
 	
 	point chooseWanderTarget {
 		return nil;
 	}
-	
-	
-	
 	action evaporatePheromones(tagRFID tag) {}
 	//Dump my pheremone at the nearest tag, pick up some from same tag via diffusion, add more pheremone to a random endpoint of the road I'm on
-	action updatePheromones {
+	action updatePheromones(intersection IntersectionToUpdate) {
 		// ask the nearest tag to: add _all_ of my pheremone to it, update evaporation, and cap at (0, 50). If I am picking someone up, add 0 to pheremone tag (???). Set my pheremone levels to whatever the tag has diffused to me
 		ask tagRFID closest_to(self){
 			loop j from:0 to: (length(self.pheromonesToward)-1) {					
@@ -428,31 +429,25 @@ species bike control: fsm skills: [moving] {
 	state picking_up {
 		//go to rider's location, pick them up
 		enter {
-			target <- rider.target; //Go to the rider's target (the closest intersection to them)
+			target <- rider.closestIntersection; //Go to the rider's closest intersection
 		}
 		
-		transition to: dropping_off when: location=target {
-			write "picked up a rider";
-			
+		transition to: dropping_off when: location=target {}
+	}
+	
+	state dropping_off {
+		//go to rider's destination, drop them off
+		enter {
 			targetIntersection <- (intersection closest_to(rider.final_destination)).location;
 	        totalPath <- path_between(roadNetwork, location, targetIntersection);
 	        pathIndex <- 0;
 	        target <- totalPath.vertices[pathIndex];
 		}
-	}
-	
-	state dropping_off {
-		//go to rider's destination, drop them off
 		transition to: idle when: location=targetIntersection {
-			write("Arrived at target intersection");
-			ask rider {
-				location <- myself.location;
-				write("dropped off rider");
-			}
 			rider <- nil;
 		}
 		
-				
+		//Weird pheromone stuff. I'm working on it.
 		if location=target and target != targetIntersection {
 			pathIndex <- pathIndex +1;
 			source <- location;
