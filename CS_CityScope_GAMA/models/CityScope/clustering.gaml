@@ -32,13 +32,11 @@ global {
 	    list<building> officeBuildings <- building where (each.type="O");
 	    
 		// ---------------------------------------The Road Network----------------------------------------------
-		create pheromoneRoad from: roads_shapefile;
+		create road from: roads_shapefile;
 		
-		roadNetwork <- as_edge_graph(pheromoneRoad) ;   
+		roadNetwork <- as_edge_graph(road) ;   
 		// Next move to the shortest path between each point in the graph
 		matrix allPairs <- all_pairs_shortest_path (roadNetwork);    
-	    
-	    
 	    
 		// -------------------------------------Location of the charging stations----------------------------------------   
 	    //from docking locations to closest intersection
@@ -98,9 +96,10 @@ global {
 			target <- location;
 			pheromoneToDiffuse <- 0.0;
 			pheromoneMark <- 0.0;
-			batteryLife <- int(rnd(maxBatteryLife));
+			batteryLife <- rnd(maxBatteryLife);
 			//Juan: change to random when update battery behavior
 			speed <- BikeSpeed;
+			distancePerCycle <- step * speed;
 		}
 	    
 		// -------------------------------------------The People -----------------------------------------
@@ -145,7 +144,6 @@ global {
 		}
 		
 		write "FINISH INITIALIZATION";
-		
     }
 	
 	
@@ -170,7 +168,7 @@ experiment clustering type: gui {
     output {
 		display city_display type:opengl background: #black draw_env: false{	
 			species building aspect: type ;
-			species pheromoneRoad aspect: base ;
+			species road aspect: base ;
 			//species tagRFID aspect: base ;
 			species people aspect: base ;
 			species chargingStation aspect: base ;
@@ -191,7 +189,7 @@ experiment one_person type: gui {
     output {
 		display city_display type:opengl background: #black draw_env: false{	
 			species building aspect: type ;
-			species pheromoneRoad aspect: base ;
+			species road aspect: base ;
 			//species tagRFID aspect: base ;
 			species people aspect: base ;
 			species chargingStation aspect: base ;
@@ -208,11 +206,12 @@ experiment one_person type: gui {
 experiment one_each type: gui {
 	parameter var: numBikes init: 1;
 	parameter var: numPeople init: 1;
-	
+	parameter var: step init: 30#sec;
     output {
-		display city_display type:opengl background: #black draw_env: false{	
+		display city_display type:opengl background: #white draw_env: false{
+			species intersection aspect: base;	
 			species building aspect: type ;
-			species pheromoneRoad aspect: base ;
+			species road aspect: base ;
 			//species tagRFID aspect: base ;
 			species people aspect: base ;
 			species chargingStation aspect: base ;
@@ -233,7 +232,7 @@ experiment one_bike type: gui {
 		display city_display type:opengl background: #black draw_env: false{	
 			species intersection aspect: base;
 			species building aspect: type ;
-			species pheromoneRoad aspect: base ;
+			species road aspect: base ;
 			//species tagRFID aspect: base ;
 			species people aspect: base ;
 			species chargingStation aspect: base ;

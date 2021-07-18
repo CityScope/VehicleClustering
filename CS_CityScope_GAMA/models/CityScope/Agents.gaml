@@ -11,7 +11,7 @@ model Agents
 import "./clustering.gaml"
 
 
-species pheromoneRoad {
+species road {
 	aspect base {
 		draw shape color: rgb(125, 125, 125);
 	}
@@ -40,8 +40,13 @@ species chargingStation {
 }
 
 species intersection{
+	rgb color <- #green;
 	aspect base {
-		draw circle(10) color:#green;		
+		draw circle(10) color:color;		
+	}
+	//debug stuff
+	reflex coloring {
+		color <- #green;
 	}
 }
 
@@ -66,7 +71,6 @@ species tagRFID {
 		draw circle(1+5*max(pheromones)) color:rgb(107,171,158);
 	}
 }
-
 
 species people control: fsm skills: [moving] {
 	
@@ -100,11 +104,9 @@ species people control: fsm skills: [moving] {
     	
     	transition to: requesting_bike when: timeToWork() {
     		final_destination <- any_location_in (working_place);
-//    		write "going to work";
     	}
     	transition to: requesting_bike when: timeToSleep() {
     		final_destination <- any_location_in (living_place);
-//    		write "going home";
     	}
     }
 	state requesting_bike {
@@ -118,16 +120,16 @@ species people control: fsm skills: [moving] {
 			//Walk to closest intersection, ask a bike to meet me there
 			target <- closestIntersection;
 			bikeToRide <- host.requestBike(self);
-			write "getting a ride from " + bikeToRide;
+//			write "getting a ride from " + bikeToRide;
 		}
 		transition to: idle {
 			//teleport home
 			location <- final_destination;
-			write "wait too long, teleported";
+			write "wait too long, teleported to destination";
 		}
 	}
 	state awaiting_bike {
-		//Go to an intersection and wait for your bike
+		//Sit at the intersection and wait for your bike
 		enter {
 			target <- nil;
 		}
@@ -141,6 +143,7 @@ species people control: fsm skills: [moving] {
 		}
 		exit { bikeToRide <- nil; }
 		
+		//Always be at the same place as the bike
 		location <- bikeToRide.location;
 	}
 	state walking {
@@ -152,59 +155,6 @@ species people control: fsm skills: [moving] {
 	}
 }
 
-
-/*species people skills:[moving] {
-    rgb color <- #yellow ;
-    building living_place;
-    building working_place;
-    int start_work;
-    int end_work;
-    string objective <- "resting" among: ["resting", "working"];
-    point target;
-    point closestIntersection;
-    
-    //bool call_bike <- false;
-    
-    string state <- "free" among: ["free", "captured"]; //This variable can only be one of a few values, like an Enum in other languages
-	
-	action callBike {
-		closestIntersection <- (intersection closest_to(self)).location;
-		
-    	list<bike>avaliableBikes <- bike where (each.picking = false and each.lowBattery = false);
-    	//If no avaliable bikes, automatic transport to destiny (walk home?)
-    	if(!empty(avaliableBikes)){
-	    	ask avaliableBikes closest_to(self){
-	    		self.target <- myself.closestIntersection;
-	    		self.rider <- myself;
-	    		self.picking <- true;
-	    	}
-	    	do goto target: closestIntersection on: roadNetwork ; 		    	
-    	} else {
-    		location <- target; //teleport home??
-    	}
-    }
-    
-    reflex time_to_work when: current_date.hour = start_work and objective = "resting"{
-	    objective <- "working" ;
-	    target <- any_location_in (working_place);
-	    
-	    do callBike;
-	}
-    
-    reflex time_to_go_home when: current_date.hour = end_work and objective = "working"{
-	    objective <- "resting" ;
-	    target <- any_location_in (living_place);
-	    
-	    do callBike;
-	}
-    
-    aspect base {
-		if state != "captured" {
-			draw circle(10) color: color border: #black;
-		}
-    }
-}
-*/
 
 species bike control: fsm skills: [moving] {
 	aspect realistic {
@@ -225,17 +175,16 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	point target;
-	point targetIntersection;
+	path wanderPath;
 	path myPath;
-	path totalPath; 
 	point source;
 	
-	int pathIndex;
 	
 	float pheromoneToDiffuse; //represents a store of pheremone (a bike can't expend more than this amount). Pheremone is restored by ___
 	float pheromoneMark; //initialized to 0, never updated. Unsure what this represents
 	
-	int batteryLife; //Number of meters we can travel on current battery
+	float batteryLife; //Number of meters we can travel on current battery
+	float distancePerCycle;
 	
 	int lastDistanceToChargingStation;
 	
@@ -259,130 +208,161 @@ species bike control: fsm skills: [moving] {
 	}
 	action evaluatePlatoons {}
 	
-	
-	action reduceBattery {}
-	float energyCost(float distance) { //This function will let us alter the efficiency of our bikes, if we decide to look into that
-		return distance;
+	//Determines when to move into the low_battery state
+	bool setLowBattery {
+		return batteryLife < lastDistanceToChargingStation/speed;
 	}
-	
-	intersection lastIntersection;
-	reflex moveTowardTarget when: target != nil {
-		//do goto
-		myPath <- goto(on:roadNetwork, target:target, speed:speed, return_path: true);
+	float energyCost(float distance) { //This function will let us alter the efficiency of our bikes, if we decide to look into that
+		return 0*distance; //debug stuff, don't have charging implemented yet
+	}
+	float pathLength(path p) {
+		if empty(p) { return 0; }
+		return p.shape.perimeter;
+	}
+	list<tagRFID> lastIntersections;
+	tagRFID lastTag; //last RFID tag we crossed. Useful for wander function
+	reflex moveTowardTarget when: target != location and (target != nil or wanderPath != nil) and batteryLife > 0 {
+		//do goto (or follow in the case of wandering, where we've prepared a possibly-suboptimal rout)
+		if (target != nil) {
+			myPath <- goto(on:roadNetwork, target:target, speed:speed, return_path: true);
+		} else {
+			myPath <- follow(path: wanderPath, return_path: true);
+		}
 		//determine distance
-		//reduce battery
-		//determine most recent RIFD tag
+		float distanceTraveled <- pathLength(myPath);
+		batteryLife <- batteryLife - energyCost(distanceTraveled);
 		
-		//TODO: this doesnt make sense, we could (should) have crossed multiple intersections over the last move
-		//update pheromones exactly once, when we cross a new intersection
-		if lastIntersection != myPath.vertices[0] {
-			lastIntersection <- myPath.vertices[0];
-			do updatePheromones(lastIntersection);
+		if !empty(myPath) {
+			//update pheromones exactly once, when we cross a new intersection
+			//we could (should) have crossed multiple intersections over the last move. The location of each intersection
+			//will show up in `vertices`, as they are the boundaries between new edges
+			//simply casting the points to intersections is incorrect though, as we may get intersections that are close
+			//to the points in question, but not actually on the path. We may also get duplicates. The filter removes both of these.
+			//reverse it to make the oldest intersection first in the list
+			list<tagRFID> newIntersections <- reverse( myPath.vertices where (tagRFID(each).location = each) );
 			
-			write "updating intersection " + lastIntersection;
+			//update pheromones from first traveled to last traveled, ignoring those that were updated last cycle
+			loop tag over: newIntersections {
+				if not(tag in lastIntersections) { do updatePheromones(tag); }
+			}
+			
+			//the future is now old man
+			lastIntersections <- newIntersections;
+			if (!empty(newIntersections)) { lastTag <- newIntersections[0]; }
 		}
 	}
 	
-	point chooseWanderTarget {
-		return nil;
-	}
-	action evaporatePheromones(tagRFID tag) {}
-	//Dump my pheremone at the nearest tag, pick up some from same tag via diffusion, add more pheremone to a random endpoint of the road I'm on
-	action updatePheromones(intersection IntersectionToUpdate) {
-		// ask the nearest tag to: add _all_ of my pheremone to it, update evaporation, and cap at (0, 50). If I am picking someone up, add 0 to pheremone tag (???). Set my pheremone levels to whatever the tag has diffused to me
-		ask tagRFID closest_to(self){
-			loop j from:0 to: (length(self.pheromonesToward)-1) {					
-							
-				self.pheromones[j] <- self.pheromones[j] + myself.pheromoneToDiffuse - (singlePheromoneMark * evaporation * (cycle - self.lastUpdate));					
-				
-				if (self.pheromones[j]<0.001){
-					self.pheromones[j] <- 0;
-				}
-				
-				
-				if(myself.state = "picking_up" or myself.state = "dropping_off") {
-					if (self.pheromonesToward[j]=myself.source){
-						self.pheromones[j] <- self.pheromones[j] + myself.pheromoneMark ;
-					}
-				}
-				
-				//Saturation
-				if (self.pheromones[j]>50*singlePheromoneMark){
-					self.pheromones[j] <- 50*singlePheromoneMark;
+	point chooseWanderTarget(tagRFID fromTag, tagRFID previousTag) {
+		
+		lastDistanceToChargingStation <- fromTag.distanceToChargingStation;
+		
+		list<float> edgesPheromones <- fromTag.pheromones;
+		
+		if(sum(edgesPheromones)=0) {
+			// No pheromones,choose a random direction
+			return point(fromTag.pheromonesToward[rnd(length(fromTag.pheromonesToward)-1)]);
+		} else{
+			// Follow strongest pheremone trail with p=exploratoryRate^2 if we just came from this direction, or p=exploratoryRate if not. Else, chose random direction
+			// TODO: this random probability function can be better weighted by relative pheremone levels
+			
+			// Pick strongest pheromone trail (with exploratoryRate Probability if the last path has the strongest pheromone)
+			float maxPheromone <- max(edgesPheromones);
+			loop j from:0 to:(length(fromTag.pheromonesToward)-1) {
+				if (maxPheromone = edgesPheromones[j]) and (previousTag = fromTag.pheromonesToward[j]){
+					edgesPheromones[j]<- flip(exploratoryRate)? edgesPheromones[j] : 0.0;					
 				}
 			}
-			// Update tagRFID and pheromoneToDiffuse
-			self.lastUpdate <- cycle;				
-			myself.pheromoneToDiffuse <- max(self.pheromones)*diffusion;
+			maxPheromone <- max(edgesPheromones);	
+
+			// Follow strongest pheromone trail (with exploratoryRate Probability in any case)
+			loop j from:0 to:(length(fromTag.pheromonesToward)-1) {
+				if (maxPheromone = edgesPheromones[j]){
+					if flip(exploratoryRate){
+						return point(fromTag.pheromonesToward[j]);
+					} else {
+						return point(fromTag.pheromonesToward[rnd(length(fromTag.pheromonesToward)-1)]);
+					}
+				}
+			}
+		}
+		return nil; //We should not get here
+	}
+	
+	//TODO: make proportional to time, not cycles.
+	action evaporatePheromones(tagRFID tag) {
+		loop j from:0 to: length(tag.pheromonesToward)-1 {
+			tag.pheromones[j] <- tag.pheromones[j] - (singlePheromoneMark * evaporation * (cycle - tag.lastUpdate));
+		}
+	}
+	//Cap the tag's pheromones at acceptable min and max levels
+	//TODO: parametrize this - min and max should be set in parameters file
+	action saturatePheromones(tagRFID tag) {
+		loop j from:0 to: length(tag.pheromonesToward)-1 {
+			if (tag.pheromones[j]<0.001){
+				tag.pheromones[j] <- 0;
+			}
+			if (tag.pheromones[j]>50*singlePheromoneMark){
+				tag.pheromones[j] <- 50*singlePheromoneMark;
+			}
 		}
 	}
 	
+	//Dump my pheremone at the nearest tag, pick up some from same tag via diffusion, add more pheromone to a random endpoint of the road I'm on
+	action updatePheromones(tagRFID tag) {
+		// ask the nearest tag to: add _all_ of my pheremone to it, update evaporation, and cap at (0, 50). If I am picking someone up, add 0 to pheremone tag (???). Set my pheremone levels to whatever the tag has diffused to me
+		do evaporatePheromones(tag);
+		loop j from:0 to: (length(tag.pheromonesToward)-1) {	
+			tag.pheromones[j] <- tag.pheromones[j] + pheromoneToDiffuse;
+			
+			if(state = "picking_up" or state = "dropping_off") {
+				if (tag.pheromonesToward[j]=lastTag){
+					tag.pheromones[j] <- tag.pheromones[j] + pheromoneMark ;
+				}
+			}
+		}
+		
+		// Saturation
+		do saturatePheromones(tag);
+		// Update tagRFID and pheromoneToDiffuse
+		tag.lastUpdate <- cycle;
+		pheromoneToDiffuse <- max(tag.pheromones)*diffusion;
+	}
 	
 	
 	state idle initial: true {
 		//wander the map, follow pheromones. Same as the old searching reflex
-		
+		enter {
+			target <- nil;
+		}
 		//TODO: Why divide by speed??
-		transition to: low_battery when: batteryLife < lastDistanceToChargingStation/speed {}
+		transition to: low_battery when: setLowBattery() {}
 		transition to: picking_up when: rider != nil {}
 		transition to: following when: false {} //TODO
 		
-		
-		myPath <- self.goto(on:roadNetwork, target:target, speed:speed, return_path: true); 
-		
-		if (target = location) {
-			ask tagRFID closest_to(self){
-				myself.lastDistanceToChargingStation <- self.distanceToChargingStation;
-				
-				list<float> edgesPheromones <-self.pheromones;
-				
-				if(mean(edgesPheromones)=0){ 
-					// No pheromones,choose a random direction
-					myself.target <- point(self.pheromonesToward[rnd(length(self.pheromonesToward)-1)]);
-				} else{
-					// Follow strongest pheremone trail with p=exploratoryRate^2 if we just came from this direction, or p=exploratoryRate if not. Else, chose random direction
-					// TODO: this random probability function can be better weighted by relative pheremone levels
-					
-					// Pick strongest pheromone trail (with exploratoryRate Probability if the last path has the strongest pheromone)					
-					float maxPheromone <- max(edgesPheromones);
-					loop j from:0 to:(length(self.pheromonesToward)-1) {					
-						if (maxPheromone = edgesPheromones[j]) and (myself.source = point(self.pheromonesToward[j])){
-							edgesPheromones[j]<- flip(exploratoryRate)? edgesPheromones[j] : 0.0;					
-						}											
-					}
-					maxPheromone <- max(edgesPheromones);	
-
-					
-					// Follow strongest pheromone trail (with exploratoryRate Probability in any case)			
-					loop j from:0 to:(length(self.pheromonesToward)-1) {
-						if (maxPheromone = edgesPheromones[j]){
-							if flip(exploratoryRate){	
-								myself.target <- point(self.pheromonesToward[j]);
-								break;	
-							} else {
-								myself.target <- point(self.pheromonesToward[rnd(length(self.pheromonesToward)-1)]);
-								break;
-							}
-						}											
-					}
-				}				
-				
-			}
-			source <- location;
+		exit {
+			wanderPath <- nil;
 		}
 		
-		do updatePheromones;
+		
+		//construct a plan, so we don't waste motion: Where will we turn from the next intersection? If we have time left in the cycle, where will we turn from there? And from the intersection after that?
+		tagRFID tagWereAboutToHit <- tagRFID closest_to self; //TODO: this is incorrect. Use the road we're currently on, compare the two intersections with the one we know we just crossed
+		wanderPath <- path([tagWereAboutToHit, chooseWanderTarget(tagWereAboutToHit, lastTag)]);
+		loop while: pathLength(wanderPath) < distancePerCycle {
+			int i <- length(wanderPath.vertices) - 1;
+			tagRFID finalTag <- wanderPath.vertices[i];
+			tagRFID penultimate <- wanderPath.vertices[i-1];
+			wanderPath <- path( wanderPath.vertices + chooseWanderTarget(finalTag, penultimate) );
+		}
+		
+		
 	}
 	
+	//TODO: we need to plan ahead somehow, or we waste quite a bit of movement. Currently we move exactly 1 intersection per cycle
 	state low_battery {
 		//seek either a charging station or another vehicle
 		transition to: getting_charge when: false {} //TODO
 		transition to: awaiting_follower when: false {} //TODO
 		
-		
-		myPath <- goto(on:roadNetwork, target:target, speed:speed, return_path: true);
-		do updatePheromones;
-						
 		ask tagRFID closest_to(self) {
 			// Update direction and distance from closest Docking station
 			myself.target <- point(self.towardChargingStation);
@@ -391,7 +371,7 @@ species bike control: fsm skills: [moving] {
 		source <- location;
 		// Recover wandering status, delete pheromones over Deposits
 		loop i from: 0 to: length(chargingStationLocation) - 1 {
-			if(location = point(roadNetwork.vertices[chargingStationLocation[i]])){
+			if(location = point(roadNetwork.vertices[chargingStationLocation[]])){
 				ask tagRFID closest_to(self){
 					self.pheromones <- [0.0,0.0,0.0,0.0,0.0];
 				}
@@ -438,22 +418,12 @@ species bike control: fsm skills: [moving] {
 	state dropping_off {
 		//go to rider's destination, drop them off
 		enter {
-			targetIntersection <- (intersection closest_to(rider.final_destination)).location;
-	        totalPath <- path_between(roadNetwork, location, targetIntersection);
-	        pathIndex <- 0;
-	        target <- totalPath.vertices[pathIndex];
+			target <- (intersection closest_to(rider.final_destination)).location;
 		}
-		transition to: idle when: location=targetIntersection {
+		
+		transition to: idle when: location=target {
 			rider <- nil;
 		}
-		
-		//Weird pheromone stuff. I'm working on it.
-		if location=target and target != targetIntersection {
-			pathIndex <- pathIndex +1;
-			source <- location;
-			target <- point(totalPath.vertices[pathIndex]);
-		}
-		
 	}
 }
 
