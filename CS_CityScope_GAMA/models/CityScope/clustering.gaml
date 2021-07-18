@@ -43,14 +43,15 @@ global {
 	    list<int> tmpDist;
 
 		loop vertex over: roadNetwork.vertices {
-			create intersection {
+			create tagRFID {
+				id <- roadNetwork.vertices index_of vertex;
 				location <- point(vertex);
 			}
 		}
 
 		//K-Means		
 		//Create a list of x,y coordinate for each intersection
-		list<list> instances <- intersection collect ([each.location.x, each.location.y]);
+		list<list> instances <- tagRFID collect ([each.location.x, each.location.y]);
 
 		//from the vertices list, create k groups  with the Kmeans algorithm (https://en.wikipedia.org/wiki/K-means_clustering)
 		list<list<int>> kmeansClusters <- list<list<int>>(kmeans(instances, numDockingStations));
@@ -111,37 +112,35 @@ global {
 	        location <- any_location_in(living_place);
 	    }
 	 	// ----------------------------------The RFIDs tag on each road intersection------------------------
-		loop i from: 0 to: length(roadNetwork.vertices) - 1 {
-			create tagRFID{ 								
-				id <- i;
-				//checked <- false;					
-				location <- point(roadNetwork.vertices[i]); 
-				pheromones <- [0.0,0.0,0.0,0.0,0.0];
-				pheromonesToward <- neighbors_of(roadNetwork,roadNetwork.vertices[i]);  //to know what edge is related to that amount of pheromone
-				
-				// Find the closest chargingPoint and set towardChargingStation and distanceToChargingStation
-				ask chargingStation closest_to self {
-					myself.distanceToChargingStation <- int(point(roadNetwork.vertices[i]) distance_to self.location);
-					loop y from: 0 to: length(chargingStationLocation) - 1 {
-						if (point(roadNetwork.vertices[chargingStationLocation[y]]) = self.location){
-							//Assign next vertice to closest charging  station
-							myself.towardChargingStation <- point(roadNetwork.vertices[allPairs[chargingStationLocation[y],i]]);
-							//Juan: I think this is if next node is already charging station
-							if (myself.towardChargingStation=point(roadNetwork.vertices[i])){
-								myself.towardChargingStation <- point(roadNetwork.vertices[chargingStationLocation[y]]);
-							}
-							break;
-						}				
-					}					
-				}				
-				type <- 'roadIntersection';				
+		
+		ask tagRFID {
+			location <- point(roadNetwork.vertices[id]); 
+			pheromones <- [0.0,0.0,0.0,0.0,0.0];
+			pheromonesToward <- neighbors_of(roadNetwork,roadNetwork.vertices[id]);  //to know what edge is related to that amount of pheromone
+			
+			// Find the closest chargingPoint and set towardChargingStation and distanceToChargingStation
+			ask chargingStation closest_to self {
+				myself.distanceToChargingStation <- int(point(roadNetwork.vertices[myself.id]) distance_to self.location);
 				loop y from: 0 to: length(chargingStationLocation) - 1 {
-					if (i=chargingStationLocation[y]){
-						type <- 'chargingStation&roadIntersection';
+					if (point(roadNetwork.vertices[chargingStationLocation[y]]) = self.location){
+						//Assign next vertice to closest charging  station
+						myself.towardChargingStation <- point(roadNetwork.vertices[allPairs[chargingStationLocation[y],myself.id]]);
+						//Juan: I think this is if next node is already charging station
+						if (myself.towardChargingStation=point(roadNetwork.vertices[myself.id])){
+							myself.towardChargingStation <- point(roadNetwork.vertices[chargingStationLocation[y]]);
+						}
+						break;
 					}
-				}			
+				}
+			}
+			type <- 'roadIntersection';
+			loop y from: 0 to: length(chargingStationLocation) - 1 {
+				if (id=chargingStationLocation[y]){
+					type <- 'chargingStation&roadIntersection';
+				}
 			}
 		}
+		
 		
 		write "FINISH INITIALIZATION";
     }
@@ -209,7 +208,7 @@ experiment one_each type: gui {
 	parameter var: step init: 30#sec;
     output {
 		display city_display type:opengl background: #white draw_env: false{
-			species intersection aspect: base;	
+			//species intersection aspect: base;	
 			species building aspect: type ;
 			species road aspect: base ;
 			//species tagRFID aspect: base ;
@@ -230,10 +229,10 @@ experiment one_bike type: gui {
 	
     output {
 		display city_display type:opengl background: #black draw_env: false{	
-			species intersection aspect: base;
+			//species intersection aspect: base;
 			species building aspect: type ;
 			species road aspect: base ;
-			//species tagRFID aspect: base ;
+			species tagRFID aspect: base ;
 			species people aspect: base ;
 			species chargingStation aspect: base ;
 			species bike aspect: realistic ;
