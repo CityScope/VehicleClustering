@@ -8,161 +8,269 @@
 
 model clustering
 
+import "./Agents.gaml"
+import "./Parameters.gaml"
+
 global {
-    float step <- 10 #mn;
-    int current_hour update: (time / #hour) mod 24;
-	//Implement a reflex to update current day. See City Scope Main. TBD
-	int current_day <- 0;
-	date starting_date <- date("2021-04-23-00-00-00");
-	
- 	string cityScopeCity<-"clustering";
-	string cityGISFolder <- "./../../includes/City/"+cityScopeCity;
+	date starting_date <- #now;
+	//---------------------------------------------------------Performance Measures-----------------------------------------------------------------------------
+	//-------------------------------------------------------------------Necessary Variables--------------------------------------------------------------------------------------------------
+
 	// GIS FILES
-	file shape_file_bounds <- file(cityGISFolder + "/BOUNDARY_CityBoundary.shp");
-	file shape_file_buildings <- file(cityGISFolder + "/CDD_LandUse.shp");
-	file shape_file_roads <- file(cityGISFolder + "/BASEMAP_Roads.shp");
-	file imageRaster <- file('./../../images/gama_black.png');
-	geometry shape <- envelope(shape_file_bounds);
-	file dockingStations <- file(cityGISFolder + "/dockingStations.shp");
-    int nb_people <- 100;
-    int nb_docking;
-    int min_work_start <- 6;
-    int max_work_start <- 8;
-    int min_work_end <- 16; 
-    int max_work_end <- 20; 
-    float min_speed <- 1.0 #km / #h;
-    float max_speed <- 5.0 #km / #h; 
-    graph the_graph;
-    //rgb backgroundColor<-#white;
-    map<string, rgb>
-    color_map <- ["Residential"::#white, "Office"::#gray, "Other"::#black];
-    
+	geometry shape <- envelope(bound_shapefile);
+	graph roadNetwork;
+	list<int> chargingStationLocation;
+
+    // ---------------------------------------Agent Creation----------------------------------------------
     init {
-    create building from: shape_file_buildings with: [type::string(read ("Category"))] {
-    		if(type!="Office" and type!="Residential"){
-    			type <- "Other";
-    		}
-        }
-    
-    create road from: shape_file_roads ; 
-    the_graph <- as_edge_graph(road);
-    
-    /*create docking from: dockingStations ;
-    nb_docking <- docking count (each touches shape);*/
-    //list<docking> list_dockings <- docking where (each touches shape);
-    
-    create docking from: dockingStations ;
-    
-    
-    list<building> residential_buildings <- building where (each.type="Residential");
-    list<building> office_buildings <- building where (each.type="Residential");
-    create people number: nb_people {
-        speed <- rnd(min_speed, max_speed);
-        start_work <- rnd (min_work_start, max_work_start);
-        end_work <- rnd(min_work_end, max_work_end);
-        living_place <- one_of(residential_buildings) ;
-        working_place <- one_of(office_buildings) ;
-        objective <- "resting";
-        location <- any_location_in (one_of (residential_buildings));
-    }
-        
-    }
-}
+    	// ---------------------------------------Buildings----------------------------------------------
+	    create building from: buildings_shapefile with: [type:string(read ("Usage"))] {
+			if(type!="O" and type!="R"){ type <- "Other"; }
+		}
+	        
+	    list<building> residentialBuildings <- building where (each.type="R");
+	    list<building> officeBuildings <- building where (each.type="O");
+	    
+		// ---------------------------------------The Road Network----------------------------------------------
+		create road from: roads_shapefile;
+		
+		roadNetwork <- as_edge_graph(road) ;   
+		// Next move to the shortest path between each point in the graph
+		matrix allPairs <- all_pairs_shortest_path (roadNetwork);    
+	    
+		// -------------------------------------Location of the charging stations----------------------------------------   
+	    //from docking locations to closest intersection
+	    list<int> tmpDist;
 
-species building {
-    string type; 
-    rgb color <- #black  ;
-    
-    aspect base {
-    draw shape color: color ;
+		loop vertex over: roadNetwork.vertices {
+			create tagRFID {
+				id <- roadNetwork.vertices index_of vertex;
+				location <- point(vertex);
+			}
+		}
+
+		//K-Means		
+		//Create a list of x,y coordinate for each intersection
+		list<list> instances <- tagRFID collect ([each.location.x, each.location.y]);
+
+		//from the vertices list, create k groups  with the Kmeans algorithm (https://en.wikipedia.org/wiki/K-means_clustering)
+		list<list<int>> kmeansClusters <- list<list<int>>(kmeans(instances, numDockingStations));
+
+		//from clustered vertices to centroids locations
+		int groupIndex <- 0;
+		list<point> coordinatesCentroids <- [];
+		loop cluster over: kmeansClusters {
+			groupIndex <- groupIndex + 1;
+			list<point> coordinatesVertices <- [];
+			loop i over: cluster {
+				add point (roadNetwork.vertices[i]) to: coordinatesVertices; 
+			}
+			add mean(coordinatesVertices) to: coordinatesCentroids;
+		}    
+	    
+
+
+		loop centroid from:0 to:length(coordinatesCentroids)-1 {
+			tmpDist <- [];
+			loop vertices from:0 to:length(roadNetwork.vertices)-1{
+				add (point(roadNetwork.vertices[vertices]) distance_to coordinatesCentroids[centroid]) to: tmpDist;
+			}	
+			loop vertices from:0 to: length(tmpDist)-1{
+				if(min(tmpDist)=tmpDist[vertices]){
+					add vertices to: chargingStationLocation;
+					break;
+				}
+			}	
+		}
+	    
+
+	    loop i from: 0 to: length(chargingStationLocation) - 1 {
+			create chargingStation{
+				location <- point(roadNetwork.vertices[chargingStationLocation[i]]);
+			}
+		}
+		
+	    
+		// -------------------------------------------The Bikes -----------------------------------------
+		create bike number:numBikes{						
+			location <- point(one_of(roadNetwork.vertices)); 
+			target <- location;
+			pheromoneToDiffuse <- 0.0;
+			pheromoneMark <- 0.0;
+			batteryLife <- rnd(maxBatteryLife);
+			//Juan: change to random when update battery behavior
+			speed <- BikeSpeed;
+			distancePerCycle <- step * speed;
+		}
+	    
+		// -------------------------------------------The People -----------------------------------------
+	    create people number: numPeople {
+	        start_work <- rnd (workStartMin, workStartMax);
+	        end_work <- rnd(workEndMin, workEndMax);
+	        living_place <- one_of(residentialBuildings) ;
+	        working_place <- one_of(officeBuildings) ;
+	        location <- any_location_in(living_place);
+	    }
+	 	// ----------------------------------The RFIDs tag on each road intersection------------------------
+		
+		ask tagRFID {
+			location <- point(roadNetwork.vertices[id]); 
+			pheromones <- [0.0,0.0,0.0,0.0,0.0];
+			pheromonesToward <- neighbors_of(roadNetwork,roadNetwork.vertices[id]);  //to know what edge is related to that amount of pheromone
+			
+			// Find the closest chargingPoint and set towardChargingStation and distanceToChargingStation
+			ask chargingStation closest_to self {
+				myself.distanceToChargingStation <- int(point(roadNetwork.vertices[myself.id]) distance_to self.location);
+				loop y from: 0 to: length(chargingStationLocation) - 1 {
+					if (point(roadNetwork.vertices[chargingStationLocation[y]]) = self.location){
+						//Assign next vertice to closest charging  station
+						myself.towardChargingStation <- point(roadNetwork.vertices[allPairs[chargingStationLocation[y],myself.id]]);
+						//Juan: I think this is if next node is already charging station
+						if (myself.towardChargingStation=point(roadNetwork.vertices[myself.id])){
+							myself.towardChargingStation <- point(roadNetwork.vertices[chargingStationLocation[y]]);
+						}
+						break;
+					}
+				}
+			}
+			type <- 'roadIntersection';
+			loop y from: 0 to: length(chargingStationLocation) - 1 {
+				if (id=chargingStationLocation[y]){
+					type <- 'chargingStation&roadIntersection';
+				}
+			}
+		}
+		
+		
+		write "FINISH INITIALIZATION";
     }
-    
-    aspect default {
-		draw shape color: rgb(50, 50, 50, 125);
+	
+	
+	float waitTime(people person) { //returns wait time in #mn
+		return empty(bike where (each.state = "idle")) ? 200#mn : 10#mn;
 	}
-    
-    aspect type{
-		draw shape color: color_map[type];
+	bike requestBike(people person) { //pick a bike to go to pickup point, return this bike
+		bike b <- bike where (each.state = "idle") closest_to person;
+		if b != nil {
+			ask b {
+				do pickUp(person);
+			}
+		}
+		return b;
 	}
 }
 
-species road  {
-    rgb color <- #black ;
-    aspect base {
-       draw shape color: rgb(125, 125, 125);
-    }
-}
 
-species docking  {
-    rgb color <- #blue ;
-    aspect base {
-      draw circle(10) color: color border: #black;
-    }
-}
 
-species station  {
-    rgb color <- #blue ;
-    aspect base {
-    	draw circle(10) color: color border: #black;
-    }
-}
-
-species people skills:[moving]{
-    rgb color <- #yellow ;
-    building living_place <- nil ;
-    building working_place <- nil ;
-    int start_work ;
-    int end_work  ;
-    string objective ;
-    point the_target <- nil ;
-    
-    reflex time_to_work when: current_date.hour = start_work and objective = "resting"{
-    objective <- "working" ;
-    the_target <- any_location_in (working_place);
-    }
-    
-    reflex time_to_go_home when: current_date.hour = end_work and objective = "working"{
-    objective <- "resting" ;
-    the_target <- any_location_in (living_place); 
-    }
-    
-    reflex move when: the_target != nil {
-    do goto target: the_target on: the_graph ; 
-    if the_target = location {
-        the_target <- nil ;
-    }
-    }
-    
-    aspect base {
-    draw circle(10) color: color border: #black;
-    }
-}
 
 experiment clustering type: gui {
-    parameter "Shapefile for the buildings:" var: shape_file_buildings category: "GIS" ;
-    parameter "Shapefile for the roads:" var: shape_file_roads category: "GIS" ;
-    parameter "Shapefile for the bounds:" var: shape_file_bounds category: "GIS" ;
-    parameter "Number of people agents:" var: nb_people category: "People" ;
-    parameter "Earliest hour to start work" var: min_work_start category: "People" min: 2 max: 8;
-    parameter "Latest hour to start work" var: max_work_start category: "People" min: 8 max: 12;
-    parameter "Earliest hour to end work" var: min_work_end category: "People" min: 12 max: 16;
-    parameter "Latest hour to end work" var: max_work_end category: "People" min: 16 max: 23;
-    parameter "minimal speed" var: min_speed category: "People" min: 0.1 #km/#h ;
-    parameter "maximal speed" var: max_speed category: "People" max: 10 #km/#h;
-        
     output {
-    display city_display type:opengl background: #black draw_env: false{
-    //display city_display type:opengl draw_env: false{	
-        species building aspect: type ;
-        species road aspect: base ;
-        species people aspect: base ;
-        species docking aspect: base ;
-        //species station aspect: base ;
-        graphics "text" {
-				draw "day" + string(current_day) + " - " + string(current_hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
+		display city_display type:opengl background: #black draw_env: false{	
+			species tagRFID aspect: base ;
+			species building aspect: type ;
+			species road aspect: base ;
+			species people aspect: base ;
+			species chargingStation aspect: base ;
+			species bike aspect: realistic ;
+			graphics "text" {
+				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
 				{world.shape.width * 0.8, world.shape.height * 0.975};
-				draw imageRaster size: 40 #px at: {world.shape.width * 0.95, world.shape.height * 0.95};
+				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
 			}
+		}
     }
+}
+
+experiment one_person type: gui {
+	parameter var: numBikes init: 0;
+	parameter var: numPeople init: 1;
+	
+    output {
+		display city_display type:opengl background: #black draw_env: false{	
+			species tagRFID aspect: base ;
+			species building aspect: type ;
+			species road aspect: base ;
+			species people aspect: base ;
+			species chargingStation aspect: base ;
+			species bike aspect: realistic ;
+			graphics "text" {
+				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
+				{world.shape.width * 0.8, world.shape.height * 0.975};
+				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
+			}
+		}
     }
+}
+
+experiment one_each type: gui {
+	parameter var: numBikes init: 1;
+	parameter var: numPeople init: 1;
+	parameter var: step init: 30#sec;
+    output {
+		display city_display type:opengl background: #white draw_env: false{	
+			species tagRFID aspect: base ;
+			species building aspect: type ;
+			species road aspect: base ;
+			species people aspect: base ;
+			species chargingStation aspect: base ;
+			species bike aspect: realistic ;
+			graphics "text" {
+				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
+				{world.shape.width * 0.8, world.shape.height * 0.975};
+				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
+			}
+		}
+    }
+}
+experiment one_bike type: gui {
+	parameter var: numBikes init: 1;
+	parameter var: numPeople init: 0;
+	parameter var: step init: 1#mn;
+	
+    output {
+		display city_display type:opengl background: #black draw_env: false{	
+			species tagRFID aspect: base ;
+			species building aspect: type ;
+			species road aspect: base ;
+			species people aspect: base ;
+			species chargingStation aspect: base ;
+			species bike aspect: realistic ;
+			
+			graphics "text" {
+				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
+				{world.shape.width * 0.8, world.shape.height * 0.975};
+				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
+			}
+		}
+    }
+}
+
+experiment just_a_lot_of_bikes type: gui {
+	parameter var: numBikes init: 2;
+	parameter var: numPeople init: 0;
+	
+    output {
+		display city_display type:opengl background: #black draw_env: false{	
+//			species tagRFID aspect: base;
+			species building aspect: type;
+			species road aspect: base;
+			species people aspect: base;
+			species chargingStation aspect: base;
+			species bike aspect: realistic;
+			
+			graphics "text" {
+				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
+				{world.shape.width * 0.8, world.shape.height * 0.975};
+				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
+			}
+		}
+    }
+}
+experiment one_each_headless {
+	parameter var: numBikes init: 1;
+	parameter var: numPeople init: 1;
+}
+experiment one_bike_headless {
+	parameter var: numBikes init: 1;
+	parameter var: numPeople init: 0;
 }

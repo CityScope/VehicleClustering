@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;CS_CityScope_GAMA/models/CityScope/Vehicles.gaml&apos; to &apos;Agents.gaml&apos;" description="Rename resource &apos;Vehicles.gaml&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="models/CityScope/Vehicles.gaml" name="Agents.gaml" stamp="1620067494541" updateReferences="true"/>
+</session>
