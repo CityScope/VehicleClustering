@@ -17,38 +17,27 @@ species road {
 	}
 }
 
-species dockingStation {
+
+species building {
+    aspect type {
+		draw shape color: color_map[type];
+	}
+	string type; 
+}
+
+species chargingStation {
+	list<bike> bikesToCharge;
+	
 	aspect base {
 		draw circle(10) color:#blue;		
 	}
 	
-	reflex chargeBikes {}
-}
-
-species building {
-    string type; 
-    aspect type {
-		draw shape color: color_map[type];
+	reflex chargeBikes {
+		ask 10 first bikesToCharge {
+			batteryLife <- batteryLife + step*V2IChargingRate;
+		}
 	}
 }
-
-species chargingStation {
-	int bikes;
-	aspect base {
-		draw circle(10) color:#blue;		
-	}
-}
-
-//species intersection{
-//	rgb color <- #green;
-//	aspect base {
-//		draw circle(10) color:color;		
-//	}
-//	//debug stuff
-//	reflex coloring {
-//		color <- #green;
-//	}
-//}
 
 species tagRFID {
 	int id;
@@ -62,9 +51,13 @@ species tagRFID {
 	
 	geometry towardChargingStation;
 	int distanceToChargingStation;
-
+	
+	rgb color;
+	reflex set_color {
+		color <- #purple;
+	}
 	aspect base{
-		draw circle(10) color:#purple border: #black;
+		draw circle(10) color:color border: #black;
 	}
 	
 	aspect realistic{
@@ -155,23 +148,25 @@ species people control: fsm skills: [moving] {
 	}
 }
 
-
 species bike control: fsm skills: [moving] {
+	rgb color;
+	map<string, rgb> color_map <- [
+		"idle"::#lime,
+		
+		"low_battery":: #red,
+		"getting_charge":: #pink,
+		
+		"awaiting_follower"::#magenta,
+		"seeking_leader"::#magenta,
+		"following"::#yellow,
+		
+		"picking_up"::rgb(175*1.1,175*1.6,200),
+		"dropping_off"::#gamagreen
+	];
 	aspect realistic {
-		switch state {
-			match "low_battery" {
-				draw triangle(15) color: #darkred rotate: heading + 90;
-			}
-			match "picking_up" {
-				draw triangle(15) color: rgb(175*1.1,175*1.6,200) rotate: heading + 90;
-			}
-			match "dropping_off" {
-				draw triangle(15)  color: #gamagreen rotate: heading + 90;
-			}
-			default {
-				draw triangle(15)  color: rgb(25*1.1,25*1.6,200) rotate: heading + 90;
-			}
-		}
+		color <- color_map[state];
+
+		draw triangle(25) color:color border: #red rotate: heading + 90;
 	}
 	
 	point target;
@@ -198,30 +193,78 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	
-	
-	//These are our cost functions, and will be the basis of how we decide to form platoons
-	float platooningCost(bike other) {
-		return 0;
+	bike leader;
+	bike follower;
+	//These are our cost functions, and will be the basis of how we decide to form clusters
+	float clusterCost(bike other) {
+		return 0; //always cluster
 	}
-	float deplatooningCost(bike other) {
-		return 0;
+	float declusterCost(bike other) {
+		//Don't decluster until you need to
+		//Does not account for megacluster - You don't really need to leave if someone else is charging you
+		if setLowBattery() { return 0; }
+		
+		return 10;
 	}
-	action evaluatePlatoons {}
+	//decide to follow another bike
+	bool evaluateclusters {
+		//create a map of every idle bike within a certain distance and their clustering costs
+		//perhaps we want to cluster with following bikes in the future. Megacluster
+		map<bike, float> costs <- map(((bike where (each.state="idle" and each.rider = nil)) at_distance clusterDistance) collect(each::clusterCost(each)));
+		
+		if empty(costs) { return false; }
+		
+		float minCost <- min(costs.values);
+		if minCost < clusterThreshold {
+			leader <- costs.keys[ costs.values index_of minCost ];
+			return true;
+		}
+		
+		return false;
+	}
+	action chargeBike(bike other) {
+		//never go less than some minimum battery level
+		//never charge leader to have more power than you
+	}
+	action waitFor(bike other) {
+		follower <- other;
+	}
 	
 	//Determines when to move into the low_battery state
+	reflex saturateBattery {
+		if batteryLife < 0 {batteryLife <- 0.0;}
+		if batteryLife > maxBatteryLife {batteryLife <- maxBatteryLife;}
+	}
+	
+	//TODO: why is this divided by speed?
 	bool setLowBattery {
-		return batteryLife < lastDistanceToChargingStation/speed;
+		if batteryLife < 5*distancePerCycle { return true; }
+		return batteryLife < 5*lastDistanceToChargingStation; //safety factor
 	}
 	float energyCost(float distance) { //This function will let us alter the efficiency of our bikes, if we decide to look into that
-		return 0*distance; //debug stuff, don't have charging implemented yet
+		if state = "dropping_off" { return 0; } //user will pedal
+		return distance;
 	}
+	action reduceBattery(float distance) {
+		batteryLife <- batteryLife - energyCost(distance);
+		if follower != nil {
+			ask follower {
+				do reduceBattery(distance);
+			}
+		}
+	}
+	
 	float pathLength(path p) {
 		if empty(p) { return 0; }
-		return p.shape.perimeter;
+		return p.shape.perimeter; //TODO: may be accidentally doubled
 	}
 	list<tagRFID> lastIntersections;
 	tagRFID lastTag; //last RFID tag we crossed. Useful for wander function
-	reflex moveTowardTarget when: target != location and (target != nil or wanderPath != nil) and batteryLife > 0 {
+	
+	bool canMove {
+		return state != "awaiting_follower" and target != location and (target != nil or wanderPath != nil) and batteryLife > 0;
+	}
+	reflex moveTowardTarget when: canMove() {
 		//do goto (or follow in the case of wandering, where we've prepared a possibly-suboptimal rout)
 		if (target != nil) {
 			myPath <- goto(on:roadNetwork, target:target, speed:speed, return_path: true);
@@ -230,7 +273,7 @@ species bike control: fsm skills: [moving] {
 		}
 		//determine distance
 		float distanceTraveled <- pathLength(myPath);
-		batteryLife <- batteryLife - energyCost(distanceTraveled);
+		do reduceBattery(distanceTraveled);
 		
 		if !empty(myPath) {
 			//update pheromones exactly once, when we cross a new intersection
@@ -240,7 +283,9 @@ species bike control: fsm skills: [moving] {
 			//to the points in question, but not actually on the path. We may also get duplicates. The filter removes both of these.
 			//reverse it to make the oldest intersection first in the list
 			list<tagRFID> newIntersections <- reverse( myPath.vertices where (tagRFID(each).location = each) );
-			
+//			ask newIntersections {
+//				color <- #yellow;
+//			}
 			//update pheromones from first traveled to last traveled, ignoring those that were updated last cycle
 			loop tag over: newIntersections {
 				if not(tag in lastIntersections) { do updatePheromones(tag); }
@@ -298,11 +343,11 @@ species bike control: fsm skills: [moving] {
 	//TODO: parametrize this - min and max should be set in parameters file
 	action saturatePheromones(tagRFID tag) {
 		loop j from:0 to: length(tag.pheromonesToward)-1 {
-			if (tag.pheromones[j]<0.001){
-				tag.pheromones[j] <- 0;
+			if (tag.pheromones[j]<minPheromoneLevel){
+				tag.pheromones[j] <- minPheromoneLevel;
 			}
-			if (tag.pheromones[j]>50*singlePheromoneMark){
-				tag.pheromones[j] <- 50*singlePheromoneMark;
+			if (tag.pheromones[j]>maxPheromoneLevel){
+				tag.pheromones[j] <- maxPheromoneLevel;
 			}
 		}
 	}
@@ -337,7 +382,17 @@ species bike control: fsm skills: [moving] {
 		//TODO: Why divide by speed??
 		transition to: low_battery when: setLowBattery() {}
 		transition to: picking_up when: rider != nil {}
-		transition to: following when: false {} //TODO
+		transition to: awaiting_follower when: follower != nil and follower.state = "seeking_leader" {}
+		transition to: seeking_leader when: evaluateclusters() {
+			write string(self) + " is following " + leader;
+			ask leader {
+				do waitFor(myself);
+			}
+			ask host {
+				do pause;
+			}
+		}
+		
 		
 		exit {
 			wanderPath <- nil;
@@ -360,8 +415,7 @@ species bike control: fsm skills: [moving] {
 	//TODO: we need to plan ahead somehow, or we waste quite a bit of movement. Currently we move exactly 1 intersection per cycle
 	state low_battery {
 		//seek either a charging station or another vehicle
-		transition to: getting_charge when: false {} //TODO
-		transition to: awaiting_follower when: false {} //TODO
+		transition to: getting_charge when: self.location = (chargingStation closest_to self).location {} //TODO
 		
 		ask tagRFID closest_to(self) {
 			// Update direction and distance from closest Docking station
@@ -382,28 +436,49 @@ species bike control: fsm skills: [moving] {
 	state getting_charge {
 		//sit at a charging station until charged
 		enter {
+			target <- nil;
 			ask chargingStation closest_to(self) {
-				self.bikes <- self.bikes + 1;
+				bikesToCharge <- bikesToCharge + myself;
 			}
 		}
 		transition to: idle when: batteryLife = maxBatteryLife {}
 		exit {
 			ask chargingStation closest_to(self) {
-				self.bikes <- self.bikes - 1;
+				bikesToCharge <- bikesToCharge - myself;
 			}
 		}
 	}
 	
 	state awaiting_follower {
-		//sit at an intersection until a follower joins the platoon
+		//sit at an intersection until a follower joins the cluster
 		
-		transition to: idle when: false {} //TODO
+		transition to: idle when: follower.state = "following" {}
 	}
-	
+	state seeking_leader {
+		//catch up to the leader
+		//(when two bikes form a cluster, one will await_folloower, the other will seek leader)
+		enter {
+			target <- leader.location;
+		}
+		transition to: following when: (self distance_to leader) <= followDistance {}
+		
+		exit {
+			target <- nil;
+		}
+	}
 	state following {
 		//transfer charge to host, follow them around the map
+		location <- leader.location;
+		leader.batteryLife <- leader.batteryLife + step*V2VChargingRate;
+		batteryLife <- batteryLife - step*V2VChargingRate;
+		//leader will update our charge level as we move along (see reduceBattery)
 		
-		transition to: idle when: false {} //TODO
+		transition to: idle when: declusterCost(leader) < declusterThreshold {
+			ask leader {
+				follower <- nil;
+			}
+			leader <- nil;
+		}
 	}
 	
 	state picking_up {
@@ -418,7 +493,7 @@ species bike control: fsm skills: [moving] {
 	state dropping_off {
 		//go to rider's destination, drop them off
 		enter {
-			target <- (tagRFID closest_to(rider.final_destination)).location;
+			target <- (tagRFID closest_to rider.final_destination).location;
 		}
 		
 		transition to: idle when: location=target {

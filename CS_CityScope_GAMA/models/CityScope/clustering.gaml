@@ -166,9 +166,9 @@ global {
 experiment clustering type: gui {
     output {
 		display city_display type:opengl background: #black draw_env: false{	
+			species tagRFID aspect: base ;
 			species building aspect: type ;
 			species road aspect: base ;
-			//species tagRFID aspect: base ;
 			species people aspect: base ;
 			species chargingStation aspect: base ;
 			species bike aspect: realistic ;
@@ -187,9 +187,9 @@ experiment one_person type: gui {
 	
     output {
 		display city_display type:opengl background: #black draw_env: false{	
+			species tagRFID aspect: base ;
 			species building aspect: type ;
 			species road aspect: base ;
-			//species tagRFID aspect: base ;
 			species people aspect: base ;
 			species chargingStation aspect: base ;
 			species bike aspect: realistic ;
@@ -207,11 +207,10 @@ experiment one_each type: gui {
 	parameter var: numPeople init: 1;
 	parameter var: step init: 30#sec;
     output {
-		display city_display type:opengl background: #white draw_env: false{
-			//species intersection aspect: base;	
+		display city_display type:opengl background: #white draw_env: false{	
+			species tagRFID aspect: base ;
 			species building aspect: type ;
 			species road aspect: base ;
-			//species tagRFID aspect: base ;
 			species people aspect: base ;
 			species chargingStation aspect: base ;
 			species bike aspect: realistic ;
@@ -226,16 +225,38 @@ experiment one_each type: gui {
 experiment one_bike type: gui {
 	parameter var: numBikes init: 1;
 	parameter var: numPeople init: 0;
+	parameter var: step init: 1#mn;
 	
     output {
 		display city_display type:opengl background: #black draw_env: false{	
-			//species intersection aspect: base;
+			species tagRFID aspect: base ;
 			species building aspect: type ;
 			species road aspect: base ;
-			species tagRFID aspect: base ;
 			species people aspect: base ;
 			species chargingStation aspect: base ;
 			species bike aspect: realistic ;
+			
+			graphics "text" {
+				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
+				{world.shape.width * 0.8, world.shape.height * 0.975};
+				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
+			}
+		}
+    }
+}
+
+experiment just_a_lot_of_bikes type: gui {
+	parameter var: numBikes init: 2;
+	parameter var: numPeople init: 0;
+	
+    output {
+		display city_display type:opengl background: #black draw_env: false{	
+//			species tagRFID aspect: base;
+			species building aspect: type;
+			species road aspect: base;
+			species people aspect: base;
+			species chargingStation aspect: base;
+			species bike aspect: realistic;
 			
 			graphics "text" {
 				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
