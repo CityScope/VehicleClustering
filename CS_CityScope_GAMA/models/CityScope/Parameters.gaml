@@ -13,7 +13,7 @@ import "./clustering.gaml"
 global {
 	//----------------------Simulation Parameters------------------------
 	//Simulation time step
-	float step <- 10 #mn;
+	float step <- 1 #mn;
 	
 	//----------------------Bike Parameters------------------------
 	//Number of Bikes to generate. Juan: Change this so nb is generated according to real GIS Data.
@@ -28,6 +28,8 @@ global {
 	float declusterThreshold <- 0.5;
 	float followDistance <- 5#m;
 	float V2VChargingRate <- 200 #m/#s;
+	
+	float minSafeBattery <- 25000 #m;
 	
 	//----------------------Docking Parameters------------------------
 	//Number of docking stations

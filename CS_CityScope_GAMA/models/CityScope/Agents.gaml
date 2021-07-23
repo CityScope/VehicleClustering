@@ -80,7 +80,6 @@ species people control: fsm skills: [moving] {
     
     bike bikeToRide;
     
-    
     aspect base {
 		if state != "riding" {
 			draw circle(10) color: color border: #black;
@@ -113,7 +112,6 @@ species people control: fsm skills: [moving] {
 			//Walk to closest intersection, ask a bike to meet me there
 			target <- closestIntersection;
 			bikeToRide <- host.requestBike(self);
-//			write "getting a ride from " + bikeToRide;
 		}
 		transition to: idle {
 			//teleport home
@@ -197,12 +195,12 @@ species bike control: fsm skills: [moving] {
 	bike follower;
 	//These are our cost functions, and will be the basis of how we decide to form clusters
 	float clusterCost(bike other) {
-		return 0; //always cluster
+		return 10000 - chargeToGive(other); //always cluster
 	}
 	float declusterCost(bike other) {
-		//Don't decluster until you need to
-		//Does not account for megacluster - You don't really need to leave if someone else is charging you
+		//Don't decluster until you need to or you've nothing left to give
 		if setLowBattery() { return 0; }
+		if chargeToGive(other) <= 0 { return 0; }
 		
 		return 10;
 	}
@@ -210,7 +208,7 @@ species bike control: fsm skills: [moving] {
 	bool evaluateclusters {
 		//create a map of every idle bike within a certain distance and their clustering costs
 		//perhaps we want to cluster with following bikes in the future. Megacluster
-		map<bike, float> costs <- map(((bike where (each.state="idle" and each.rider = nil)) at_distance clusterDistance) collect(each::clusterCost(each)));
+		map<bike, float> costs <- map(((bike where (each.state="idle" and each.follower = nil)) at_distance clusterDistance) collect(each::clusterCost(each)));
 		
 		if empty(costs) { return false; }
 		
@@ -222,21 +220,34 @@ species bike control: fsm skills: [moving] {
 		
 		return false;
 	}
-	action chargeBike(bike other) {
+	
+	
+	//determines how much charge we could give another bike
+	float chargeToGive(bike other) {
 		//never go less than some minimum battery level
 		//never charge leader to have more power than you
+		float chargeDifference <- batteryLife - other.batteryLife;
+		float chargeToSpare <- batteryLife - minSafeBattery;
+		float batteryToSpare <- maxBatteryLife - other.batteryLife;
+		return min(chargeDifference/2, chargeToSpare, batteryToSpare);
 	}
+	action chargeBike(bike other) {
+		float transfer <- min( step*V2VChargingRate, chargeToGive(other));
+		
+		leader.batteryLife <- leader.batteryLife + transfer;
+		batteryLife <- batteryLife - transfer;
+	}
+	
 	action waitFor(bike other) {
 		follower <- other;
 	}
 	
 	//Determines when to move into the low_battery state
 	reflex saturateBattery {
-		if batteryLife < 0 {batteryLife <- 0.0;}
+		if batteryLife < 0.0 {batteryLife <- 0.0;}
 		if batteryLife > maxBatteryLife {batteryLife <- maxBatteryLife;}
 	}
 	
-	//TODO: why is this divided by speed?
 	bool setLowBattery {
 		if batteryLife < 5*distancePerCycle { return true; }
 		return batteryLife < 5*lastDistanceToChargingStation; //safety factor
@@ -247,7 +258,7 @@ species bike control: fsm skills: [moving] {
 	}
 	action reduceBattery(float distance) {
 		batteryLife <- batteryLife - energyCost(distance);
-		if follower != nil {
+		if follower != nil and follower.state = "following" {
 			ask follower {
 				do reduceBattery(distance);
 			}
@@ -265,7 +276,7 @@ species bike control: fsm skills: [moving] {
 		return state != "awaiting_follower" and target != location and (target != nil or wanderPath != nil) and batteryLife > 0;
 	}
 	reflex moveTowardTarget when: canMove() {
-		//do goto (or follow in the case of wandering, where we've prepared a possibly-suboptimal rout)
+		//do goto (or follow in the case of wandering, where we've prepared a possibly-suboptimal route)
 		if (target != nil) {
 			myPath <- goto(on:roadNetwork, target:target, speed:speed, return_path: true);
 		} else {
@@ -340,7 +351,6 @@ species bike control: fsm skills: [moving] {
 		}
 	}
 	//Cap the tag's pheromones at acceptable min and max levels
-	//TODO: parametrize this - min and max should be set in parameters file
 	action saturatePheromones(tagRFID tag) {
 		loop j from:0 to: length(tag.pheromonesToward)-1 {
 			if (tag.pheromones[j]<minPheromoneLevel){
@@ -374,16 +384,26 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	
+	reflex logs when: target != nil {
+		write "cycle: " + cycle + ", power: " + batteryLife + ", distance: " + (self distance_to self.target);
+	}
+	reflex deathWarning when: batteryLife = 0 {
+		write "NO POWER!";
+		ask host {
+			do pause;
+		}
+	}
+	
+	
 	state idle initial: true {
 		//wander the map, follow pheromones. Same as the old searching reflex
 		enter {
 			target <- nil;
 		}
-		//TODO: Why divide by speed??
-		transition to: low_battery when: setLowBattery() {}
-		transition to: picking_up when: rider != nil {}
+		
 		transition to: awaiting_follower when: follower != nil and follower.state = "seeking_leader" {}
-		transition to: seeking_leader when: evaluateclusters() {
+		transition to: seeking_leader when: follower = nil and evaluateclusters() {
+			//Don't form cluster if you're already a leader
 			write string(self) + " is following " + leader;
 			ask leader {
 				do waitFor(myself);
@@ -392,7 +412,8 @@ species bike control: fsm skills: [moving] {
 				do pause;
 			}
 		}
-		
+		transition to: low_battery when: setLowBattery() {}
+		transition to: picking_up when: rider != nil {}
 		
 		exit {
 			wanderPath <- nil;
@@ -415,7 +436,8 @@ species bike control: fsm skills: [moving] {
 	//TODO: we need to plan ahead somehow, or we waste quite a bit of movement. Currently we move exactly 1 intersection per cycle
 	state low_battery {
 		//seek either a charging station or another vehicle
-		transition to: getting_charge when: self.location = (chargingStation closest_to self).location {} //TODO
+		//TODO: I think this can be much more performant. Perhaps we save the target charging station in the pheromone tag so we cont have to run closest_to every cycle
+		transition to: getting_charge when: self.location = (chargingStation closest_to self).location {}
 		
 		ask tagRFID closest_to(self) {
 			// Update direction and distance from closest Docking station
@@ -456,21 +478,20 @@ species bike control: fsm skills: [moving] {
 	}
 	state seeking_leader {
 		//catch up to the leader
-		//(when two bikes form a cluster, one will await_folloower, the other will seek leader)
-		enter {
-			target <- leader.location;
-		}
+		//(when two bikes form a cluster, one will await_follower, the other will seek_leader)
 		transition to: following when: (self distance_to leader) <= followDistance {}
 		
 		exit {
 			target <- nil;
 		}
+		
+		//best to repeat this, in case the leader moves after we save its location
+		target <- leader.location;
 	}
 	state following {
 		//transfer charge to host, follow them around the map
 		location <- leader.location;
-		leader.batteryLife <- leader.batteryLife + step*V2VChargingRate;
-		batteryLife <- batteryLife - step*V2VChargingRate;
+		do chargeBike(leader);
 		//leader will update our charge level as we move along (see reduceBattery)
 		
 		transition to: idle when: declusterCost(leader) < declusterThreshold {

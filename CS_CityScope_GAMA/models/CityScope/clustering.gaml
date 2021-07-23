@@ -205,7 +205,6 @@ experiment one_person type: gui {
 experiment one_each type: gui {
 	parameter var: numBikes init: 1;
 	parameter var: numPeople init: 1;
-	parameter var: step init: 30#sec;
     output {
 		display city_display type:opengl background: #white draw_env: false{	
 			species tagRFID aspect: base ;
@@ -225,7 +224,6 @@ experiment one_each type: gui {
 experiment one_bike type: gui {
 	parameter var: numBikes init: 1;
 	parameter var: numPeople init: 0;
-	parameter var: step init: 1#mn;
 	
     output {
 		display city_display type:opengl background: #black draw_env: false{	
@@ -246,7 +244,7 @@ experiment one_bike type: gui {
 }
 
 experiment just_a_lot_of_bikes type: gui {
-	parameter var: numBikes init: 2;
+	parameter var: numBikes init: 20;
 	parameter var: numPeople init: 0;
 	
     output {
