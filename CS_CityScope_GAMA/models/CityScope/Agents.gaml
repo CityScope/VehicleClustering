@@ -169,7 +169,7 @@ species bike control: fsm skills: [moving] {
 	
 	point target;
 	path wanderPath;
-	path myPath;
+	path myPath; //preallocation. Only used within the moveTowardTarget reflex
 	point source;
 	
 	
@@ -181,21 +181,35 @@ species bike control: fsm skills: [moving] {
 	
 	int lastDistanceToChargingStation;
 	
+	
+	bike leader;
+	bike follower;
+	
     
-	
-	
+	//----------------PUBLIC FUNCTIONS-----------------
+	// these are how other agents interact with this one. Not used by self
+	bool availableForRide {
+		return state = "idle" and !setLowBattery() and follower = nil;
+	}
 	//transition from idle to picking_up. Called by the global scheduler
 	people rider <- nil;	
 	action pickUp(people person) {
 		rider <- person;
 	}
 	
+	action waitFor(bike other) {
+		follower <- other;
+	}
 	
-	bike leader;
-	bike follower;
+	
+	//----------------PRIVATE FUNCTIONS-----------------
+	// no other species should touch these
+	
+	
+	//-----CLUSTERING
 	//These are our cost functions, and will be the basis of how we decide to form clusters
 	float clusterCost(bike other) {
-		return 10000 - chargeToGive(other); //always cluster
+		return 10000 - chargeToGive(other);
 	}
 	float declusterCost(bike other) {
 		//Don't decluster until you need to or you've nothing left to give
@@ -238,33 +252,47 @@ species bike control: fsm skills: [moving] {
 		batteryLife <- batteryLife - transfer;
 	}
 	
-	action waitFor(bike other) {
-		follower <- other;
-	}
 	
+	
+	//-----BATTERY
+	float saturateBattery(float value) {
+		if value < 0.0 { return 0.0;}
+		if value > maxBatteryLife { return maxBatteryLife;}
+		
+		return value;
+	}
 	//Determines when to move into the low_battery state
-	reflex saturateBattery {
-		if batteryLife < 0.0 {batteryLife <- 0.0;}
-		if batteryLife > maxBatteryLife {batteryLife <- maxBatteryLife;}
-	}
-	
 	bool setLowBattery {
-		if batteryLife < 5*distancePerCycle { return true; }
-		return batteryLife < 5*lastDistanceToChargingStation; //safety factor
+		//TODO: perhaps all these minimum values should be merged into one, to be respected here and in cluster-charging
+		if batteryLife < 3*distancePerCycle { return true; } //leave 3 simulation-steps worth of movement
+		if batteryLife < minSafeBattery { return true; } //we have a minSafeBattery value, might as well respect it
+		return batteryLife < 10*lastDistanceToChargingStation; //safety factor
 	}
 	float energyCost(float distance) { //This function will let us alter the efficiency of our bikes, if we decide to look into that
 		if state = "dropping_off" { return 0; } //user will pedal
 		return distance;
 	}
 	action reduceBattery(float distance) {
-		batteryLife <- batteryLife - energyCost(distance);
+		batteryLife <- saturateBattery( batteryLife - energyCost(distance) );
 		if follower != nil and follower.state = "following" {
 			ask follower {
 				do reduceBattery(distance);
 			}
 		}
 	}
+	//debug stuff
+//	reflex logs when: target != nil {
+//		write "cycle: " + cycle + ", power: " + batteryLife + ", distance: " + (self distance_to self.target);
+//	}
+	reflex deathWarning when: batteryLife = 0 {
+		write "NO POWER!";
+		ask host {
+			do pause;
+		}
+	}
 	
+	
+	//-----MOVEMENT
 	float pathLength(path p) {
 		if empty(p) { return 0; }
 		return p.shape.perimeter; //TODO: may be accidentally doubled
@@ -276,7 +304,7 @@ species bike control: fsm skills: [moving] {
 		return state != "awaiting_follower" and target != location and (target != nil or wanderPath != nil) and batteryLife > 0;
 	}
 	reflex moveTowardTarget when: canMove() {
-		//do goto (or follow in the case of wandering, where we've prepared a possibly-suboptimal route)
+		//do goto (or follow in the case of wandering, where we've prepared a probably-suboptimal route)
 		if (target != nil) {
 			myPath <- goto(on:roadNetwork, target:target, speed:speed, return_path: true);
 		} else {
@@ -344,10 +372,11 @@ species bike control: fsm skills: [moving] {
 		return nil; //We should not get here
 	}
 	
-	//TODO: make proportional to time, not cycles.
+	
+	//-----PHEROMONES
 	action evaporatePheromones(tagRFID tag) {
 		loop j from:0 to: length(tag.pheromonesToward)-1 {
-			tag.pheromones[j] <- tag.pheromones[j] - (singlePheromoneMark * evaporation * (cycle - tag.lastUpdate));
+			tag.pheromones[j] <- tag.pheromones[j] - (singlePheromoneMark * evaporation * step*(cycle - tag.lastUpdate));
 		}
 	}
 	//Cap the tag's pheromones at acceptable min and max levels
@@ -384,17 +413,8 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	
-	reflex logs when: target != nil {
-		write "cycle: " + cycle + ", power: " + batteryLife + ", distance: " + (self distance_to self.target);
-	}
-	reflex deathWarning when: batteryLife = 0 {
-		write "NO POWER!";
-		ask host {
-			do pause;
-		}
-	}
 	
-	
+	//-----STATE MACHINE
 	state idle initial: true {
 		//wander the map, follow pheromones. Same as the old searching reflex
 		enter {
@@ -473,7 +493,6 @@ species bike control: fsm skills: [moving] {
 	
 	state awaiting_follower {
 		//sit at an intersection until a follower joins the cluster
-		
 		transition to: idle when: follower.state = "following" {}
 	}
 	state seeking_leader {

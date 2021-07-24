@@ -146,15 +146,38 @@ global {
     }
 	
 	
+	
+	
+	list<bike> availableBikes {
+		return bike where (each.availableForRide());
+	}
+	
+	
 	float waitTime(people person) { //returns wait time in #mn
-		return empty(bike where (each.state = "idle")) ? 200#mn : 10#mn;
+		return empty(availableBikes()) ? 200#mn : 10#mn;
+	}
+	float bikeCost(people person, bike b) {
+		//We like the bike less if its far, more if it has power
+		//BatteryLife normalized to make this system agnostic to maxBatteryLife
+		return (person distance_to b) - (b.batteryLife / maxBatteryLife)*200;
 	}
 	bike requestBike(people person) { //pick a bike to go to pickup point, return this bike
-		bike b <- bike where (each.state = "idle") closest_to person;
-		if b != nil {
-			ask b {
-				do pickUp(person);
-			}
+		if empty(availableBikes()) {
+			//I believe people we break if we get here
+			write "outa luck bud, your bike is gone";
+			return nil;
+		}
+		
+		//look through bikes within rideDistance, pick one with lowest cost
+		list<bike> candidates <- availableBikes() where ((each distance_to person) <= rideDistance);
+		map<bike, float> costs <- map( candidates collect(each::bikeCost(person, each)));
+		
+		float minCost <- min(costs.values);
+		bike b <- costs.keys[ costs.values index_of minCost ];
+		
+		//Ask for pickup
+		ask b {
+			do pickUp(person);
 		}
 		return b;
 	}
