@@ -155,6 +155,7 @@ global {
 	
 	
 	float waitTime(people person) { //returns wait time in #mn
+		person.bikeToRide <- requestBike(person);
 		return empty(availableBikes()) ? 200#mn : 10#mn;
 	}
 	float bikeCost(people person, bike b) {
