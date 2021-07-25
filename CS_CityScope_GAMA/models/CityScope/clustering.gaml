@@ -97,10 +97,11 @@ global {
 			target <- location;
 			pheromoneToDiffuse <- 0.0;
 			pheromoneMark <- 0.0;
-			batteryLife <- rnd(maxBatteryLife);
-			//Juan: change to random when update battery behavior
+			//Battery life random but not starting on 0. Now 75% of MaxBatteryLife
+			batteryLife <- rnd(maxBatteryLife*0.75,maxBatteryLife);
 			speed <- BikeSpeed;
 			distancePerCycle <- step * speed;
+			write "cycle: " + cycle + ", " + string(self) + " created with batteryLife " + self.batteryLife;
 		}
 	    
 		// -------------------------------------------The People -----------------------------------------
@@ -147,7 +148,8 @@ global {
 	
 	
 	float waitTime(people person) { //returns wait time in #mn
-		return empty(bike where (each.state = "idle")) ? 200#mn : 10#mn;
+		person.bikeToRide <- requestBike(person);
+		return empty(person.bikeToRide) ? 200#mn : 10#mn;
 	}
 	bike requestBike(people person) { //pick a bike to go to pickup point, return this bike
 		bike b <- bike where (each.state = "idle") closest_to person;
