@@ -3390,3 +3390,7 @@ java.lang.NullPointerException
 !ENTRY org.apache.log4j 4 0 2021-07-25 21:43:21.564
 !MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.TypeDefinitionImpl is not assignable to the reference VariableRef.ref
 
+
+!ENTRY org.apache.log4j 4 0 2021-07-25 23:49:34.074
+!MESSAGE org.eclipse.xtext.linking.lazy.LazyLinkingResource  - An element of type msi.gama.lang.gaml.gaml.impl.TypeDefinitionImpl is not assignable to the reference VariableRef.ref
+

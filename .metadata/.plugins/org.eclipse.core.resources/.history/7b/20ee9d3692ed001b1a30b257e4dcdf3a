@@ -284,9 +284,12 @@ species bike control: fsm skills: [moving] {
 		return distance;
 	}
 	action reduceBattery(float distance) {
+<<<<<<< HEAD
 		save ["Question2", energyCost(distance)] to: "vkt_energyConsumption.csv" type: "csv" rewrite: false;
 		batteryLife <- batteryLife - energyCost(distance);
+=======
 		batteryLife <- saturateBattery( batteryLife - energyCost(distance) );
+>>>>>>> f529c03874c58deae882306510ae28ef9a0d44ff
 		if follower != nil and follower.state = "following" {
 			ask follower {
 				do reduceBattery(distance);
@@ -436,6 +439,7 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	
+<<<<<<< HEAD
 	/*reflex logs when: target != nil {
 		write "cycle: " + cycle + ", power: " + batteryLife + ", distance: " + (self distance_to self.target);
 	}*/
@@ -446,6 +450,8 @@ species bike control: fsm skills: [moving] {
 		}
 	}
 	
+=======
+>>>>>>> f529c03874c58deae882306510ae28ef9a0d44ff
 	
 	//-----STATE MACHINE
 	state idle initial: true {
@@ -522,9 +528,12 @@ species bike control: fsm skills: [moving] {
 	
 	state awaiting_follower {
 		//sit at an intersection until a follower joins the cluster
+<<<<<<< HEAD
 		enter {
 			write "cycle: " + cycle + ", " + string(self) + " is awaiting follower";
 		}
+=======
+>>>>>>> f529c03874c58deae882306510ae28ef9a0d44ff
 		transition to: idle when: follower.state = "following" {}
 	}
 	state seeking_leader {

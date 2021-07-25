@@ -31,6 +31,8 @@ global {
 	
 	float minSafeBattery <- 25000 #m;
 	
+	float rideDistance <- 200 #m;
+	
 	//----------------------Docking Parameters------------------------
 	//Number of docking stations
 	int numDockingStations <- 2 	min: 1 max: 1000 parameter: "Num Docking Stations:" category: "Initial";
@@ -49,7 +51,7 @@ global {
     
     //----------------------Pheremone Parameters------------------------
     float singlePheromoneMark <- 0.5;
-	float evaporation <- 0.5;
+	float evaporation <- 0.005; //unsure of this value - changed evaporation to be proportional to time instead of cycles
 	float exploratoryRate <- 0.8;
 	float diffusion <- (1-exploratoryRate) * 0.5; 
 	float maxPheromoneLevel <- 50*singlePheromoneMark;
