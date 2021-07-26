@@ -1,2 +1,5 @@
 'Question1',string(self),distance_to(self.location,target)
 Question1,bike(2),178.06664113458623
+Question1,bike(2),64.55807588999023
+Question1,bike(4),103.87136330082446
+Question1,bike(4),198.15889998791775

@@ -130,8 +130,8 @@ species people control: fsm skills: [moving] {
 			//save ["Question1and2", 1] to: "vkt_percentageServed.csv" type: "csv" rewrite: false;
 			if timeToWork() {home_departure_time <- time; morning_trip_served <- true;}
 			if timeToSleep() {work_departure_time <- time; evening_trip_served <- true;}
-			//bikeToRide <- host.requestBike(self);
-			//bikeToRide.rider <- self;
+			bikeToRide <- host.requestBike(self);
+			bikeToRide.rider <- self;
 			timeBikeRequested <- time #s;
 			target <- closestIntersection;
 		}

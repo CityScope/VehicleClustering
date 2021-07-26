@@ -171,7 +171,7 @@ global {
 	float waitTime(people person) { //returns wait time in #mn
 		list<bike> candidates <- availableBikes(person);
 		if empty(availableBikes(person)) {
-			return 200#mn;
+			return 20#mn;
 		}
 		map<bike, float> costs <- map( candidates collect(each::bikeCost(person, each)));
 		float minCost <- min(costs.values);
