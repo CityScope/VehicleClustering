@@ -551,7 +551,6 @@ species bike control: fsm skills: [moving] {
 		}
 		transition to: idle when: batteryLife >= maxBatteryLife {}
 		exit {
-			//TODO: If possible, refine this so that bikes are not overcharged and we use that time.
 			batteryLife <- maxBatteryLife;
 			ask chargingStation closest_to(self) {
 				bikesToCharge <- bikesToCharge - myself;

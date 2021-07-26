@@ -35,6 +35,7 @@ species chargingStation {
 	reflex chargeBikes {
 		ask 10 first bikesToCharge {
 			batteryLife <- batteryLife + step*V2IChargingRate;
+			write batteryLife;
 		}
 		save ["Question2", string(self),length(bikesToCharge)] to: "vkt_NoBikesSimultCharged.csv" type: "csv" rewrite: false;
 	}
@@ -549,10 +550,8 @@ species bike control: fsm skills: [moving] {
 				bikesToCharge <- bikesToCharge + myself;
 			}
 		}
-		transition to: idle when: batteryLife >= maxBatteryLife {}
+		transition to: idle when: batteryLife = maxBatteryLife {}
 		exit {
-			//TODO: If possible, refine this so that bikes are not overcharged and we use that time.
-			batteryLife <- maxBatteryLife;
 			ask chargingStation closest_to(self) {
 				bikesToCharge <- bikesToCharge - myself;
 			}
