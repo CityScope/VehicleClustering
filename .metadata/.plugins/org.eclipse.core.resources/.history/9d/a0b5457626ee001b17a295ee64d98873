@@ -69,25 +69,11 @@ species tagRFID {
 species people control: fsm skills: [moving] {
 	
 	rgb color <- #yellow ;
-    building living_place; //Home [lat,lon]
-    building working_place; //Work [lat, lon]
+    building living_place;
+    building working_place;
     int start_work;
     int end_work;
-    float morning_wait_time; //Morning wait time [s]
-    float evening_wait_time; //Evening wait time [s]
-    float morning_ride_duration; //Morning ride duration [s]
-    float evening_ride_duration; //Evening ride duration [s]
-    float morning_ride_distance; //Morning ride distance [m]
-    float evening_ride_distance; //Evening ride distance [m]
-    float morning_total_trip_duration; //Morning total trip duration [s]
-    float evening_total_trip_duration; //Evening total trip duration [s]
-    float home_departure_time; //Home departure time [s]
-    float work_departure_time; //Work departure time [s]
-    bool morning_trip_served;
-    bool evening_trip_served;
-    float time_start_ride;
-    point location_start_ride;
-        
+    
     point final_destination; //Final destination for the trip
     point target; //Interim destination; the thing we are currently moving toward
     point closestIntersection;
@@ -127,22 +113,13 @@ species people control: fsm skills: [moving] {
 		
 		transition to: walking when: host.waitTime(self) <= maxWaitTime {
 			//Walk to closest intersection, ask a bike to meet me there
-			//save ["Question1and2", 1] to: "vkt_percentageServed.csv" type: "csv" rewrite: false;
-			if timeToWork() {home_departure_time <- time; morning_trip_served <- true;}
-			if timeToSleep() {work_departure_time <- time; evening_trip_served <- true;}
-			bikeToRide <- host.requestBike(self);
-			bikeToRide.rider <- self;
+			save ["Question1and2", 1] to: "vkt_percentageServed.csv" type: "csv" rewrite: false;
 			timeBikeRequested <- time #s;
 			target <- closestIntersection;
 		}
 		transition to: idle {
 			//teleport home
-			//save ["Question1", 0] to: "vkt_percentageServed.csv" type: "csv" rewrite: false;
-			if timeToWork() {home_departure_time <- time; morning_trip_served <- false; morning_wait_time <- nil; morning_ride_distance <- nil; morning_total_trip_duration <- nil;}
-			if timeToSleep() {
-				work_departure_time <- time; evening_trip_served <- false; evening_wait_time <- nil; evening_ride_distance <- nil; evening_total_trip_duration <- nil;
-				save [string(self),living_place.location,working_place.location,home_departure_time,morning_trip_served,morning_wait_time,morning_ride_duration,morning_ride_distance,morning_total_trip_duration,work_departure_time,evening_trip_served,evening_wait_time,evening_ride_duration,evening_ride_distance,evening_total_trip_duration] to: "People.csv" type: "csv" rewrite: false;
-			}
+			save ["Question1", 0] to: "vkt_percentageServed.csv" type: "csv" rewrite: false;
 			location <- final_destination;
 			write "wait too long, teleported to destination";
 		}
@@ -154,19 +131,11 @@ species people control: fsm skills: [moving] {
 			target <- nil;
 		}
 		
-		transition to: riding when: bikeToRide.state = "dropping_off" {
-			save ["Question1", time - timeBikeRequested] to: "vkt_averageWaitingTime.csv" type: "csv";
-			location_start_ride <- self.location;
-			time_start_ride <- time;
-			if timeToWork() {morning_wait_time <- time - home_departure_time;}
-			if timeToSleep() {evening_wait_time <- time - work_departure_time;}
-		}
+		transition to: riding when: bikeToRide.state = "dropping_off" {save ["Question1", time - timeBikeRequested] to: "vkt_averageWaitingTime.csv" type: "csv" rewrite: false;}
 	}
 	state riding {
 		//do nothing, follow the bike around until it drops you off and you have to walk
 		transition to: walking when: bikeToRide.state != "dropping_off" {
-			if timeToWork() {morning_ride_duration <- time - time_start_ride; morning_ride_distance <- location_start_ride distance_to self.location;}
-			if timeToSleep() {evening_ride_duration <- time - time_start_ride; evening_ride_distance <- location_start_ride distance_to self.location;}
 			target <- final_destination;
 		}
 		enter {
@@ -179,13 +148,7 @@ species people control: fsm skills: [moving] {
 	}
 	state walking {
 		//go to your destination or nearest intersection, then wait
-		transition to: idle when: location = final_destination {
-			if timeToWork() {morning_total_trip_duration <- time - home_departure_time;}
-			if timeToSleep() {
-				evening_total_trip_duration <- time - work_departure_time;
-				save [string(self),living_place.location,working_place.location,home_departure_time,morning_trip_served,morning_wait_time,morning_ride_duration,morning_ride_distance,morning_total_trip_duration,work_departure_time,evening_trip_served,evening_wait_time,evening_ride_duration,evening_ride_distance,evening_total_trip_duration] to: "People.csv" type: "csv" rewrite: false;
-			}
-		}
+		transition to: idle when: location = final_destination {}
 		transition to: awaiting_bike when: location = target {}
 		enter {
 			write "cycle: " + cycle + string(self) + "is walking";

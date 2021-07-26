@@ -114,17 +114,12 @@ global {
 	        
 	        morning_wait_time <- nil; 
     		evening_wait_time <- nil; 
-    		morning_ride_duration <- nil; 
+    		moning_ride_duration <- nil; 
     		evening_ride_duration <- nil; 
     		morning_ride_distance <- nil; 
     		evening_ride_distance <- nil; 
     		morning_total_trip_duration <- nil; 
-    		evening_total_trip_duration <- nil;
-    		home_departure_time <- nil;
-    		work_departure_time <- nil;
-    		morning_trip_served <- false;
-    		evening_trip_served <- false;
-    		 
+    		evening_total_trip_duration <- nil; 
 	    }
 	 	// ----------------------------------The RFIDs tag on each road intersection------------------------
 		
