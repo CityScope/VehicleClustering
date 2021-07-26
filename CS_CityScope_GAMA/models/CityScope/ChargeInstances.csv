@@ -1,0 +1,8 @@
+string(self),string(self.stationCharging),self.chargingStartTime,time - self.chargingStartTime,time,self.batteryLifeBeginningCharge,(self.batteryLife / maxBatteryLife) * 100
+bike(1),chargingStation(0),11580.0,120.0,11700.0,24.410915668095555,100.0
+bike(0),chargingStation(1),13920.0,120.0,14040.0,24.396551660314618,100.0
+bike(2),chargingStation(1),15240.0,120.0,15360.0,23.040467514033576,100.0
+bike(3),chargingStation(1),23760.0,120.0,23880.0,24.038151560303454,100.0
+bike(1),chargingStation(0),23820.0,120.0,23940.0,23.998369381884476,100.0
+bike(4),chargingStation(1),24420.0,120.0,24540.0,23.60676815439492,100.0
+bike(0),chargingStation(0),24600.0,120.0,24720.0,22.993054915463734,100.0

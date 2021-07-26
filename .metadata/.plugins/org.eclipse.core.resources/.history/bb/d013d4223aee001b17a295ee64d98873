@@ -233,11 +233,6 @@ species bike control: fsm skills: [moving] {
 	bike leader;
 	bike follower;
 	
-	chargingStation stationCharging; //Station where being charged [id]
-	float chargingStartTime; //Charge start time [s]
-	float batteryLifeBeginningCharge; //Battery when beginning charge [%]
-	
-	
     
 	//----------------PUBLIC FUNCTIONS-----------------
 	// these are how other agents interact with this one. Not used by self
@@ -552,16 +547,12 @@ species bike control: fsm skills: [moving] {
 			target <- nil;
 			ask chargingStation closest_to(self) {
 				bikesToCharge <- bikesToCharge + myself;
-				myself.chargingStartTime <- time;
-				myself.stationCharging <- self;
-				myself.batteryLifeBeginningCharge <- myself.batteryLife/maxBatteryLife * 100;
 			}
 		}
 		transition to: idle when: batteryLife >= maxBatteryLife {}
 		exit {
 			//TODO: If possible, refine this so that bikes are not overcharged and we use that time.
 			batteryLife <- maxBatteryLife;
-			save [string(self), string(self.stationCharging), self.chargingStartTime, time - self.chargingStartTime, time, self.batteryLifeBeginningCharge, self.batteryLife/maxBatteryLife * 100] to: "ChargeInstances.csv" type: "csv" rewrite: false;
 			ask chargingStation closest_to(self) {
 				bikesToCharge <- bikesToCharge - myself;
 			}
