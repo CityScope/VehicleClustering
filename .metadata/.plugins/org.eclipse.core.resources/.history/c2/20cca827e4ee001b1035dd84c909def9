@@ -247,6 +247,7 @@ species bike control: fsm skills: [moving] {
 	float chargingStartTime; //Charge start time [s]
 	float batteryLifeBeginningCharge; //Battery when beginning charge [%]
 	
+<<<<<<< HEAD
 	//Activities' start times
 	float timeStartWandering;
 	float timeStartPickUpUser;
@@ -274,6 +275,9 @@ species bike control: fsm skills: [moving] {
 	float batteryStartSharingBattery;
 	float batteryStartGoingForACharge;	
     
+=======
+	
+>>>>>>> b5c29de893a883328bfe817ce475dab44c558b4f
 	//----------------PUBLIC FUNCTIONS-----------------
 	// these are how other agents interact with this one. Not used by self
 	bool availableForRide {
@@ -535,12 +539,17 @@ species bike control: fsm skills: [moving] {
 			target <- nil;
 		}
 		
+<<<<<<< HEAD
 		transition to: awaiting_follower when: follower != nil and follower.state = "seeking_leader" {
 			timeStartAwaitingFollower <- time;
 			locationStartAwaitingFollower <- self.location;
 			batteryStartAwaitingFollower <- self.batteryLife;
 		}
-
+=======
+		
+		
+		transition to: awaiting_follower when: follower != nil and follower.state = "seeking_leader" {}
+>>>>>>> b5c29de893a883328bfe817ce475dab44c558b4f
 		transition to: seeking_leader when: follower = nil and evaluateclusters() {
 			//Don't form cluster if you're already a leader
 			ask leader {
