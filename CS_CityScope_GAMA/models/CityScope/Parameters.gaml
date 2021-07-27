@@ -15,6 +15,14 @@ global {
 	//Simulation time step
 	float step <- 1 #mn;
 	
+	//----------------------Pheremone Parameters------------------------
+    float singlePheromoneMark <- 0.5;
+	float evaporation <- 0.005; //unsure of this value - changed evaporation to be proportional to time instead of cycles
+	float exploratoryRate <- 0.8;
+	float diffusion <- (1-exploratoryRate) * 0.5; 
+	float maxPheromoneLevel <- 50*singlePheromoneMark;
+	float minPheromoneLevel <- 0.0;
+	
 	//----------------------Bike Parameters------------------------
 	//Number of Bikes to generate. Juan: Change this so nb is generated according to real GIS Data.
 	int numBikes <- 5 				min: 0 max: 1000 parameter: "Num Bikes:" category: "Initial";
@@ -29,6 +37,9 @@ global {
 	float followDistance <- 5#m;
 	float V2VChargingRate <- 200 #m/#s;
 	
+	float chargingPheromoneThreshold <- 10*singlePheromoneMark;
+	
+	
 	float minSafeBattery <- 25000 #m;
 	
 	float rideDistance <- 200 #m;
@@ -37,7 +48,7 @@ global {
 	//Number of docking stations
 	int numDockingStations <- 2 	min: 1 max: 1000 parameter: "Num Docking Stations:" category: "Initial";
 	float V2IChargingRate <- 2000 #m/#s min: 1 #m/#s max: 1000 #m/#s parameter: "V2I Charging Rate (m/s):" category: "Charging";
-	
+	int dockingStationCapacity <- 10;
 	
 	//----------------------People Parameters------------------------
 	int numPeople <- 5 				min: 0 max: 1000 parameter: "Num People:" category: "Initial";
@@ -49,13 +60,7 @@ global {
     float minSpeedPeople <- 1.0 #km/#h	min: 0.5#km/#h max: 10#km/#h parameter: "People Min Speed (m/s):" category: "People";
     float maxSpeedPeople <- 5.0 #km/#h	min: 0.5#km/#h max: 10#km/#h parameter: "People Max Speed (m/s):" category: "People";
     
-    //----------------------Pheremone Parameters------------------------
-    float singlePheromoneMark <- 0.5;
-	float evaporation <- 0.005; //unsure of this value - changed evaporation to be proportional to time instead of cycles
-	float exploratoryRate <- 0.8;
-	float diffusion <- (1-exploratoryRate) * 0.5; 
-	float maxPheromoneLevel <- 50*singlePheromoneMark;
-	float minPheromoneLevel <- 0.0;
+    
 	
 	
 	//GIS FILES To Upload

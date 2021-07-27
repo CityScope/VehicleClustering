@@ -168,10 +168,10 @@ global {
 	}
 	
 	
-	float waitTime(people person) { //returns wait time in #mn
+	bool requestBike(people person) { //returns true if bike is available
 		list<bike> candidates <- availableBikes(person);
 		if empty(availableBikes(person)) {
-			return 200#mn;
+			return false; //Here we would consider wait time and return false if too high. Currently un-implemented
 		}
 		map<bike, float> costs <- map( candidates collect(each::bikeCost(person, each)));
 		float minCost <- min(costs.values);
@@ -180,10 +180,12 @@ global {
 		//Ask for pickup
 		ask b {
 			do pickUp(person);
-			person.bikeToRide <- b;
 		}
-		//return b;
-		return 10#mn;
+		ask person {
+			do ride(b);
+		}
+		
+		return true;
 	}
 	
 	float bikeCost(people person, bike b) {
@@ -191,25 +193,6 @@ global {
 		//BatteryLife normalized to make this system agnostic to maxBatteryLife
 		return (person distance_to b) - (b.batteryLife / maxBatteryLife)*200;
 	}
-	/*bike requestBike(people person) { //pick a bike to go to pickup point, return this bike
-		list<bike> candidates <- availableBikes(person);
-		if empty(availableBikes(person)) {
-			//I believe people we break if we get here
-			write "outa luck bud, your bike is gone";
-			return nil;
-		}
-		
-		map<bike, float> costs <- map( candidates collect(each::bikeCost(person, each)));
-		
-		float minCost <- min(costs.values);
-		bike b <- costs.keys[ costs.values index_of minCost ];
-		
-		//Ask for pickup
-		ask b {
-			do pickUp(person);
-		}
-		return b;
-	}*/
 }
 
 

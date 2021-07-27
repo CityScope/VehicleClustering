@@ -33,7 +33,7 @@ species chargingStation {
 	}
 	
 	reflex chargeBikes {
-		ask 10 first bikesToCharge {
+		ask dockingStationCapacity first bikesToCharge {
 			batteryLife <- batteryLife + step*V2IChargingRate;
 		}
 		save ["Question2", string(self),length(bikesToCharge)] to: "vkt_NoBikesSimultCharged.csv" type: "csv" rewrite: false;
@@ -57,11 +57,11 @@ species tagRFID {
 	reflex set_color {
 		color <- #purple;
 	}
-	aspect base{
+	aspect base {
 		draw circle(10) color:color border: #black;
 	}
 	
-	aspect realistic{
+	aspect realistic {
 		draw circle(1+5*max(pheromones)) color:rgb(107,171,158);
 	}
 }
@@ -103,6 +103,16 @@ species people control: fsm skills: [moving] {
 		}
     }
     
+    //----------------PUBLIC FUNCTIONS-----------------
+	// these are how other agents interact with this one. Not used by self
+    action ride(bike b) {
+    	bikeToRide <- b;
+    }
+    
+    
+    //----------------PRIVATE FUNCTIONS-----------------
+	// no other species should touch these
+	
     //Should we leave for work/home? Only if it is time, and we are not already there
     bool timeToWork { return (current_date.hour = start_work) and !(self overlaps working_place); }
     bool timeToSleep { return (current_date.hour = end_work) and !(self overlaps living_place); }
@@ -125,7 +135,7 @@ species people control: fsm skills: [moving] {
 			closestIntersection <- (tagRFID closest_to(self)).location;
 		}
 		
-		transition to: walking when: host.waitTime(self) <= maxWaitTime {
+		transition to: walking when: host.requestBike(self) {
 			//Walk to closest intersection, ask a bike to meet me there
 			//save ["Question1and2", 1] to: "vkt_percentageServed.csv" type: "csv" rewrite: false;
 			if timeToWork() {home_departure_time <- time; morning_trip_served <- true;}
@@ -220,7 +230,6 @@ species bike control: fsm skills: [moving] {
 	path myPath; //preallocation. Only used within the moveTowardTarget reflex
 	point source;
 	
-	
 	float pheromoneToDiffuse; //represents a store of pheremone (a bike can't expend more than this amount). Pheremone is restored by ___
 	float pheromoneMark; //initialized to 0, never updated. Unsure what this represents
 	
@@ -228,7 +237,6 @@ species bike control: fsm skills: [moving] {
 	float distancePerCycle;
 	
 	int lastDistanceToChargingStation;
-	
 	
 	bike leader;
 	bike follower;
@@ -238,11 +246,13 @@ species bike control: fsm skills: [moving] {
 	float batteryLifeBeginningCharge; //Battery when beginning charge [%]
 	
 	
-    
 	//----------------PUBLIC FUNCTIONS-----------------
 	// these are how other agents interact with this one. Not used by self
 	bool availableForRide {
-		return state = "idle" and !setLowBattery() and follower = nil;
+		return state = "idle" and !setLowBattery();
+	}
+	bool availableForPlatoon {
+		return availableForRide() and follower = nil;
 	}
 	//transition from idle to picking_up. Called by the global scheduler
 	people rider <- nil;	
@@ -275,7 +285,7 @@ species bike control: fsm skills: [moving] {
 	bool evaluateclusters {
 		//create a map of every idle bike within a certain distance and their clustering costs
 		//perhaps we want to cluster with following bikes in the future. Megacluster
-		map<bike, float> costs <- map(((bike where (each.state="idle" and each.follower = nil)) at_distance clusterDistance) collect(each::clusterCost(each)));
+		map<bike, float> costs <- map(((bike where (each.availableForPlatoon())) at_distance clusterDistance) collect(each::clusterCost(each)));
 		
 		if empty(costs) { return false; }
 		
@@ -376,7 +386,7 @@ species bike control: fsm skills: [moving] {
 		
 		if state = "idle" {
 			save ["Question1", string(self), distanceTraveled] to: "vkt_rebalancing.csv" type: "csv" rewrite: false;
-		}	
+		}
 		
 			
 		if !empty(myPath) {
@@ -398,6 +408,16 @@ species bike control: fsm skills: [moving] {
 			//the future is now old man
 			lastIntersections <- newIntersections;
 			if (!empty(newIntersections)) { lastTag <- newIntersections[0]; }
+			
+			do rememberPheromones(lastIntersections);
+		}
+	}
+	
+	float readPheromones <- 2*chargingPheromoneThreshold; //init above the threshold so we don't imediately go to charge
+	float alpha <- 0.2; //tune this so our average updates at desired speed
+	action rememberPheromones(list<tagRFID> tags) {
+		loop tag over: tags {
+			readPheromones <- (1-alpha)*readPheromones + alpha*mean(tag.pheromones);
 		}
 	}
 	
@@ -410,7 +430,7 @@ species bike control: fsm skills: [moving] {
 		if(sum(edgesPheromones)=0) {
 			// No pheromones,choose a random direction
 			return point(fromTag.pheromonesToward[rnd(length(fromTag.pheromonesToward)-1)]);
-		} else{
+		} else {
 			// Follow strongest pheremone trail with p=exploratoryRate^2 if we just came from this direction, or p=exploratoryRate if not. Else, chose random direction
 			// TODO: this random probability function can be better weighted by relative pheremone levels
 			
@@ -478,16 +498,6 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	
-	/*reflex logs when: target != nil {
-		write "cycle: " + cycle + ", power: " + batteryLife + ", distance: " + (self distance_to self.target);
-	}*/
-	reflex deathWarning when: batteryLife = 0 {
-		write "NO POWER!";
-		ask host {
-			do pause;
-		}
-	}
-	
 	
 	//-----STATE MACHINE
 	state idle initial: true {
@@ -496,6 +506,8 @@ species bike control: fsm skills: [moving] {
 		    write "cycle: " + cycle + ", " + string(self) + " is wandering";
 			target <- nil;
 		}
+		
+		
 		
 		transition to: awaiting_follower when: follower != nil and follower.state = "seeking_leader" {}
 		transition to: seeking_leader when: follower = nil and evaluateclusters() {
@@ -507,7 +519,7 @@ species bike control: fsm skills: [moving] {
 				do pause;
 			}
 		}
-		transition to: low_battery when: setLowBattery() {}
+		transition to: low_battery when: setLowBattery() or readPheromones < chargingPheromoneThreshold {}
 		transition to: picking_up when: rider != nil {}
 		
 		exit {
