@@ -249,7 +249,7 @@ species bike control: fsm skills: [moving] {
 	//----------------PUBLIC FUNCTIONS-----------------
 	// these are how other agents interact with this one. Not used by self
 	bool availableForRide {
-		return state = "idle" and !setLowBattery();
+		return (state = "idle" or state = "following") and !setLowBattery();
 	}
 	bool availableForPlatoon {
 		return availableForRide() and follower = nil;
@@ -276,8 +276,9 @@ species bike control: fsm skills: [moving] {
 	}
 	float declusterCost(bike other) {
 		//Don't decluster until you need to or you've nothing left to give
-		if setLowBattery() { return 0; }
-		if chargeToGive(other) <= 0 { return 0; }
+		if other.state = "dropping_off" { return -10; }
+		if setLowBattery() { return -10; }
+		if chargeToGive(other) <= 0 { return -10; }
 		
 		return 10;
 	}
@@ -498,7 +499,6 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	
-	
 	//-----STATE MACHINE
 	state idle initial: true {
 		//wander the map, follow pheromones. Same as the old searching reflex
@@ -610,7 +610,9 @@ species bike control: fsm skills: [moving] {
 		enter {
 			write "cycle: " + cycle + ", " + string(self) + " is following " + leader;
 		}
-		transition to: idle when: declusterCost(leader) < declusterThreshold {
+		transition to: idle when: declusterCost(leader) < declusterThreshold {}
+		transition to: picking_up when: rider != nil {}
+		exit {
 			ask leader {
 				follower <- nil;
 			}
