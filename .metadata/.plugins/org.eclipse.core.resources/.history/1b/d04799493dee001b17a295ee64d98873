@@ -110,26 +110,6 @@ global {
 			timeStartAwaitingFollower <- nil;
 			timeStartSharingBattery <- nil;
 			timeStartGoingForACharge <- nil;
-			
-			//Activities' distances variables	
-			distanceWandering <- nil;
-			locationStartPickUpUser <- nil;
-			locationStartDropppingOffUser <- nil;
-			locationStartSeekingLeader <- nil;
-			locationStartAwaitingFollower <- nil;
-			locationStartSharingBattery <- nil;
-			locationStartGoingForACharge <- nil;
-			
-			//Battery when beggining activity
-			batteryStartWandering <- nil;
-			batteryStartPickUpUser <- nil;
-			batteryStartDroppingOffUser <- nil;
-			batteryStartSeekingLeader <- nil;
-			batteryStartAwaitingFollower <- nil;
-			batteryStartSharingBattery <- nil;
-			batteryStartGoingForACharge <- nil;
-			
-			
 			write "cycle: " + cycle + ", " + string(self) + " created with batteryLife " + self.batteryLife;
 		}
 	    
@@ -141,7 +121,6 @@ global {
 	        working_place <- one_of(officeBuildings) ;
 	        location <- any_location_in(living_place);
 	        
-	        // Variables for People's CSVs
 	        morning_wait_time <- nil; 
     		evening_wait_time <- nil; 
     		morning_ride_duration <- nil; 

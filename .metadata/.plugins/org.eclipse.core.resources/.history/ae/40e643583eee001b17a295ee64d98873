@@ -141,7 +141,6 @@ global {
 	        working_place <- one_of(officeBuildings) ;
 	        location <- any_location_in(living_place);
 	        
-	        // Variables for People's CSVs
 	        morning_wait_time <- nil; 
     		evening_wait_time <- nil; 
     		morning_ride_duration <- nil; 

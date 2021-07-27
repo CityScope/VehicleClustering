@@ -524,11 +524,7 @@ species bike control: fsm skills: [moving] {
 			target <- nil;
 		}
 		
-		transition to: awaiting_follower when: follower != nil and follower.state = "seeking_leader" {
-			timeStartAwaitingFollower <- time;
-			locationStartAwaitingFollower <- self.location;
-			batteryStartAwaitingFollower <- self.batteryLife;
-		}
+		transition to: awaiting_follower when: follower != nil and follower.state = "seeking_leader" {timeStartAwaitingFollower <- time;}
 		transition to: seeking_leader when: follower = nil and evaluateclusters() {
 			//Don't form cluster if you're already a leader
 			ask leader {
@@ -604,10 +600,7 @@ species bike control: fsm skills: [moving] {
 		enter {
 			write "cycle: " + cycle + ", " + string(self) + " is awaiting follower";
 		}
-		transition to: idle when: follower.state = "following" {
-			//TODO: CONTINUE HERE BELOW WITH THIS SAVE STATEMENT
-			//save [string(self), string(self.stationCharging), self.chargingStartTime, time - self.chargingStartTime, time, self.batteryLifeBeginningCharge, self.batteryLife/maxBatteryLife * 100] to: "ChargeInstances.csv" type: "csv" rewrite: false;
-		}
+		transition to: idle when: follower.state = "following" {}
 	}
 	state seeking_leader {
 		//catch up to the leader
