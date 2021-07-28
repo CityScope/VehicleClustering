@@ -35,9 +35,9 @@ global {
 	float clusterThreshold <- 0.5;
 	float declusterThreshold <- 0.5;
 	float followDistance <- 5#m;
-	float V2VChargingRate <- 200 #m/#s;
+	float V2VChargingRate <- 20 #m/#s;
 	
-	float chargingPheromoneThreshold <- 10*singlePheromoneMark;
+	float chargingPheromoneThreshold <- 0*singlePheromoneMark;
 	
 	
 	float minSafeBattery <- 25000 #m;

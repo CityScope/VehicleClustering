@@ -655,11 +655,14 @@ species bike control: fsm skills: [moving] {
 		enter {
 			write "cycle: " + cycle + ", " + string(self) + " is following " + leader;
 		}
+<<<<<<< HEAD
 		transition to: idle when: declusterCost(leader) < declusterThreshold {
 			save [string(self), "Following", string(leader), timeStartFollowing, time, time - timeStartFollowing, locationStartFollowing distance_to self.location, batteryStartFollowing, self.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;	
-}
+=======
+		transition to: idle when: declusterCost(leader) < declusterThreshold {}
 		transition to: picking_up when: rider != nil {}
 		exit {
+>>>>>>> 04125e7d9ea4e3df93c8cf35d4a9ff413875529d
 			ask leader {
 				follower <- nil;
 			}
