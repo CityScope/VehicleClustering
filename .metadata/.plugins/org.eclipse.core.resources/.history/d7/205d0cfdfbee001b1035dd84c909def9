@@ -689,7 +689,6 @@ species bike control: fsm skills: [moving] {
 		}
 		
 		transition to: idle when: location=target {
-			save [string(self), "droppingOff", string(rider), timeStartDroppingOff, time, time - timeStartDroppingOff, locationStartDroppingOff distance_to self.location, batteryStartDroppingOff, self.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;
 			rider <- nil;
 		}
 	}

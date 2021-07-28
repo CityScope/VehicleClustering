@@ -249,29 +249,29 @@ species bike control: fsm skills: [moving] {
 	
 	//Activities' start times
 	float timeStartWandering;
-	float timeStartPickingUp;
-	float timeStartDroppingOff;
+	float timeStartPickUpUser;
+	float timeStartDroppingOffUser;
 	float timeStartSeekingLeader;
 	float timeStartAwaitingFollower;
-	float timeStartFollowing;
+	float timeStartSharingBattery;
 	float timeStartGoingForACharge;
 	
 	//Activities' distances variables
 	float distanceWandering;
-	point locationStartPickingUp;
-	point locationStartDroppingOff;
+	point locationStartPickUpUser;
+	point locationStartDropppingOffUser;
 	point locationStartSeekingLeader;
 	point locationStartAwaitingFollower;
-	point locationStartFollowing;
+	point locationStartSharingBattery;
 	point locationStartGoingForACharge;
 	
 	//Battery when beggining activity
 	float batteryStartWandering;
-	float batteryStartPickingUp;
-	float batteryStartDroppingOff;
+	float batteryStartPickUpUser;
+	float batteryStartDroppingOffUser;
 	float batteryStartSeekingLeader;
 	float batteryStartAwaitingFollower;
-	float batteryStartFollowing;
+	float batteryStartSharingBattery;
 	float batteryStartGoingForACharge;	
     
 	//----------------PUBLIC FUNCTIONS-----------------
@@ -538,7 +538,7 @@ species bike control: fsm skills: [moving] {
 		transition to: awaiting_follower when: follower != nil and follower.state = "seeking_leader" {
 			timeStartAwaitingFollower <- time;
 			locationStartAwaitingFollower <- self.location;
-			batteryStartAwaitingFollower <- self.batteryLife/maxBatteryLife * 100;
+			batteryStartAwaitingFollower <- self.batteryLife;
 		}
 
 		transition to: seeking_leader when: follower = nil and evaluateclusters() {
@@ -551,14 +551,10 @@ species bike control: fsm skills: [moving] {
 			}
 			timeStartSeekingLeader <- time;
 			locationStartSeekingLeader <- self.location;
-			batteryStartSeekingLeader <- self.batteryLife/maxBatteryLife * 100;
+			batteryStartSeekingLeader <- self.batteryLife;
 		}
 		transition to: low_battery when: setLowBattery() or readPheromones < chargingPheromoneThreshold {}
-		transition to: picking_up when: rider != nil {
-			timeStartPickingUp <- time;
-			locationStartPickingUp <- self.location;
-			batteryStartPickingUp <- self.batteryLife/maxBatteryLife * 100;
-		}
+		transition to: picking_up when: rider != nil {}
 		
 		exit {
 			wanderPath <- nil;
@@ -624,17 +620,14 @@ species bike control: fsm skills: [moving] {
 			write "cycle: " + cycle + ", " + string(self) + " is awaiting follower";
 		}
 		transition to: idle when: follower.state = "following" {
-			save [string(self), "awaitingFollower", string(follower), timeStartAwaitingFollower, time, time - timeStartAwaitingFollower, locationStartAwaitingFollower distance_to self.location, batteryStartAwaitingFollower, self.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;
+			save [string(self), "awaitingFollower", string(follower), timeStartAwaitingFollower, time, time - timeStartAwaitingFollower, locationStartAwaitingFollower distance_to self.location, batteryStartAwaitingFollower, self.batteryLife] to: "BikeTrips.csv" type: "csv" rewrite: false;
 		}
 	}
 	state seeking_leader {
 		//catch up to the leader
 		//(when two bikes form a cluster, one will await_follower, the other will seek_leader)
 		transition to: following when: (self distance_to leader) <= followDistance {
-			save [string(self), "seekingLeader", string(leader), timeStartSeekingLeader, time, time - timeStartSeekingLeader, locationStartSeekingLeader distance_to self.location, batteryStartSeekingLeader, self.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;
-			timeStartFollowing <- time;
-			locationStartFollowing <- self.location;
-			batteryStartFollowing <- self.batteryLife/maxBatteryLife * 100;	
+			save [string(self), "seekingLeader", string(leader), timeStartSeekingLeader, time, time - timeStartSeekingLeader, locationStartSeekingLeader distance_to self.location, batteryStartSeekingLeader, self.batteryLife] to: "BikeTrips.csv" type: "csv" rewrite: false;	
 		}
 		enter {
 			write "cycle: " + cycle + ", " + string(self) + " is seeking " + leader;
@@ -656,7 +649,6 @@ species bike control: fsm skills: [moving] {
 			write "cycle: " + cycle + ", " + string(self) + " is following " + leader;
 		}
 		transition to: idle when: declusterCost(leader) < declusterThreshold {
-			save [string(self), "Following", string(leader), timeStartFollowing, time, time - timeStartFollowing, locationStartFollowing distance_to self.location, batteryStartFollowing, self.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;	
 			ask leader {
 				follower <- nil;
 			}
@@ -673,12 +665,7 @@ species bike control: fsm skills: [moving] {
 			save ["Question1", string(self), self.location distance_to target] to: "vkt_pickingUp.csv" type: "csv" rewrite: false;
 		}
 		
-		transition to: dropping_off when: location=target and rider.location=target{
-			save [string(self), "pickingUp", string(rider), timeStartPickingUp, time, time - timeStartPickingUp, locationStartPickingUp distance_to self.location, batteryStartPickingUp, self.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;
-			timeStartDroppingOff <- time;
-			locationStartDroppingOff <- self.location;
-			batteryStartDroppingOff <- self.batteryLife/maxBatteryLife * 100;			
-		}
+		transition to: dropping_off when: location=target and rider.location=target{}
 	}
 	
 	state dropping_off {
@@ -689,7 +676,6 @@ species bike control: fsm skills: [moving] {
 		}
 		
 		transition to: idle when: location=target {
-			save [string(self), "droppingOff", string(rider), timeStartDroppingOff, time, time - timeStartDroppingOff, locationStartDroppingOff distance_to self.location, batteryStartDroppingOff, self.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;
 			rider <- nil;
 		}
 	}

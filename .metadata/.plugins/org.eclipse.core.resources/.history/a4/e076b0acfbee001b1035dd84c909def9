@@ -114,7 +114,7 @@ global {
 			//Activities' distances variables	
 			distanceWandering <- nil;
 			locationStartPickingUp <- nil;
-			locationStartDroppingOff <- nil;
+			locationStartDropppingOff <- nil;
 			locationStartSeekingLeader <- nil;
 			locationStartAwaitingFollower <- nil;
 			locationStartFollowing <- nil;

@@ -259,7 +259,7 @@ species bike control: fsm skills: [moving] {
 	//Activities' distances variables
 	float distanceWandering;
 	point locationStartPickingUp;
-	point locationStartDroppingOff;
+	point locationStartDropppingOff;
 	point locationStartSeekingLeader;
 	point locationStartAwaitingFollower;
 	point locationStartFollowing;
@@ -674,10 +674,7 @@ species bike control: fsm skills: [moving] {
 		}
 		
 		transition to: dropping_off when: location=target and rider.location=target{
-			save [string(self), "pickingUp", string(rider), timeStartPickingUp, time, time - timeStartPickingUp, locationStartPickingUp distance_to self.location, batteryStartPickingUp, self.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;
-			timeStartDroppingOff <- time;
-			locationStartDroppingOff <- self.location;
-			batteryStartDroppingOff <- self.batteryLife/maxBatteryLife * 100;			
+			save [string(self), "pickingUp", string(rider), timeStartPickingUp, time, time - timeStartPickingUp, locationStartPickingUp distance_to self.location, batteryStartPickingUp, self.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;		
 		}
 	}
 	
@@ -689,7 +686,6 @@ species bike control: fsm skills: [moving] {
 		}
 		
 		transition to: idle when: location=target {
-			save [string(self), "droppingOff", string(rider), timeStartDroppingOff, time, time - timeStartDroppingOff, locationStartDroppingOff distance_to self.location, batteryStartDroppingOff, self.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;
 			rider <- nil;
 		}
 	}

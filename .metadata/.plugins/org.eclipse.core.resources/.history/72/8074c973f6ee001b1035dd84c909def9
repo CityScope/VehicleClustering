@@ -104,8 +104,8 @@ global {
 			
 			//Activities' start times
 			timeStartWandering <- nil;
-			timeStartPickingUp <- nil;
-			timeStartDroppingOff <- nil;
+			timeStartPickUpUser <- nil;
+			timeStartDroppingOffUser <- nil;
 			timeStartSeekingLeader <- nil;
 			timeStartAwaitingFollower <- nil;
 			timeStartFollowing <- nil;
@@ -113,8 +113,8 @@ global {
 			
 			//Activities' distances variables	
 			distanceWandering <- nil;
-			locationStartPickingUp <- nil;
-			locationStartDroppingOff <- nil;
+			locationStartPickUpUser <- nil;
+			locationStartDropppingOffUser <- nil;
 			locationStartSeekingLeader <- nil;
 			locationStartAwaitingFollower <- nil;
 			locationStartFollowing <- nil;
@@ -122,8 +122,8 @@ global {
 			
 			//Battery when beggining activity
 			batteryStartWandering <- nil;
-			batteryStartPickingUp <- nil;
-			batteryStartDroppingOff <- nil;
+			batteryStartPickUpUser <- nil;
+			batteryStartDroppingOffUser <- nil;
 			batteryStartSeekingLeader <- nil;
 			batteryStartAwaitingFollower <- nil;
 			batteryStartFollowing <- nil;
