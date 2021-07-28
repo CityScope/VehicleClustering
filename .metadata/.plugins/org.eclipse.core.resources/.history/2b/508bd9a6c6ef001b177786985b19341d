@@ -561,9 +561,9 @@ species bike control: fsm skills: [moving] {
 			ask leader {
 				do waitFor(myself);
 			}
-			/*ask host {
+			ask host {
 				do pause;
-			}*/
+			}
 		}
 		transition to: low_battery when: setLowBattery() or readPheromones < chargingPheromoneThreshold {}
 		transition to: picking_up when: rider != nil {}
