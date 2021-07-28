@@ -15,9 +15,6 @@ global {
 	//Simulation time step
 	float step <- 1 #mn;
 	
-	//Save logs
-	bool csvs <- true;
-	
 	//----------------------Pheremone Parameters------------------------
     float singlePheromoneMark <- 0.5;
 	float evaporation <- 0.005; //unsure of this value - changed evaporation to be proportional to time instead of cycles

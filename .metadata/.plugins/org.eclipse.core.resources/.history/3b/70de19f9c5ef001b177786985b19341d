@@ -533,16 +533,12 @@ species bike control: fsm skills: [moving] {
 	
 	//Save activity information into CSV BikeTrips.csv
 	action logActivity(bike main, string activity, string otherInvolved){
-		if csvs {
-			if state = "wandering" {
+		if state = "wandering" {
 			save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, (cycle-cycleStartActivity)*distancePerCycle, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;			
-			}
-			else {
-				save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to main.location, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;		
-			}
-				
 		}
-		
+		else {
+			save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to main.location, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;		
+		}
 	}
 	
 	//-----STATE MACHINE

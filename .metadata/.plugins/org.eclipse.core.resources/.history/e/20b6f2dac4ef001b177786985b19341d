@@ -36,7 +36,7 @@ species chargingStation {
 		ask dockingStationCapacity first bikesToCharge {
 			batteryLife <- batteryLife + step*V2IChargingRate;
 		}
-		//save ["Question2", string(self),length(bikesToCharge)] to: "vkt_NoBikesSimultCharged.csv" type: "csv" rewrite: false;
+		save ["Question2", string(self),length(bikesToCharge)] to: "vkt_NoBikesSimultCharged.csv" type: "csv" rewrite: false;
 	}
 }
 
@@ -167,7 +167,7 @@ species people control: fsm skills: [moving] {
 		}
 		
 		transition to: riding when: bikeToRide.state = "dropping_off" {
-			//save ["Question1", time - timeBikeRequested] to: "vkt_averageWaitingTime.csv" type: "csv";
+			save ["Question1", time - timeBikeRequested] to: "vkt_averageWaitingTime.csv" type: "csv";
 			location_start_ride <- self.location;
 			time_start_ride <- time;
 			if timeToWork() {morning_wait_time <- time - home_departure_time;}
@@ -368,7 +368,7 @@ species bike control: fsm skills: [moving] {
 		return distance;
 	}
 	action reduceBattery(float distance) {
-		//save ["Question2", energyCost(distance)] to: "vkt_energyConsumption.csv" type: "csv" rewrite: false;
+		save ["Question2", energyCost(distance)] to: "vkt_energyConsumption.csv" type: "csv" rewrite: false;
 		batteryLife <- batteryLife - energyCost(distance);
 		batteryLife <- saturateBattery( batteryLife - energyCost(distance) );
 		if follower != nil and follower.state = "following" {
@@ -404,9 +404,9 @@ species bike control: fsm skills: [moving] {
 		//do goto (or follow in the case of wandering, where we've prepared a probably-suboptimal route)
 		if (target != nil) {
 			//TODO: Think about redefining this save thing once we implement charging btw vehicles also with low charge
-			//if state = "low_battery" {
-				//save ["Question2", self.location distance_to target] to: "vkt_forCharge.csv" type: "csv" rewrite: false;
-			//}
+			if state = "low_battery" {
+				save ["Question2", self.location distance_to target] to: "vkt_forCharge.csv" type: "csv" rewrite: false;
+			}
 			myPath <- goto(on:roadNetwork, target:target, speed:speed, return_path: true);
 		} else {
 			myPath <- follow(path: wanderPath, return_path: true);
@@ -416,9 +416,9 @@ species bike control: fsm skills: [moving] {
 
 		do reduceBattery(distanceTraveled);
 		
-		/*if state = "idle" {
+		if state = "idle" {
 			save ["Question1", string(self), distanceTraveled] to: "vkt_rebalancing.csv" type: "csv" rewrite: false;
-		}*/
+		}
 		
 			
 		if !empty(myPath) {
@@ -533,16 +533,12 @@ species bike control: fsm skills: [moving] {
 	
 	//Save activity information into CSV BikeTrips.csv
 	action logActivity(bike main, string activity, string otherInvolved){
-		if csvs {
-			if state = "wandering" {
+		if state = "wandering" {
 			save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, (cycle-cycleStartActivity)*distancePerCycle, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;			
-			}
-			else {
-				save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to main.location, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;		
-			}
-				
 		}
-		
+		else {
+			save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to main.location, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;		
+		}
 	}
 	
 	//-----STATE MACHINE
@@ -688,7 +684,7 @@ species bike control: fsm skills: [moving] {
 			batteryStartActivity <- self.batteryLife/maxBatteryLife * 100;
 			write "cycle: " + cycle + ", " + string(self) + " is picking up "+string(rider);
 			target <- rider.closestIntersection; //Go to the rider's closest intersection
-			//save ["Question1", string(self), self.location distance_to target] to: "vkt_pickingUp.csv" type: "csv" rewrite: false;
+			save ["Question1", string(self), self.location distance_to target] to: "vkt_pickingUp.csv" type: "csv" rewrite: false;
 		}
 		
 		transition to: dropping_off when: location=target and rider.location=target{			}
