@@ -102,7 +102,7 @@ global {
 			speed <- BikeSpeed;
 			distancePerCycle <- step * speed;
 			
-			/*//Activities' start times
+			//Activities' start times
 			timeStartWandering <- nil;
 			timeStartPickingUp <- nil;
 			timeStartDroppingOff <- nil;
@@ -127,11 +127,8 @@ global {
 			batteryStartSeekingLeader <- nil;
 			batteryStartAwaitingFollower <- nil;
 			batteryStartFollowing <- nil;
-			batteryStartGoingForACharge <- nil;*/
+			batteryStartGoingForACharge <- nil;
 			
-			cycleStartActivity <- nil;
-			locationStartActivity <- nil;
-			batteryStartActivity <- nil;
 			
 			write "cycle: " + cycle + ", " + string(self) + " created with batteryLife " + self.batteryLife;
 		}

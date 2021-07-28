@@ -247,7 +247,7 @@ species bike control: fsm skills: [moving] {
 	float chargingStartTime; //Charge start time [s]
 	float batteryLifeBeginningCharge; //Battery when beginning charge [%]
 	
-	/*//Activities' start times
+	//Activities' start times
 	float timeStartWandering;
 	float timeStartPickingUp;
 	float timeStartDroppingOff;
@@ -272,11 +272,8 @@ species bike control: fsm skills: [moving] {
 	float batteryStartSeekingLeader;
 	float batteryStartAwaitingFollower;
 	float batteryStartFollowing;
-	float batteryStartGoingForACharge;*/
-	int cycleStartActivity;	
-	point locationStartActivity;		
-	float batteryStartActivity;
-	    
+	float batteryStartGoingForACharge;	
+    
 	//----------------PUBLIC FUNCTIONS-----------------
 	// these are how other agents interact with this one. Not used by self
 	bool availableForRide {
@@ -529,28 +526,20 @@ species bike control: fsm skills: [moving] {
 		pheromoneToDiffuse <- max(tag.pheromones)*diffusion;
 	}
 	
-	//LOG INTO CSV
-	
-	//Save activity information into CSV BikeTrips.csv
-	action logActivity(bike main, string activity, string otherInvolved){
-		if state = "wandering" {
-			save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, (cycle-cycleStartActivity)*distancePerCycle, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;			
-		}
-		else {
-			save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to main.location, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;		
-		}
-	}
 	
 	//-----STATE MACHINE
 	state idle initial: true {
 		//wander the map, follow pheromones. Same as the old searching reflex
 		enter {
-			cycleStartActivity <- cycle;
-			batteryStartActivity <- self.batteryLife/maxBatteryLife * 100;
-		    write "cycle: " + cycle + ", " + string(self) + " is wandering";	
+		    write "cycle: " + cycle + ", " + string(self) + " is wandering";
+			target <- nil;
 		}
 		
-		transition to: awaiting_follower when: follower != nil and follower.state = "seeking_leader" {}
+		transition to: awaiting_follower when: follower != nil and follower.state = "seeking_leader" {
+			timeStartAwaitingFollower <- time;
+			locationStartAwaitingFollower <- self.location;
+			batteryStartAwaitingFollower <- self.batteryLife/maxBatteryLife * 100;
+		}
 
 		transition to: seeking_leader when: follower = nil and evaluateclusters() {
 			//Don't form cluster if you're already a leader
@@ -560,9 +549,16 @@ species bike control: fsm skills: [moving] {
 			ask host {
 				do pause;
 			}
+			timeStartSeekingLeader <- time;
+			locationStartSeekingLeader <- self.location;
+			batteryStartSeekingLeader <- self.batteryLife/maxBatteryLife * 100;
 		}
 		transition to: low_battery when: setLowBattery() or readPheromones < chargingPheromoneThreshold {}
-		transition to: picking_up when: rider != nil {}
+		transition to: picking_up when: rider != nil {
+			timeStartPickingUp <- time;
+			locationStartPickingUp <- self.location;
+			batteryStartPickingUp <- self.batteryLife/maxBatteryLife * 100;
+		}
 		
 		exit {
 			wanderPath <- nil;
@@ -578,6 +574,7 @@ species bike control: fsm skills: [moving] {
 			tagRFID penultimate <- wanderPath.vertices[i-1];
 			wanderPath <- path( wanderPath.vertices + chooseWanderTarget(finalTag, penultimate) );
 		}
+		
 		
 	}
 	
@@ -624,28 +621,25 @@ species bike control: fsm skills: [moving] {
 	state awaiting_follower {
 		//sit at an intersection until a follower joins the cluster
 		enter {
-			cycleStartActivity <- cycle;
-			locationStartActivity <- self.location;
-			batteryStartActivity <- self.batteryLife/maxBatteryLife * 100;
 			write "cycle: " + cycle + ", " + string(self) + " is awaiting follower";
 		}
-		transition to: idle when: follower.state = "following" {}
-		exit {
-			do logActivity(self, "awaitingFollower", string(follower));
+		transition to: idle when: follower.state = "following" {
+			save [string(self), "awaitingFollower", string(follower), timeStartAwaitingFollower, time, time - timeStartAwaitingFollower, locationStartAwaitingFollower distance_to self.location, batteryStartAwaitingFollower, self.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;
 		}
 	}
 	state seeking_leader {
 		//catch up to the leader
 		//(when two bikes form a cluster, one will await_follower, the other will seek_leader)
-		transition to: following when: (self distance_to leader) <= followDistance {}
+		transition to: following when: (self distance_to leader) <= followDistance {
+			save [string(self), "seekingLeader", string(leader), timeStartSeekingLeader, time, time - timeStartSeekingLeader, locationStartSeekingLeader distance_to self.location, batteryStartSeekingLeader, self.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;
+			timeStartFollowing <- time;
+			locationStartFollowing <- self.location;
+			batteryStartFollowing <- self.batteryLife/maxBatteryLife * 100;	
+		}
 		enter {
-			cycleStartActivity <- cycle;
-			locationStartActivity <- self.location;
-			batteryStartActivity <- self.batteryLife/maxBatteryLife * 100;
 			write "cycle: " + cycle + ", " + string(self) + " is seeking " + leader;
 		}
 		exit {
-			do logActivity(self, "seekingLeader", string(leader));
 			target <- nil;
 		}
 		
@@ -659,15 +653,13 @@ species bike control: fsm skills: [moving] {
 		//leader will update our charge level as we move along (see reduceBattery)
 		//TODO: While getting charged, if there is a request for picking up, charging vehicle must leave
 		enter {
-			cycleStartActivity <- cycle;
-			locationStartActivity <- self.location;
-			batteryStartActivity <- self.batteryLife/maxBatteryLife * 100;
 			write "cycle: " + cycle + ", " + string(self) + " is following " + leader;
 		}
-		transition to: idle when: declusterCost(leader) < declusterThreshold {}
+		transition to: idle when: declusterCost(leader) < declusterThreshold {
+			save [string(self), "Following", string(leader), timeStartFollowing, time, time - timeStartFollowing, locationStartFollowing distance_to self.location, batteryStartFollowing, self.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;	
+}
 		transition to: picking_up when: rider != nil {}
 		exit {
-			do logActivity(self, "following", string(leader));
 			ask leader {
 				follower <- nil;
 			}
@@ -679,35 +671,29 @@ species bike control: fsm skills: [moving] {
 	state picking_up {
 		//go to rider's location, pick them up
 		enter {
-			cycleStartActivity <- cycle;
-			locationStartActivity <- self.location;
-			batteryStartActivity <- self.batteryLife/maxBatteryLife * 100;
 			write "cycle: " + cycle + ", " + string(self) + " is picking up "+string(rider);
 			target <- rider.closestIntersection; //Go to the rider's closest intersection
 			save ["Question1", string(self), self.location distance_to target] to: "vkt_pickingUp.csv" type: "csv" rewrite: false;
 		}
 		
-		transition to: dropping_off when: location=target and rider.location=target{			}
-		exit{
-			do logActivity(self, "pickingUp", string(rider));	
+		transition to: dropping_off when: location=target and rider.location=target{
+			save [string(self), "pickingUp", string(rider), timeStartPickingUp, time, time - timeStartPickingUp, locationStartPickingUp distance_to self.location, batteryStartPickingUp, self.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;
+			timeStartDroppingOff <- time;
+			locationStartDroppingOff <- self.location;
+			batteryStartDroppingOff <- self.batteryLife/maxBatteryLife * 100;			
 		}
 	}
 	
 	state dropping_off {
 		//go to rider's destination, drop them off
 		enter {
-			cycleStartActivity <- cycle;
-			locationStartActivity <- self.location;
-			batteryStartActivity <- self.batteryLife/maxBatteryLife * 100;
 			write "cycle: " + cycle + ", " + string(self) + " is dropping off "+string(rider);
 			target <- (tagRFID closest_to rider.final_destination).location;
 		}
 		
 		transition to: idle when: location=target {
+			save [string(self), "droppingOff", string(rider), timeStartDroppingOff, time, time - timeStartDroppingOff, locationStartDroppingOff distance_to self.location, batteryStartDroppingOff, self.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;
 			rider <- nil;
-		}
-		exit {
-			do logActivity(self, "droppingOff", string(rider));	
 		}
 	}
 }

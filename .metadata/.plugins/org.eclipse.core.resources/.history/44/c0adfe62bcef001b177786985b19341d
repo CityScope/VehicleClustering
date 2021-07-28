@@ -129,7 +129,7 @@ global {
 			batteryStartFollowing <- nil;
 			batteryStartGoingForACharge <- nil;*/
 			
-			cycleStartActivity <- nil;
+			timeStartActivity <- nil;
 			locationStartActivity <- nil;
 			batteryStartActivity <- nil;
 			
