@@ -229,7 +229,6 @@ species bike control: fsm skills: [moving] {
 	
 	point target;
 	path wanderPath;
-	path myPath; //preallocation. Only used within the moveTowardTarget reflex
 	point source;
 	
 	float pheromoneToDiffuse; //represents a store of pheremone (a bike can't expend more than this amount). Pheremone is restored by ___
@@ -434,15 +433,17 @@ species bike control: fsm skills: [moving] {
 
 	reflex deathWarning when: batteryLife = 0 {
 		write "NO POWER!";
-		ask host {
-			do pause;
-		}
+//		ask host {
+//			do pause;
+//		}
 	}
 	
 	
 	//-----MOVEMENT
+	path travelledPath; //preallocation. Only used within the moveTowardTarget reflex
+	
 	float pathLength(path p) {
-		if empty(p) { return 0.0; }
+		if empty(p) or p.shape = nil { return 0; }
 		return p.shape.perimeter; //TODO: may be accidentally doubled
 	}
 	list<tagRFID> lastIntersections;
@@ -453,17 +454,33 @@ species bike control: fsm skills: [moving] {
 	}
 	reflex moveTowardTarget when: canMove() {
 		//do goto (or follow in the case of wandering, where we've prepared a probably-suboptimal route)
+		
+		float distanceTraveled <- 0.0;
+		
 		if (target != nil) {
 			//TODO: Think about redefining this save thing once we implement charging btw vehicles also with low charge
 			if state = "low_battery" {
 				save ["Question2", self.location distance_to target] to: "vkt_forCharge.csv" type: "csv" rewrite: false;
 			}
-			myPath <- goto(on:roadNetwork, target:target, speed:speed, return_path: true);
+			//myPath <- goto(on:roadNetwork, target:target, speed:speed, return_path: true);
+			travelledPath <- goto(on:roadNetwork, target:target, return_path: true);
+			distanceTraveled <- pathLength(travelledPath);
 		} else {
-			myPath <- follow(path: wanderPath, return_path: true);
+//			myPath <- follow(path: wanderPath, return_path: true);
+//			distanceTraveled <- pathLength(myPath);
+			list<point> travelledVertices <- [];
+			loop vertex over: wanderPath.vertices {
+				path tempPath <- goto(on:roadNetwork, target:vertex, return_path: true);
+				float l <- pathLength(tempPath);
+				
+				distanceTraveled <- distanceTraveled + l;
+				travelledVertices <- travelledVertices + tempPath.vertices;
+				if l <= 0 and vertex != location { break; }
+			}
+			
+			travelledPath <- path(travelledVertices);
 		}
-		//determine distance
-		float distanceTraveled <- pathLength(myPath);
+		
 
 		do reduceBattery(distanceTraveled);
 		
@@ -472,14 +489,14 @@ species bike control: fsm skills: [moving] {
 		}
 		
 			
-		if !empty(myPath) {
+		if !empty(travelledPath) {
 			//update pheromones exactly once, when we cross a new intersection
 			//we could (should) have crossed multiple intersections over the last move. The location of each intersection
 			//will show up in `vertices`, as they are the boundaries between new edges
 			//simply casting the points to intersections is incorrect though, as we may get intersections that are close
 			//to the points in question, but not actually on the path. We may also get duplicates. The filter removes both of these.
 			//reverse it to make the oldest intersection first in the list
-			list<tagRFID> newIntersections <- reverse( myPath.vertices where (tagRFID(each).location = each) );
+			list<tagRFID> newIntersections <- reverse( travelledPath.vertices where (tagRFID(each).location = each) );
 //			ask newIntersections {
 //				color <- #yellow;
 //			}
@@ -600,6 +617,7 @@ species bike control: fsm skills: [moving] {
 	state idle initial: true {
 		//wander the map, follow pheromones. Same as the old searching reflex
 		enter {
+			target <- nil;
 			cycleStartActivity <- cycle;
 			batteryStartActivity <- self.batteryLife/maxBatteryLife * 100;
 		    write "cycle: " + cycle + ", " + string(self) + " is wandering";

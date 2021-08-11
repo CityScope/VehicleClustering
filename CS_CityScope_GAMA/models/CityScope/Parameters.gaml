@@ -28,9 +28,9 @@ global {
 	
 	//----------------------Bike Parameters------------------------
 	//Number of Bikes to generate. Juan: Change this so nb is generated according to real GIS Data.
-	int numBikes <- 5 				min: 0 max: 1000 parameter: "Num Bikes:" category: "Initial";
+	int numBikes <- 5 				min: 0 max: 500 parameter: "Num Bikes:" category: "Initial";
 	//Max battery life of bikes - Maximum number of meters with the battery
-	float maxBatteryLife <- 100000 #m	min: 10000#m max: 1000000#m parameter: "Battery Capacity (m):" category: "Bike";
+	float maxBatteryLife <- 100000 #m	min: 10000#m max: 300000#m parameter: "Battery Capacity (m):" category: "Bike";
 	//speed of bikes - about 5.5  m/s for PEV (it can be changed accordingly to different robot specification)
 	float BikeSpeed <- 2.5 #m/#s min: 1 #m/#s max: 15#m/#s parameter: "Bike Top Speed (m/s):" category:  "Bike";
 	
@@ -49,8 +49,8 @@ global {
 	
 	//----------------------Docking Parameters------------------------
 	//Number of docking stations
-	int numDockingStations <- 2 	min: 1 max: 1000 parameter: "Num Docking Stations:" category: "Initial";
-	float V2IChargingRate <- 2000 #m/#s min: 1 #m/#s max: 1000 #m/#s parameter: "V2I Charging Rate (m/s):" category: "Charging";
+	int numDockingStations <- 2 	min: 1 max: 10 parameter: "Num Docking Stations:" category: "Initial";
+	float V2IChargingRate <- 2000 #m/#s min: 1 #m/#s max: 2000 #m/#s parameter: "V2I Charging Rate (m/s):" category: "Charging";
 	int dockingStationCapacity <- 10;
 	
 	//----------------------People Parameters------------------------

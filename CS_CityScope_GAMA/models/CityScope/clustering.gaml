@@ -94,7 +94,7 @@ global {
 		// -------------------------------------------The Bikes -----------------------------------------
 		create bike number:numBikes{						
 			location <- point(one_of(roadNetwork.vertices)); 
-			target <- location;
+//			target <- location; //Bad
 			pheromoneToDiffuse <- 0.0;
 			pheromoneMark <- 0.0;
 			//Battery life random but not starting on 0. Now 75% of MaxBatteryLife
@@ -230,12 +230,48 @@ global {
 
 
 
+//TODO: fill this out with tests to verify that all functions work properly
+//Also, figure out how to even use tests
+species Tester {
+	setup {
+		
+	}
+	
+	test  test1 {
+		
+	}
+}
+//TODO fill this out with benchmarks for each function, to be evaluated at different populations
+experiment benchmarks { 
+	init {
+		benchmark message: 'arithmetic operation' repeat: 5 {
+			//benchmark code will be run 'repeat' times, and report min,max,avg runtime
+			int a <- int(1*54.2);
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 experiment clustering type: gui {
 	parameter var: numBikes init: 135;
 	parameter var: numPeople init: 350;
     output {
-		/*display city_display type:opengl background: #black draw_env: false{	
+		display city_display type:opengl background: #black draw_env: false{	
 			species tagRFID aspect: base ;
 			species building aspect: type ;
 			species road aspect: base ;
@@ -247,8 +283,13 @@ experiment clustering type: gui {
 				{world.shape.width * 0.8, world.shape.height * 0.975};
 				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
 			}
-		}*/
+		}
     }
+}
+
+experiment clustering_headless {
+	parameter var: numBikes init: 135;
+	parameter var: numPeople init: 350;
 }
 
 experiment one_person type: gui {
