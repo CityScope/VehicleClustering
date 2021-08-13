@@ -1,7 +1,7 @@
-.metadata/
+*/.metadata/
 
-.gama_application_workspace
-.gama.epf
+*/.gama_application_workspace
+*/.gama.epf
 
 types_hierarchy.png
 Quinn Notes.txt
