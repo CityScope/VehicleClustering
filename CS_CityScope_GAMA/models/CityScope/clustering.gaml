@@ -93,8 +93,10 @@ global {
 	    
 		// -------------------------------------------The Bikes -----------------------------------------
 		create bike number:numBikes{						
-			location <- point(one_of(roadNetwork.vertices)); 
-//			target <- location; //Bad
+			location <- point(one_of(roadNetwork.vertices));
+			nextTag <- tagRFID( location );
+			lastTag <- nextTag;
+			
 			pheromoneToDiffuse <- 0.0;
 			pheromoneMark <- 0.0;
 			//Battery life random but not starting on 0. Now 75% of MaxBatteryLife
@@ -163,8 +165,7 @@ global {
 		
 		ask tagRFID {
 			location <- point(roadNetwork.vertices[id]); 
-			pheromones <- [0.0,0.0,0.0,0.0,0.0];
-			pheromonesToward <- neighbors_of(roadNetwork,roadNetwork.vertices[id]);  //to know what edge is related to that amount of pheromone
+			pheromoneMap <- map( neighbors_of(roadNetwork,roadNetwork.vertices[id]) collect (each::0.0) );  //to know what edge is related to that amount of pheromone
 			
 			// Find the closest chargingPoint and set towardChargingStation and distanceToChargingStation
 			ask chargingStation closest_to self {
