@@ -220,7 +220,7 @@ species people control: fsm skills: [moving] {
 }
 
 species bike control: fsm skills: [moving] {
-	
+	//----------------Display-----------------
 	rgb color;
 	map<string, rgb> color_map <- [
 		"idle"::#lime,
@@ -254,7 +254,7 @@ species bike control: fsm skills: [moving] {
 	
 	
 	    
-	//----------------PUBLIC FUNCTIONS-----------------
+	/* ========================================== PUBLIC FUNCTIONS ========================================= */
 	// these are how other agents interact with this one. Not used by self
 	bike leader;
 	bike follower;
@@ -280,11 +280,11 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	
-	//----------------PRIVATE FUNCTIONS-----------------
+	/* ========================================== PRIVATE FUNCTIONS ========================================= */
 	// no other species should touch these
 	
 	
-	//-----CLUSTERING
+	//----------------Clustering-----------------
 	//These are our cost functions, and will be the basis of how we decide to form clusters
 	float clusterCost(bike other) {
 		return 10000 - chargeToGive(other);
@@ -334,7 +334,7 @@ species bike control: fsm skills: [moving] {
 	
 	
 	
-	//-----BATTERY
+	//----------------BATTERY-----------------
 	float saturateBattery(float value) {
 		if value < 0.0 { return 0.0;}
 		if value > maxBatteryLife { return maxBatteryLife;}
@@ -365,7 +365,7 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	
-	//-----MOVEMENT
+	//----------------MOVEMENT-----------------
 	point target;
 	
 	//this should be affected by how many bikes there are in a cluster
@@ -510,7 +510,7 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	
-	//-----PHEROMONES
+	//----------------PHEROMONES-----------------
 	float pheromoneToDiffuse; //represents a store of pheremone (a bike can't expend more than this amount). Pheremone is restored by ___
 	float pheromoneMark; //initialized to 0, never updated. Unsure what this represents
 	
@@ -551,7 +551,7 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	
-	//-----STATE MACHINE
+	/* ========================================== STATE MACHINE ========================================= */
 	state idle initial: true {
 		//wander the map, follow pheromones. Same as the old searching reflex
 		enter {

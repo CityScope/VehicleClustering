@@ -22,26 +22,6 @@ global {
 	graph roadNetwork;
 	list<int> chargingStationLocation;
 	
-	map<string, string> filenames <- []; //Maps log types to filenames
-	
-	action registerLogFile(string filename) {
-		filenames[filename] <- 'data/' + string(starting_date, 'yyyy-MM-dd hh.mm.ss','en') + '/' + filename + '.csv';
-	}
-	
-	action log(string filename, int level, list data) {
-		if not(filename in filenames.keys) {
-			do registerLogFile(filename);
-		}
-		
-		if level <= loggingLevel {
-			save [cycle, string(#now)] + data to: filenames[filename] type: "csv" rewrite: false;
-		}
-		if level <= printLevel {
-			write [cycle, string(#now)] + data;
-		}
-	}
-	
-	
 	
 	
     // ---------------------------------------Agent Creation----------------------------------------------
