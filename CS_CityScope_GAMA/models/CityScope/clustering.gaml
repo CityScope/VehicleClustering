@@ -191,29 +191,7 @@ global {
 			
 			// Find the closest chargingPoint and set towardChargingStation and distanceToChargingStation
 			nearestChargingStation <- chargingStation closest_to self;
-			
-			
-			ask nearestChargingStation {
-				myself.distanceToChargingStation <- int(point(roadNetwork.vertices[myself.id]) distance_to self.location);
-				loop y from: 0 to: length(chargingStationLocation) - 1 {
-					if (point(roadNetwork.vertices[chargingStationLocation[y]]) = self.location){
-						//Assign next vertice to closest charging  station
-						myself.towardChargingStation <- point(roadNetwork.vertices[allPairs[chargingStationLocation[y],myself.id]]);
-						//Juan: I think this is if next node is already charging station
-						if (myself.towardChargingStation=point(roadNetwork.vertices[myself.id])){
-							myself.towardChargingStation <- point(roadNetwork.vertices[chargingStationLocation[y]]);
-						}
-						break;
-					}
-				}
-			}
-			
-			type <- 'roadIntersection';
-			loop y from: 0 to: length(chargingStationLocation) - 1 {
-				if (id=chargingStationLocation[y]){
-					type <- 'chargingStation&roadIntersection';
-				}
-			}
+			distanceToChargingStation <- int( self distance_to nearestChargingStation );
 		}
 		
 		

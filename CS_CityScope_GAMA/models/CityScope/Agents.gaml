@@ -43,20 +43,16 @@ species chargingStation {
 
 species tagRFID {
 	int id;
-	string type;
 	
 	map<tagRFID,float> pheromoneMap;
 	
 	int lastUpdate; //Cycle
 	
 	chargingStation nearestChargingStation;
-	geometry towardChargingStation;
 	int distanceToChargingStation;
 	
 	//easy access to neighbors
-	list<tagRFID> neighbors {
-		return pheromoneMap.keys;
-	}
+	list<tagRFID> neighbors { return pheromoneMap.keys;	}
 	
 	
 	rgb color;
