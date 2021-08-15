@@ -168,7 +168,6 @@ global {
 			pheromoneMap <- map( neighbors_of(roadNetwork,roadNetwork.vertices[id]) collect (each::0.0) );  //to know what edge is related to that amount of pheromone
 			
 			// Find the closest chargingPoint and set towardChargingStation and distanceToChargingStation
-			// Find the closest chargingPoint and set towardChargingStation and distanceToChargingStation
 			nearestChargingStation <- chargingStation closest_to self;
 			
 			
