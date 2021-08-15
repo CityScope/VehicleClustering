@@ -20,7 +20,29 @@ global {
 	geometry shape <- envelope(bound_shapefile);
 	graph roadNetwork;
 	list<int> chargingStationLocation;
-
+	
+	map<string, string> filenames <- []; //Maps log types to filenames
+	
+	action registerLogFile(string filename) {
+		filenames[filename] <- 'data/' + string(starting_date, 'yyyy-MM-dd hh.mm.ss','en') + '/' + filename + '.csv';
+	}
+	
+	action log(string filename, int level, list data) {
+		if not(filename in filenames.keys) {
+			do registerLogFile(filename);
+		}
+		
+		if level <= loggingLevel {
+			save [cycle, string(#now)] + data to: filenames[filename] type: "csv" rewrite: false;
+		}
+		if level <= printLevel {
+			write [cycle, string(#now)] + data;
+		}
+	}
+	
+	
+	
+	
     // ---------------------------------------Agent Creation----------------------------------------------
     init {
     	// ---------------------------------------Buildings----------------------------------------------
@@ -168,7 +190,10 @@ global {
 			pheromoneMap <- map( neighbors_of(roadNetwork,roadNetwork.vertices[id]) collect (each::0.0) );  //to know what edge is related to that amount of pheromone
 			
 			// Find the closest chargingPoint and set towardChargingStation and distanceToChargingStation
-			ask chargingStation closest_to self {
+			nearestChargingStation <- chargingStation closest_to self;
+			
+			
+			ask nearestChargingStation {
 				myself.distanceToChargingStation <- int(point(roadNetwork.vertices[myself.id]) distance_to self.location);
 				loop y from: 0 to: length(chargingStationLocation) - 1 {
 					if (point(roadNetwork.vertices[chargingStationLocation[y]]) = self.location){
@@ -182,6 +207,7 @@ global {
 					}
 				}
 			}
+			
 			type <- 'roadIntersection';
 			loop y from: 0 to: length(chargingStationLocation) - 1 {
 				if (id=chargingStationLocation[y]){
@@ -197,10 +223,11 @@ global {
 	
 	
 	
+		
 	list<bike> availableBikes(people person) {
 		return bike where (each.availableForRide() and (each distance_to person) <= rideDistance);
 	}
-	
+
 	
 	bool requestBike(people person) { //returns true if bike is available
 		list<bike> candidates <- availableBikes(person);

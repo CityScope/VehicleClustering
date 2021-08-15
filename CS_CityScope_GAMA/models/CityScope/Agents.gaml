@@ -9,6 +9,7 @@
 model Agents
 
 import "./clustering.gaml"
+import "./Loggers.gaml"
 
 
 species road {
@@ -45,8 +46,6 @@ species tagRFID {
 	string type;
 	
 	map<tagRFID,float> pheromoneMap;
-	
-	
 	
 	int lastUpdate; //Cycle
 	
@@ -121,6 +120,16 @@ species people control: fsm skills: [moving] {
     
     //----------------PRIVATE FUNCTIONS-----------------
 	// no other species should touch these
+	action log(int level, list<string> data) {
+		if peopleLogs {
+			ask host {
+				do log(peopleFile, level, [string(self)] + data);
+			}
+		}
+	}
+	
+	
+	
 	
     //Should we leave for work/home? Only if it is time, and we are not already there
     bool timeToWork { return (current_date.hour = start_work) and !(self overlaps working_place); }
@@ -214,6 +223,7 @@ species people control: fsm skills: [moving] {
 }
 
 species bike control: fsm skills: [moving] {
+	
 	rgb color;
 	map<string, rgb> color_map <- [
 		"idle"::#lime,
@@ -230,13 +240,15 @@ species bike control: fsm skills: [moving] {
 	];
 	aspect realistic {
 		color <- color_map[state];
-
 		draw circle(10) color:color;
 	}
 	
+	
+	bikeLogger_roadsTraveled travelLogger;
+	
+	
+	
 	point target;
-//	path wanderPath;
-//	point source;
 	
 	float pheromoneToDiffuse; //represents a store of pheremone (a bike can't expend more than this amount). Pheremone is restored by ___
 	float pheromoneMark; //initialized to 0, never updated. Unsure what this represents
@@ -315,12 +327,27 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	
-	//OVERALL TASK
-	// A function that would simulate what happens when vehicles cluster in terms of energy sharing and aerodynamics as a function of the number, type of vehicles, and speed
 	
 	
 	//----------------PRIVATE FUNCTIONS-----------------
 	// no other species should touch these
+	
+	
+	
+	//-----LOG TO CSV
+	//Save activity information into CSV BikeTrips.csv
+	action logActivity(bike main, string activity, string otherInvolved){
+		if bikeLogs {
+			if state = "wandering" {
+				save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, (cycle-cycleStartActivity)*distancePerCycle, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;			
+			} else {
+				save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to main.location, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;		
+			}
+		}
+	}
+	
+	
+	
 	
 	
 	//-----CLUSTERING
@@ -407,19 +434,15 @@ species bike control: fsm skills: [moving] {
 		save ["Question2", energyCost(distance)] to: "vkt_energyConsumption.csv" type: "csv" rewrite: false;
 		batteryLife <- batteryLife - energyCost(distance);
 		batteryLife <- saturateBattery( batteryLife - energyCost(distance) );
-		if length(followers) != 0 {
-			loop i from: 0 to: length(followers) - 1{
-				bike follower <- followers at i;
-				ask follower {
-					do reduceBattery(distance);
-				}
-			}
+		
+		ask followers {
+			do reduceBattery(distance);
 		}
 	}
 	
 	reflex checkAwaiting {
 		if length(followers) != 0 {
-			loop i from: 0 to: length(followers) - 1{
+			loop i from: 0 to: length(followers) - 1 {
 				bike follower <- followers at i;
 				//write "follower " + string(follower) + " has leader " + string(self) + " and is currently " + follower.state;
 				any_awaiting <- any_awaiting or follower.state = "seeking_leader";
@@ -546,7 +569,11 @@ species bike control: fsm skills: [moving] {
 			
 			//the future is now old man (overwrite old saved data)
 			lastIntersections <- newIntersections;
+			
+			ask travelLogger { do logRoads(distanceTraveled, num); }
 		}
+		
+		
 		
 		lastDistanceToChargingStation <- lastTag.distanceToChargingStation;
 	}
@@ -631,18 +658,6 @@ species bike control: fsm skills: [moving] {
 		pheromoneToDiffuse <- max(tag.pheromoneMap)*diffusion;
 	}
 	
-	//-----LOG TO CSV
-	//Save activity information into CSV BikeTrips.csv
-	action logActivity(bike main, string activity, string otherInvolved){
-		if csvs {
-			if state = "wandering" {
-			save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, (cycle-cycleStartActivity)*distancePerCycle, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;			
-			}
-			else {
-				save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to main.location, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;		
-			}
-		}
-	}
 	
 	//-----STATE MACHINE
 	state idle initial: true {
