@@ -240,7 +240,9 @@ species bike control: fsm skills: [moving] {
 	];
 	aspect realistic {
 		color <- color_map[state];
-		draw circle(10) color:color;
+    
+		draw triangle(25) color:color border: #red rotate: heading + 90;
+
 	}
 	
 	
@@ -261,12 +263,7 @@ species bike control: fsm skills: [moving] {
 	int lastDistanceToChargingStation;
 	
 	bike leader;
-	//bike follower;
-	
-	list<bike> followers;
-	
-	bool any_awaiting <- false;
-	bool any_not_following <- true;
+	bike follower;
 	
 	chargingStation stationCharging; //Station where being charged [id]
 	float chargingStartTime; //Charge start time [s]
@@ -299,9 +296,9 @@ species bike control: fsm skills: [moving] {
 	float batteryStartFollowing;
 	float batteryStartGoingForACharge;*/
 	int cycleStartActivity;	
-	point locationStartActivity;
+	point locationStartActivity;		
 	float batteryStartActivity;
-	
+	    
 	//----------------PUBLIC FUNCTIONS-----------------
 	// these are how other agents interact with this one. Not used by self
 	bool availableForRide {
@@ -310,23 +307,17 @@ species bike control: fsm skills: [moving] {
 	bool availableForPlatoon {
 		// Bike must either be idle, or awaiting another follower, have no followers
 		//TODO: may need more filters. Must exclude dropping_off, for example
-		return (state = "idle" or state = "awaiting_follower" or length(followers) = 0) and leader = nil and !setLowBattery();
+		return (state = "idle" or state = "awaiting_follower" or follower = nil) and leader = nil and !setLowBattery();
 	}
 	//transition from idle to picking_up. Called by the global scheduler
 	people rider <- nil;	
 	action pickUp(people person) {
 		rider <- person;
 	}
+	
 	action waitFor(bike other) {
-		//follower <- other;
-		if followers index_of other = -1{
-			write followers index_of other = -1;
-			//write "leader " + string(self) + " doesn't have the follower " + string(other);
-			followers <- followers + other;
-		}
+		follower <- other;
 	}
-	
-	
 	
 	
 	//----------------PRIVATE FUNCTIONS-----------------
@@ -353,27 +344,15 @@ species bike control: fsm skills: [moving] {
 	//-----CLUSTERING
 	//These are our cost functions, and will be the basis of how we decide to form clusters
 	float clusterCost(bike other) {
-		if length(other.followers) > 0{
-			float total_to_give <- 0.0;
-			loop i from: 0 to: length(other.followers) - 1{
-				total_to_give <- total_to_give + chargeToGive(other.followers at i);
-			}
-			//write "total to give: " + total_to_give;
-			return 10000 - total_to_give;
-		}
-		else {
-			//write "single charge to give: " + chargeToGive(other);
-			return 10000 - chargeToGive(other);
-		}
+		return 10000 - chargeToGive(other);
 	}
 	float declusterCost(bike other) {
 		//Don't decluster until you need to or you've nothing left to give
-		if other.state = "dropping_off" { return -10.0; }
-		if setLowBattery() { return -10.0; }
-		if chargeToGive(other) <= 0 { return -10.0; }
-		// other will be the leader of a swarm
-		if length(other.followers) >= 5 { return -10.0; }
-		return 100.0;
+		if other.state = "dropping_off" { return -10; }
+		if setLowBattery() { return -10; }
+		if chargeToGive(other) <= 0 { return -10; }
+		
+		return 10;
 	}
 	
 	//decide to follow another bike
@@ -393,7 +372,7 @@ species bike control: fsm skills: [moving] {
 		return false;
 	}
 	
-	//TODO: make this take into account speed and number of bikes in cluster
+	
 	//determines how much charge we could give another bike
 	float chargeToGive(bike other) {
 		//never go less than some minimum battery level
@@ -427,38 +406,24 @@ species bike control: fsm skills: [moving] {
 		return batteryLife < 10*lastDistanceToChargingStation; //safety factor
 	}
 	float energyCost(float distance) { //This function will let us alter the efficiency of our bikes, if we decide to look into that
-		if state = "dropping_off" { return 0.0; } //user will pedal
+		if state = "dropping_off" { return 0; } //user will pedal
 		return distance;
 	}
 	action reduceBattery(float distance) {
-		save ["Question2", energyCost(distance)] to: "vkt_energyConsumption.csv" type: "csv" rewrite: false;
+		//save ["Question2", energyCost(distance)] to: "vkt_energyConsumption.csv" type: "csv" rewrite: false;
 		batteryLife <- batteryLife - energyCost(distance);
 		batteryLife <- saturateBattery( batteryLife - energyCost(distance) );
-		
-		ask followers {
-			do reduceBattery(distance);
-		}
-	}
-	
-	reflex checkAwaiting {
-		if length(followers) != 0 {
-			loop i from: 0 to: length(followers) - 1 {
-				bike follower <- followers at i;
-				//write "follower " + string(follower) + " has leader " + string(self) + " and is currently " + follower.state;
-				any_awaiting <- any_awaiting or follower.state = "seeking_leader";
+    
+		if follower != nil and follower.state = "following" {
+			ask follower {
+				do reduceBattery(distance);
 			}
 		}
 	}
-	
-	reflex checkFollowers {
-		if length(followers) != 0 {
-			loop i from: 0 to: length(followers) - 1{
-				bike follower <- followers at i;
-				any_not_following <- any_not_following and follower.state = "following";
-			}
-		}
-	}
-
+	//debug stuff
+//	reflex logs when: target != nil {
+//		write "cycle: " + cycle + ", power: " + batteryLife + ", distance: " + (self distance_to self.target);
+//	}
 	reflex deathWarning when: batteryLife = 0 {
 		write "NO POWER!";
 //		ask host {
@@ -515,9 +480,9 @@ species bike control: fsm skills: [moving] {
 		
 		do reduceBattery(distanceTraveled);
 		
-		if state = "idle" {
+		/*if state = "idle" {
 			save ["Question1", string(self), distanceTraveled] to: "vkt_rebalancing.csv" type: "csv" rewrite: false;
-		}
+		}*/
 		
 			
 		if !empty(travelledPath) {
@@ -666,12 +631,13 @@ species bike control: fsm skills: [moving] {
 			target <- nil;
 			cycleStartActivity <- cycle;
 			batteryStartActivity <- self.batteryLife/maxBatteryLife * 100;
-		    write "cycle: " + cycle + ", " + string(self) + " is wandering";
-			target <- nil;
+		    write "cycle: " + cycle + ", " + string(self) + " is wandering";	
 		}
 		
-		transition to: awaiting_follower when: length(followers) != 0 and any_awaiting {}
-		transition to: seeking_leader when: length(followers) = 0 and evaluateclusters() {
+		transition to: awaiting_follower when: follower != nil and follower.state = "seeking_leader" {}
+
+		transition to: seeking_leader when: follower = nil and evaluateclusters() {
+			//Don't form cluster if you're already a leader
 			ask leader {
 				do waitFor(myself);
 			}
@@ -731,9 +697,12 @@ species bike control: fsm skills: [moving] {
 			cycleStartActivity <- cycle;
 			locationStartActivity <- self.location;
 			batteryStartActivity <- self.batteryLife/maxBatteryLife * 100;
-			write "cycle: " + cycle + ", " + string(self) + " is awaiting follower " + string(followers);
+			write "cycle: " + cycle + ", " + string(self) + " is awaiting follower";
 		}
-		transition to: idle when: any_not_following {}
+		transition to: idle when: follower.state = "following" {}
+		exit {
+			do logActivity(self, "awaitingFollower", string(follower));
+		}
 	}
 	state seeking_leader {
 		//catch up to the leader
@@ -764,15 +733,13 @@ species bike control: fsm skills: [moving] {
 			locationStartActivity <- self.location;
 			batteryStartActivity <- self.batteryLife/maxBatteryLife * 100;
 			write "cycle: " + cycle + ", " + string(self) + " is following " + leader;
-			write "cycle: " + cycle + ", " + string(leader) + " has followers " + leader.followers;
 		}
 		transition to: idle when: declusterCost(leader) < declusterThreshold {}
 		transition to: picking_up when: rider != nil {}
 		exit {
-			//write "cycle: " + cycle + ", " + string(self) + " has stopped following following " + string(leader);
 			do logActivity(self, "following", string(leader));
 			ask leader {
-				followers <- followers - self;
+				follower <- nil;
 			}
 			leader <- nil;
 		}
@@ -814,4 +781,3 @@ species bike control: fsm skills: [moving] {
 		}
 	}
 }
-
