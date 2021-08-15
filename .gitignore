@@ -3,5 +3,7 @@
 */.gama_application_workspace
 */.gama.epf
 
+*.csv
+
 types_hierarchy.png
 Quinn Notes.txt

@@ -9,6 +9,7 @@
 model clustering
 
 import "./Agents.gaml"
+import "./Loggers.gaml"
 import "./Parameters.gaml"
 
 global {
@@ -126,38 +127,7 @@ global {
 			speed <- BikeSpeed;
 			distancePerCycle <- step * speed;
 			
-			/*//Activities' start times
-			timeStartWandering <- nil;
-			timeStartPickingUp <- nil;
-			timeStartDroppingOff <- nil;
-			timeStartSeekingLeader <- nil;
-			timeStartAwaitingFollower <- nil;
-			timeStartFollowing <- nil;
-			timeStartGoingForACharge <- nil;
-			
-			//Activities' distances variables	
-			distanceWandering <- nil;
-			locationStartPickingUp <- nil;
-			locationStartDroppingOff <- nil;
-			locationStartSeekingLeader <- nil;
-			locationStartAwaitingFollower <- nil;
-			locationStartFollowing <- nil;
-			locationStartGoingForACharge <- nil;
-			
-			//Battery when beggining activity
-			batteryStartWandering <- nil;
-			batteryStartPickingUp <- nil;
-			batteryStartDroppingOff <- nil;
-			batteryStartSeekingLeader <- nil;
-			batteryStartAwaitingFollower <- nil;
-			batteryStartFollowing <- nil;
-			batteryStartGoingForACharge <- nil;*/
-			
-			cycleStartActivity <- nil;
-			locationStartActivity <- nil;
-			batteryStartActivity <- nil;
-			
-			write "cycle: " + cycle + ", " + string(self) + " created with batteryLife " + self.batteryLife;
+//			write "cycle: " + cycle + ", " + string(self) + " created with batteryLife " + self.batteryLife;
 		}
 	    
 		// -------------------------------------------The People -----------------------------------------
