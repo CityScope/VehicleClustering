@@ -78,22 +78,11 @@ species people control: fsm skills: [moving] {
     int start_work;
     int end_work;
     
-    // Variables for people's CSVs
-    float morning_wait_time; //Morning wait time [s]
-    float evening_wait_time; //Evening wait time [s]
-    float morning_ride_duration; //Morning ride duration [s]
-    float evening_ride_duration; //Evening ride duration [s]
-    float morning_ride_distance; //Morning ride distance [m]
-    float evening_ride_distance; //Evening ride distance [m]
-    float morning_total_trip_duration; //Morning total trip duration [s]
-    float evening_total_trip_duration; //Evening total trip duration [s]
-    float home_departure_time; //Home departure time [s]
-    float work_departure_time; //Work departure time [s]
-    bool morning_trip_served;
-    bool evening_trip_served;
-    float time_start_ride;
-    point location_start_ride;
-    float timeBikeRequested;
+    peopleLogger logger;
+    
+    
+    
+    
         
     point final_destination; //Final destination for the trip
     point target; //Interim destination; the thing we are currently moving toward
@@ -118,13 +107,13 @@ species people control: fsm skills: [moving] {
     
     //----------------PRIVATE FUNCTIONS-----------------
 	// no other species should touch these
-	action log(int level, list<string> data) {
-		if peopleLogs {
-			ask host {
-				do log(peopleFile, level, [string(self)] + data);
-			}
-		}
-	}
+//	action log(int level, list<string> data) {
+//		if peopleLogs {
+//			ask host {
+//				do log(peopleFile, level, [string(self)] + data);
+//			}
+//		}
+//	}
 	
 	
 	
@@ -135,68 +124,62 @@ species people control: fsm skills: [moving] {
     
     state idle initial: true {
     	//Watch netflix at home or something
-    	enter { target <- nil; }
-    	
+    	enter {
+    		ask logger { do logEnterState; }
+    		target <- nil;
+    	}
     	transition to: requesting_bike when: timeToWork() {
     		final_destination <- any_location_in (working_place);
     	}
     	transition to: requesting_bike when: timeToSleep() {
     		final_destination <- any_location_in (living_place);
     	}
+    	exit {
+			ask logger { do logExitState; }
+		}
     }
 	state requesting_bike {
 		//Ask the system for a bike, teleport home if wait is too long
 		enter {
-			write "cycle: " + cycle + ", "+ string(self) + " is requesting bike";
+			ask logger { do logEnterState; }
 			closestIntersection <- (tagRFID closest_to(self)).location;
 		}
 		
 		transition to: walking when: host.requestBike(self) {
-			//Walk to closest intersection, ask a bike to meet me there
-			if timeToWork() {home_departure_time <- time; morning_trip_served <- true;}
-			if timeToSleep() {work_departure_time <- time; evening_trip_served <- true;}
-			//bikeToRide <- host.requestBike(self);
-			//bikeToRide.rider <- self;
-			timeBikeRequested <- time #s;
 			target <- closestIntersection;
 		}
 		transition to: idle {
 			//teleport home
-			if timeToWork() {home_departure_time <- time; morning_trip_served <- false; morning_wait_time <- nil; morning_ride_distance <- nil; morning_total_trip_duration <- nil;}
-			if timeToSleep() {
-				work_departure_time <- time; evening_trip_served <- false; evening_wait_time <- nil; evening_ride_distance <- nil; evening_total_trip_duration <- nil;
-				save [string(self),living_place.location,working_place.location,home_departure_time,morning_trip_served,morning_wait_time,morning_ride_duration,morning_ride_distance,morning_total_trip_duration,work_departure_time,evening_trip_served,evening_wait_time,evening_ride_duration,evening_ride_distance,evening_total_trip_duration] to: "People.csv" type: "csv" rewrite: false;
-			}
+			ask logger { do logEvent( "Teleported Home, wait too long" ); }
 			location <- final_destination;
-			write "wait too long, teleported to destination";
+		}
+		exit {
+			ask logger { do logExitState; }
 		}
 	}
 	state awaiting_bike {
 		//Sit at the intersection and wait for your bike
 		enter {
-			write "cycle: " + cycle + ", "+ string(self) + " is awaiting bike";
+			ask logger { do logEnterState( "awaiting " + string(myself.bikeToRide) ); }
 			target <- nil;
 		}
-		
-		transition to: riding when: bikeToRide.state = "dropping_off" {
-			//save ["Question1", time - timeBikeRequested] to: "vkt_averageWaitingTime.csv" type: "csv";
-			location_start_ride <- self.location;
-			time_start_ride <- time;
-			if timeToWork() {morning_wait_time <- time - home_departure_time;}
-			if timeToSleep() {evening_wait_time <- time - work_departure_time;}
+		transition to: riding when: bikeToRide.state = "dropping_off" {}
+		exit {
+			ask logger { do logExitState; }
 		}
 	}
 	state riding {
 		//do nothing, follow the bike around until it drops you off and you have to walk
 		enter {
-			write "cycle: " + cycle + ", "+ string(self) + " is riding" + string(bikeToRide);
+			ask logger { do logEnterState( "riding " + string(myself.bikeToRide) ); }
 		}
 		transition to: walking when: bikeToRide.state != "dropping_off" {
-			if timeToWork() {morning_ride_duration <- time - time_start_ride; morning_ride_distance <- location_start_ride distance_to self.location;}
-			if timeToSleep() {evening_ride_duration <- time - time_start_ride; evening_ride_distance <- location_start_ride distance_to self.location;}
 			target <- final_destination;
 		}
-		exit { bikeToRide <- nil; }
+		exit {
+			ask logger { do logExitState; }
+			bikeToRide <- nil;
+		}
 		
 		//Always be at the same place as the bike
 		location <- bikeToRide.location;
@@ -204,16 +187,14 @@ species people control: fsm skills: [moving] {
 	state walking {
 		//go to your destination or nearest intersection, then wait
 		enter {
-			write "cycle: " + cycle + string(self) + "is walking";
+			ask logger { do logEnterState; }
 		}
-		transition to: idle when: location = final_destination {
-			if timeToWork() {morning_total_trip_duration <- time - home_departure_time;}
-			if timeToSleep() {
-				evening_total_trip_duration <- time - work_departure_time;
-				save [string(self),living_place.location,working_place.location,home_departure_time,morning_trip_served,morning_wait_time,morning_ride_duration,morning_ride_distance,morning_total_trip_duration,work_departure_time,evening_trip_served,evening_wait_time,evening_ride_duration,evening_ride_distance,evening_total_trip_duration] to: "People.csv" type: "csv" rewrite: false;
-			}
-		}
+		transition to: idle when: location = final_destination {}
 		transition to: awaiting_bike when: location = target {}
+		exit {
+			ask logger { do logExitState; }
+		}
+		
 		
 		do goto target: target on: roadNetwork;
 	}

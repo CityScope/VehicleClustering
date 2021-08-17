@@ -15,19 +15,20 @@ global {
 	map<string, string> filenames <- []; //Maps log types to filenames
 	
 	action registerLogFile(string filename) {
-		filenames[filename] <- 'data/' + string(starting_date, 'yyyy-MM-dd hh.mm.ss','en') + '/' + filename + '.csv';
+		filenames[filename] <- '../../data/' + string(starting_date, 'yyyy-MM-dd hh.mm.ss','en') + '/' + filename + '.csv';
 	}
 	
-	action log(string filename, int level, list data) {
+	action log(string filename, int level, list data, list<string> columns) {
 		if not(filename in filenames.keys) {
 			do registerLogFile(filename);
+			save ["Cycle","Time (real)", "Time (simulation)","Agent"] + columns to: filenames[filename] type: "csv" rewrite: false header: false;
 		}
 		
 		if level <= loggingLevel {
-			save [cycle, string(#now)] + data to: filenames[filename] type: "csv" rewrite: false;
+			save [cycle, string(#now), time] + data to: filenames[filename] type: "csv" rewrite: false header: false;
 		}
 		if level <= printLevel {
-			write [cycle, string(#now)] + data;
+			write [cycle, string(#now), time] + data;
 		}
 	}
 }
@@ -38,13 +39,14 @@ species Logger {
 	
 	action logPredicate virtual: true type: bool;
 	string filename;
+	list<string> columns;
 	
 	agent loggingAgent;
 	
 	action log(int level, list data) {
 		if logPredicate() {
 			ask host {
-				do log(myself.filename, level, [string(myself.loggingAgent)] + data);
+				do log(myself.filename, level, [string(myself.loggingAgent)] + data, myself.columns);
 			}
 		}
 	}
@@ -52,17 +54,84 @@ species Logger {
 }
 
 
+species peopleLogger parent: Logger mirrors: people {
+	string filename <- "people_event";
+	list<string> columns <- [
+		"Event",
+		"Message",
+		"Start Time",
+		"End Time",
+		"Duration",
+		"Distance (straight Line)"
+	];
+	
+	bool logPredicate { return peopleLogs; }
+	people persontarget;
+	
+	init {
+		persontarget <- people(target);
+		persontarget.logger <- self;
+		loggingAgent <- persontarget;
+	}
+	
+	
+	// Variables for people's CSVs
+    float morning_wait_time; //Morning wait time [s]
+    float evening_wait_time; //Evening wait time [s]
+    float morning_ride_duration; //Morning ride duration [s]
+    float evening_ride_duration; //Evening ride duration [s]
+    float morning_ride_distance; //Morning ride distance [m]
+    float evening_ride_distance; //Evening ride distance [m]
+    float morning_total_trip_duration; //Morning total trip duration [s]
+    float evening_total_trip_duration; //Evening total trip duration [s]
+    float home_departure_time; //Home departure time [s]
+    float work_departure_time; //Work departure time [s]
+    bool morning_trip_served;
+    bool evening_trip_served;
+    float time_start_ride;
+    point location_start_ride;
+    float timeBikeRequested;
+    
+    
+    int cycleStartActivity;
+    point locationStartActivity;
+    string currentState;
+	
+	action logEnterState { do logEnterState(nil); }
+	action logEnterState(string logmessage) {
+		cycleStartActivity <- cycle;
+		locationStartActivity <- persontarget.location;
+		currentState <- persontarget.state;
+		do log(1, ['Entered State: ' + currentState] + (logmessage != nil ? ['Message: ' + logmessage] : []));
+	}
+	action logExitState {
+		do logExitState("");
+	}
+	action logExitState(string logmessage) {
+		do log(1, ['Exiting State: ' + currentState, 'Message: ' + logmessage, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to persontarget.location]);
+	}
+	action logEvent(string event) {
+		do log(1, [event]);
+	}
+}
+
+
 species bikeLogger_roadsTraveled parent: Logger mirrors: bike {
 	//`target` is the bike we mirror
 	string filename <- 'bike_roadstraveled';
+	list<string> columns <- [
+		"Distance Traveled",
+		"Num Intersections"
+	];
 	bool logPredicate { return bikeLogs; }
 	bike biketarget;
+	
+	
 	float totalDistance <- 0.0;
 	int totalIntersections <- 0;
 	
 	
 	init {
-		write "im a travel logger, tied to " + string(target);
 		biketarget <- bike(target);
 		biketarget.travelLogger <- self;
 		loggingAgent <- biketarget;
@@ -73,7 +142,7 @@ species bikeLogger_roadsTraveled parent: Logger mirrors: bike {
 		totalDistance <- totalDistance + distanceTraveled;
 		totalIntersections <- totalIntersections + numIntersections;
 		
-		do log(2, ["Distance Traveled:", distanceTraveled, "Num Intersections", numIntersections]);
+		do log(2, [distanceTraveled, numIntersections]);
 	}
 	
 	float avgRoadLength {
@@ -87,6 +156,18 @@ species bikeLogger_roadsTraveled parent: Logger mirrors: bike {
 species bikeLogger_event parent: Logger mirrors: bike {
 	//`target` is the bike we mirror
 	string filename <- 'bike_event';
+	list<string> columns <- [
+		"State Change",
+		"Message",
+		"Start Time (s)",
+		"End Time (s)",
+		"Duration (s)",
+		"Distance Traveled (straight line)",
+		"Start Battery",
+		"End Battery"
+	];
+	
+	
 	bool logPredicate { return bikeLogs; }
 	bike biketarget;
 	init {
