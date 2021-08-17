@@ -15,7 +15,7 @@ global {
 	//Simulation time step
 	float step <- 1 #mn;
 	
-	//Save logs
+	//----------------------Logging Parameters------------------------
 	int loggingLevel <- 10		min: 0 max: 10 parameter: "Logging Level" category: "Logs";
 	int printLevel <- 1			min: 0 max: 10 parameter: "Printing Level" category: "Logs";
 	bool bikeLogs <- true		parameter: "Bike Logs" category: "Logs";
@@ -26,7 +26,7 @@ global {
 	string stationFile <- "stations"	parameter: "Charging Station Logfile" category: "Logs";
 	
 	
-	//----------------------Pheremone Parameters------------------------
+	//----------------------Pheromone Parameters------------------------
     float singlePheromoneMark <- 0.5;
 	float evaporation <- 0.005; //unsure of this value - changed evaporation to be proportional to time instead of cycles
 	float exploratoryRate <- 0.8;
@@ -48,7 +48,7 @@ global {
 	float followDistance <- 5#m;
 	float V2VChargingRate <- 20 #m/#s;
 	
-	float chargingPheromoneThreshold <- 0*singlePheromoneMark;
+	float chargingPheromoneThreshold <- 0*singlePheromoneMark; //Disables charge-seeking when low pheromone
 	
 	
 	float minSafeBattery <- 25000 #m;
