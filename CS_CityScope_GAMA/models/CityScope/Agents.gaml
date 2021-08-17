@@ -241,10 +241,11 @@ species bike control: fsm skills: [moving] {
 	bool availableForRide {
 		return (state = "idle" or state = "following") and !setLowBattery();
 	}
+	list<string> platoonStates <- ["idle","picking_up"];
 	bool availableForPlatoon {
 		// Bike must either be idle, or awaiting another follower, have no followers
 		//TODO: may need more filters. Must exclude dropping_off, for example
-		return (state = "idle" or state = "awaiting_follower" or follower = nil) and leader = nil and !setLowBattery();
+		return (state in platoonStates) and follower = nil and !setLowBattery();
 	}
 	
 	//transition from idle to picking_up. Called by the global scheduler

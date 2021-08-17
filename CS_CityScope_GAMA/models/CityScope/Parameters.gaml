@@ -13,7 +13,7 @@ import "./clustering.gaml"
 global {
 	//----------------------Simulation Parameters------------------------
 	//Simulation time step
-	float step <- 1 #mn;
+	float step <- 45 #sec;
 	
 	//----------------------Logging Parameters------------------------
 	int loggingLevel <- 10		min: 0 max: 10 parameter: "Logging Level" category: "Logs";
