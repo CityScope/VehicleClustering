@@ -65,7 +65,8 @@ species peopleLogger_trip parent: Logger mirrors: people {
 		"Home [long]",
 		"Work [lat]",
 		"Work [long]",
-		"Distance (straight Line)"
+		"Distance (straight Line)",
+		"Duration (estimated)"
 	];
 	
 	bool logPredicate { return peopleLogs; }
@@ -78,7 +79,7 @@ species peopleLogger_trip parent: Logger mirrors: people {
 	}
 	
 	action logTrip(bool served, string type, float waitTime, float departure, float tripduration, point home, point work, float distance) {
-		do log(1, [served, type, waitTime, departure, tripduration, home.x, home.y, work.x, work.y, distance]);
+		do log(1, [served, type, waitTime, departure, tripduration, home.x, home.y, work.x, work.y, distance, distance/BikeSpeed]);
 	}
 	
 }
@@ -119,6 +120,8 @@ species peopleLogger parent: Logger mirrors: people {
 //    
 //    point location_start_ride;
 	
+	float tripdistance <- 0.0;
+	
 	float departureTime;
     float timeBikeRequested;
     float waitTime;
@@ -134,7 +137,7 @@ species peopleLogger parent: Logger mirrors: people {
 		cycleStartActivity <- cycle;
 		locationStartActivity <- persontarget.location;
 		currentState <- persontarget.state;
-		do log(1, ['Entered State: ' + currentState] + [logmessage]);
+		do log(1, ['START: ' + currentState] + [logmessage]);
 		
 		
 		switch currentState {
@@ -151,6 +154,10 @@ species peopleLogger parent: Logger mirrors: people {
 			}
 			match "idle" {
 				//trip has ended
+				if tripdistance = 0 {
+					tripdistance <- topology(roadNetwork) distance_between [persontarget.living_place, persontarget.working_place];
+				}
+				
 				if cycle != 0 {
 					ask persontarget.tripLogger {
 						do logTrip(
@@ -161,7 +168,7 @@ species peopleLogger parent: Logger mirrors: people {
 							time - myself.departureTime,
 							persontarget.living_place.location,
 							persontarget.working_place.location,
-							persontarget.living_place distance_to persontarget.working_place
+							myself.tripdistance
 						);
 					}
 				}
@@ -173,13 +180,36 @@ species peopleLogger parent: Logger mirrors: people {
 		do logExitState("");
 	}
 	action logExitState(string logmessage) {
-		do log(1, ['Exiting State: ' + currentState, logmessage, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to persontarget.location]);
+		do log(1, ['END: ' + currentState, logmessage, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to persontarget.location]);
 	}
 	action logEvent(string event) {
 		do log(1, [event]);
 	}
 }
 
+species bikeLogger_chargeEvents parent: Logger mirrors: bike {
+	string filename <- 'bike_chargeevents';
+	list<string> columns <- [
+		"Station",
+		"Start Time",
+		"End Time",
+		"Duration",
+		"Start Battery",
+		"End Battery"
+	];
+	bool logPredicate { return bikeLogs; }
+	bike biketarget;
+	
+	init {
+		biketarget <- bike(target);
+		biketarget.chargeLogger <- self;
+		loggingAgent <- biketarget;
+	}
+	
+	action logCharge(chargingStation station, float startTime, float endTime, float chargeDuration, float startBattery, float endBattery) {
+		do log(1, [station, startTime, endTime, chargeDuration, startBattery, endBattery]);
+	}
+}
 
 species bikeLogger_roadsTraveled parent: Logger mirrors: bike {
 	//`target` is the bike we mirror
@@ -222,12 +252,13 @@ species bikeLogger_event parent: Logger mirrors: bike {
 	//`target` is the bike we mirror
 	string filename <- 'bike_event';
 	list<string> columns <- [
-		"State Change",
+		"Event",
 		"Message",
 		"Start Time (s)",
 		"End Time (s)",
 		"Duration (s)",
 		"Distance Traveled (straight line)",
+		"Duration (estimated)",
 		"Start Battery",
 		"End Battery"
 	];
@@ -275,6 +306,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 	float batteryStartGoingForACharge;*/
 	int cycleStartActivity;
 	point locationStartActivity;
+	float distanceStartActivity;
 	float batteryStartActivity;
 	string currentState;
 	
@@ -293,14 +325,41 @@ species bikeLogger_event parent: Logger mirrors: bike {
 		cycleStartActivity <- cycle;
 		batteryStartActivity <- biketarget.batteryLife/maxBatteryLife * 100;
 		locationStartActivity <- biketarget.location;
+		
+		distanceStartActivity <- biketarget.travelLogger.totalDistance;
+		
 		currentState <- biketarget.state;
-		do log(1, ['Entered State: ' + biketarget.state] + [logmessage]);
+		do log(1, ['START: ' + biketarget.state] + [logmessage]);
 	}
-	action logExitState {
-		do logExitState("");
-	}
+	action logExitState { do logExitState(""); }
 	action logExitState(string logmessage) {
-		do log(1, ['Exiting State: ' + currentState, logmessage, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to biketarget.location, batteryStartActivity, biketarget.batteryLife/maxBatteryLife * 100]);
+		float d <- biketarget.travelLogger.totalDistance - distanceStartActivity;
+		do log(1, [
+			'END: ' + currentState,
+			logmessage,
+			cycleStartActivity*step,
+			cycle*step,
+			cycle*step - cycleStartActivity*step,
+			d,
+			d/BikeSpeed,
+			batteryStartActivity,
+			biketarget.batteryLife/maxBatteryLife * 100
+		]);
+		
+		
+		if currentState = "getting_charge" {
+			//just finished a charge
+			ask biketarget.chargeLogger {
+				do logCharge(
+					chargingStation closest_to biketarget,
+					myself.cycleStartActivity*step,
+					cycle*step,
+					cycle*step - myself.cycleStartActivity*step,
+					myself.batteryStartActivity,
+					biketarget.batteryLife/maxBatteryLife * 100
+				);
+			}
+		}
 	}
 	
 	

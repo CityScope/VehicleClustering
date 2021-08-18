@@ -208,13 +208,8 @@ species bike control: fsm skills: [moving] {
 	
 	
 	bikeLogger_roadsTraveled travelLogger;
+	bikeLogger_chargeEvents chargeLogger;
 	bikeLogger_event eventLogger;
-	
-	
-	
-	
-	
-	
 	
 	
 	    
@@ -300,12 +295,7 @@ species bike control: fsm skills: [moving] {
 	
 	
 	//----------------BATTERY-----------------
-	float saturateBattery(float value) {
-		if value < 0.0 { return 0.0;}
-		if value > maxBatteryLife { return maxBatteryLife;}
-		
-		return value;
-	}
+	
 	//Determines when to move into the low_battery state
 	bool setLowBattery {
 		//TODO: perhaps all these minimum values should be merged into one, to be respected here and in cluster-charging
@@ -318,9 +308,7 @@ species bike control: fsm skills: [moving] {
 		return distance;
 	}
 	action reduceBattery(float distance) {
-		//save ["Question2", energyCost(distance)] to: "vkt_energyConsumption.csv" type: "csv" rewrite: false;
 		batteryLife <- batteryLife - energyCost(distance);
-		batteryLife <- saturateBattery( batteryLife - energyCost(distance) );
     
 		if follower != nil and follower.state = "following" {
 			ask follower {
@@ -335,7 +323,7 @@ species bike control: fsm skills: [moving] {
 	
 	//this should be affected by how many bikes there are in a cluster
 		//[Q] Nah. Instead, see the energy_cost function
-	float batteryLife; //Number of meters we can travel on current battery
+	float batteryLife min: 0.0 max: maxBatteryLife; //Number of meters we can travel on current battery
 	float distancePerCycle;
 	
 	int lastDistanceToChargingStation;
