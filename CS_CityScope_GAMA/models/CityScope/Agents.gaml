@@ -75,7 +75,7 @@ species people control: fsm skills: [moving] {
     int end_work;
     
     peopleLogger logger;
-    
+    peopleLogger_trip tripLogger;
     
     
     
@@ -98,20 +98,7 @@ species people control: fsm skills: [moving] {
 	// these are how other agents interact with this one. Not used by self
     action ride(bike b) {
     	bikeToRide <- b;
-    }
-    
-    
-    //----------------PRIVATE FUNCTIONS-----------------
-	// no other species should touch these
-//	action log(int level, list<string> data) {
-//		if peopleLogs {
-//			ask host {
-//				do log(peopleFile, level, [string(self)] + data);
-//			}
-//		}
-//	}
-	
-	
+    }	
 	
 	
     //Should we leave for work/home? Only if it is time, and we are not already there

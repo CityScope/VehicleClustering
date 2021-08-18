@@ -53,7 +53,35 @@ species Logger {
 	
 }
 
-
+species peopleLogger_trip parent: Logger mirrors: people {
+	string filename <- "people_trips";
+	list<string> columns <- [
+		"Trip Served",
+		"Trip Type",
+		"Wait Time",
+		"Departure Time",
+		"Duration",
+		"Home [lat]",
+		"Home [long]",
+		"Work [lat]",
+		"Work [long]",
+		"Distance (straight Line)"
+	];
+	
+	bool logPredicate { return peopleLogs; }
+	people persontarget;
+	
+	init {
+		persontarget <- people(target);
+		persontarget.tripLogger <- self;
+		loggingAgent <- persontarget;
+	}
+	
+	action logTrip(bool served, string type, float waitTime, float departure, float tripduration, point home, point work, float distance) {
+		do log(1, [served, type, waitTime, departure, tripduration, home.x, home.y, work.x, work.y, distance]);
+	}
+	
+}
 species peopleLogger parent: Logger mirrors: people {
 	string filename <- "people_event";
 	list<string> columns <- [
@@ -76,39 +104,76 @@ species peopleLogger parent: Logger mirrors: people {
 	
 	
 	// Variables for people's CSVs
-    float morning_wait_time; //Morning wait time [s]
-    float evening_wait_time; //Evening wait time [s]
-    float morning_ride_duration; //Morning ride duration [s]
-    float evening_ride_duration; //Evening ride duration [s]
-    float morning_ride_distance; //Morning ride distance [m]
-    float evening_ride_distance; //Evening ride distance [m]
-    float morning_total_trip_duration; //Morning total trip duration [s]
-    float evening_total_trip_duration; //Evening total trip duration [s]
-    float home_departure_time; //Home departure time [s]
-    float work_departure_time; //Work departure time [s]
-    bool morning_trip_served;
-    bool evening_trip_served;
-    float time_start_ride;
-    point location_start_ride;
+//    float morning_wait_time; //Morning wait time [s]
+//    float evening_wait_time; //Evening wait time [s]
+//    float morning_ride_duration; //Morning ride duration [s]
+//    float evening_ride_duration; //Evening ride duration [s]
+//    float morning_ride_distance; //Morning ride distance [m]
+//    float evening_ride_distance; //Evening ride distance [m]
+//    float morning_total_trip_duration; //Morning total trip duration [s]
+//    float evening_total_trip_duration; //Evening total trip duration [s]
+//    float home_departure_time; //Home departure time [s]
+//    float work_departure_time; //Work departure time [s]
+//    bool morning_trip_served;
+//    bool evening_trip_served;
+//    
+//    point location_start_ride;
+	
+	float departureTime;
     float timeBikeRequested;
+    float waitTime;
     
     
     int cycleStartActivity;
     point locationStartActivity;
     string currentState;
+    bool served;
 	
-	action logEnterState { do logEnterState(nil); }
+	action logEnterState { do logEnterState(""); }
 	action logEnterState(string logmessage) {
 		cycleStartActivity <- cycle;
 		locationStartActivity <- persontarget.location;
 		currentState <- persontarget.state;
-		do log(1, ['Entered State: ' + currentState] + (logmessage != nil ? ['Message: ' + logmessage] : []));
+		do log(1, ['Entered State: ' + currentState] + [logmessage]);
+		
+		
+		switch currentState {
+			match "requesting_bike" {
+				//trip starts
+				timeBikeRequested <- time;
+				served <- false;
+			}
+			match "riding" {
+				//trip is served
+				waitTime <- time - timeBikeRequested;
+				departureTime <- time;
+				served <- true;
+			}
+			match "idle" {
+				//trip has ended
+				if cycle != 0 {
+					ask persontarget.tripLogger {
+						do logTrip(
+							myself.served,
+							current_date.hour > 12 ? "Evening":"Morning",
+							myself.waitTime,
+							myself.departureTime,
+							time - myself.departureTime,
+							persontarget.living_place.location,
+							persontarget.working_place.location,
+							persontarget.living_place distance_to persontarget.working_place
+						);
+					}
+				}
+			}
+		}
+		
 	}
 	action logExitState {
 		do logExitState("");
 	}
 	action logExitState(string logmessage) {
-		do log(1, ['Exiting State: ' + currentState, 'Message: ' + logmessage, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to persontarget.location]);
+		do log(1, ['Exiting State: ' + currentState, logmessage, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to persontarget.location]);
 	}
 	action logEvent(string event) {
 		do log(1, [event]);
@@ -213,29 +278,29 @@ species bikeLogger_event parent: Logger mirrors: bike {
 	float batteryStartActivity;
 	string currentState;
 	
-	action logActivity(bike main, string activity, string otherInvolved){
-		if bikeLogs {
-			if biketarget.state = "wandering" {
-				save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, (cycle-cycleStartActivity)*biketarget.distancePerCycle, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;			
-			} else {
-				save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to main.location, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;		
-			}
-		}
-	}
+//	action logActivity(bike main, string activity, string otherInvolved){
+//		if bikeLogs {
+//			if biketarget.state = "wandering" {
+//				save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, (cycle-cycleStartActivity)*biketarget.distancePerCycle, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;			
+//			} else {
+//				save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to main.location, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;		
+//			}
+//		}
+//	}
 	
-	action logEnterState { do logEnterState(nil); }
+	action logEnterState { do logEnterState(""); }
 	action logEnterState(string logmessage) {
 		cycleStartActivity <- cycle;
 		batteryStartActivity <- biketarget.batteryLife/maxBatteryLife * 100;
 		locationStartActivity <- biketarget.location;
 		currentState <- biketarget.state;
-		do log(1, ['Entered State: ' + biketarget.state] + (logmessage != nil ? ['Message: ' + logmessage] : []));
+		do log(1, ['Entered State: ' + biketarget.state] + [logmessage]);
 	}
 	action logExitState {
 		do logExitState("");
 	}
 	action logExitState(string logmessage) {
-		do log(1, ['Exiting State: ' + currentState, 'Message: ' + logmessage, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to biketarget.location, batteryStartActivity, biketarget.batteryLife/maxBatteryLife * 100]);
+		do log(1, ['Exiting State: ' + currentState, logmessage, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to biketarget.location, batteryStartActivity, biketarget.batteryLife/maxBatteryLife * 100]);
 	}
 	
 	
