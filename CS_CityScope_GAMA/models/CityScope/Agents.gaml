@@ -254,7 +254,7 @@ species bike control: fsm skills: [moving] {
 	list<bike> followers;
 	
 	bool any_awaiting <- false;
-	bool any_not_following <- true;
+	bool every_follower_following <- false;
 	
 	chargingStation stationCharging; //Station where being charged [id]
 	float chargingStartTime; //Charge start time [s]
@@ -306,12 +306,14 @@ species bike control: fsm skills: [moving] {
 		rider <- person;
 	}
 	action waitFor(bike other) {
+		write string(other) + "was passed into waitFor for leader " + string(self);
 		//follower <- other;
-		if followers index_of other = -1{
-			write followers index_of other = -1;
+		if self.followers index_of other = -1{
+			write self.followers index_of other = -1;
 			//write "leader " + string(self) + " doesn't have the follower " + string(other);
-			followers <- followers + other;
+			self.followers <- self.followers + other;
 		}
+		write string(self) + " has followers " + self.followers;
 	}
 	
 	
@@ -418,21 +420,27 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	reflex checkAwaiting {
-		if length(followers) != 0 {
+		if length(followers) != 0 and self.state = "awaiting_follower"{
+			bool any_awaiting_here <- false;
 			loop i from: 0 to: length(followers) - 1{
 				bike follower <- followers at i;
 				//write "follower " + string(follower) + " has leader " + string(self) + " and is currently " + follower.state;
-				any_awaiting <- any_awaiting or follower.state = "seeking_leader";
+				any_awaiting_here <- any_awaiting_here or follower.state = "seeking_leader";
 			}
+			any_awaiting <- any_awaiting_here;
 		}
 	}
 	
 	reflex checkFollowers {
 		if length(followers) != 0 {
+			bool all_following <- true;
 			loop i from: 0 to: length(followers) - 1{
 				bike follower <- followers at i;
-				any_not_following <- any_not_following and follower.state = "following";
+				write "follower " + string(follower) + " is " + follower.state;
+				all_following <- all_following and follower.state = "following";
 			}
+			write "every follower is following: " + all_following;
+			every_follower_following <- all_following;
 		}
 	}
 
@@ -657,7 +665,9 @@ species bike control: fsm skills: [moving] {
 		
 		transition to: awaiting_follower when: length(followers) != 0 and any_awaiting {}
 		transition to: seeking_leader when: length(followers) = 0 and evaluateclusters() {
+			write string(self) + " is now following " + leader;
 			ask leader {
+				write string(self) + " is now a leader";
 				do waitFor(myself);
 			}
 		}
@@ -717,8 +727,8 @@ species bike control: fsm skills: [moving] {
 			locationStartActivity <- self.location;
 			batteryStartActivity <- self.batteryLife/maxBatteryLife * 100;
 			write "cycle: " + cycle + ", " + string(self) + " is awaiting follower " + string(followers);
-		}
-		transition to: idle when: any_not_following {}
+		}		
+		transition to: idle when: every_follower_following {}
 	}
 	state seeking_leader {
 		//catch up to the leader
