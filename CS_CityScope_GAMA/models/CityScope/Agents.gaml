@@ -306,14 +306,16 @@ species bike control: fsm skills: [moving] {
 		rider <- person;
 	}
 	action waitFor(bike other) {
-		write string(other) + "was passed into waitFor for leader " + string(self);
-		//follower <- other;
+		// other is the follower bike
 		if self.followers index_of other = -1{
-			write self.followers index_of other = -1;
-			//write "leader " + string(self) + " doesn't have the follower " + string(other);
 			self.followers <- self.followers + other;
 		}
-		write string(self) + " has followers " + self.followers;
+	}
+	action notFollowing(bike other) {
+		// other is the follower bike
+		if self.followers index_of other != -1{
+			self.followers <- self.followers - other;
+		}
 	}
 	
 	
@@ -436,11 +438,12 @@ species bike control: fsm skills: [moving] {
 			bool all_following <- true;
 			loop i from: 0 to: length(followers) - 1{
 				bike follower <- followers at i;
-				write "follower " + string(follower) + " is " + follower.state;
 				all_following <- all_following and follower.state = "following";
 			}
-			write "every follower is following: " + all_following;
-			every_follower_following <- all_following;
+			if all_following != every_follower_following{
+				write "every follower is following: " + all_following;
+				every_follower_following <- all_following;		
+			}
 		}
 	}
 
@@ -667,6 +670,8 @@ species bike control: fsm skills: [moving] {
 		transition to: seeking_leader when: length(followers) = 0 and evaluateclusters() {
 			write string(self) + " is now following " + leader;
 			ask leader {
+				// self is leading bike
+				// myself is following bike
 				write string(self) + " is now a leader";
 				do waitFor(myself);
 			}
@@ -764,10 +769,12 @@ species bike control: fsm skills: [moving] {
 		transition to: idle when: declusterCost(leader) < declusterThreshold {}
 		transition to: picking_up when: rider != nil {}
 		exit {
-			//write "cycle: " + cycle + ", " + string(self) + " has stopped following following " + string(leader);
 			do logActivity(self, "following", string(leader));
 			ask leader {
-				followers <- followers - self;
+				// self is leading bike
+				// myself is following bike
+				write "cycle: " + cycle + ", " + string(myself) + " has stopped following " + string(self);
+				do notFollowing(myself);
 			}
 			leader <- nil;
 		}
