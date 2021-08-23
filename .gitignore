@@ -1,6 +1,7 @@
 */.metadata/
 
 */.gama_application_workspace
+*/.built_in_models_*
 */.gama.epf
 
 *.csv
