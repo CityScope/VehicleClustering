@@ -308,6 +308,7 @@ species bike control: fsm skills: [moving] {
 	action waitFor(bike other) {
 		// other is the follower bike
 		if self.followers index_of other = -1{
+			self.any_awaiting <- true; // makes sure that the leader will wait for any followers
 			self.followers <- self.followers + other;
 		}
 	}
@@ -422,14 +423,20 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	reflex checkAwaiting {
-		if length(followers) != 0 and self.state = "awaiting_follower"{
+		if length(followers) != 0 and (self.state = "idle" or self.state = "awaiting_follower"){
 			bool any_awaiting_here <- false;
 			loop i from: 0 to: length(followers) - 1{
 				bike follower <- followers at i;
-				write "follower " + string(follower) + " has leader " + string(self) + " and is currently " + follower.state;
+				//write "follower " + string(follower) + " has leader " + string(self) + " and is currently " + follower.state;
 				any_awaiting_here <- any_awaiting_here or follower.state = "seeking_leader";
 			}
-			any_awaiting <- any_awaiting_here;
+			if any_awaiting_here != any_awaiting{
+				if any_awaiting_here {
+					write string(self) + " is awaiting followers";
+					write self.followers;
+				}
+				any_awaiting <- any_awaiting_here;				
+			}
 		}
 	}
 	
@@ -441,7 +448,7 @@ species bike control: fsm skills: [moving] {
 				all_following <- all_following and follower.state = "following";
 			}
 			if all_following != every_follower_following{
-				write "every follower is following: " + all_following;
+				write "all of " + string(self) +"'s followers are following: " + all_following;
 				every_follower_following <- all_following;
 			}
 		}
@@ -666,11 +673,9 @@ species bike control: fsm skills: [moving] {
 			target <- nil;
 		}
 		
-		transition to: awaiting_follower when: length(followers) != 0 and any_awaiting {
-			//write 
-		}
+		transition to: awaiting_follower when: length(followers) != 0 and any_awaiting {}
 		transition to: seeking_leader when: length(followers) = 0 and evaluateclusters() {
-			write string(self) + " is now following " + leader;
+			write string(self) + " is now going to follow " + leader;
 			ask leader {
 				// self is leading bike
 				// myself is following bike
@@ -734,7 +739,7 @@ species bike control: fsm skills: [moving] {
 			locationStartActivity <- self.location;
 			batteryStartActivity <- self.batteryLife/maxBatteryLife * 100;
 			write "cycle: " + cycle + ", " + string(self) + " is awaiting follower " + string(followers);
-		}		
+		}
 		transition to: idle when: every_follower_following {}
 	}
 	state seeking_leader {
