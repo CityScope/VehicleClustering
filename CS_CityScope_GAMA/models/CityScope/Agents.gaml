@@ -448,7 +448,7 @@ species bike control: fsm skills: [moving] {
 				all_following <- all_following and follower.state = "following";
 			}
 			if all_following != every_follower_following{
-				write "all of " + string(self) +"'s followers are following: " + all_following;
+				//write "all of " + string(self) +"'s followers are following: " + all_following;
 				every_follower_following <- all_following;
 			}
 		}
@@ -669,7 +669,12 @@ species bike control: fsm skills: [moving] {
 			target <- nil;
 			cycleStartActivity <- cycle;
 			batteryStartActivity <- self.batteryLife/maxBatteryLife * 100;
-		    write "cycle: " + cycle + ", " + string(self) + " is wandering";
+		    if length(followers) = 0{
+		    	write "cycle: " + cycle + ", " + string(self) + " is wandering";	
+		    }
+		    else {
+		    	write "cycle: " + cycle + ", " + string(self) + " is wandering with followers " + followers;
+		    }
 			target <- nil;
 		}
 		
@@ -771,7 +776,6 @@ species bike control: fsm skills: [moving] {
 			locationStartActivity <- self.location;
 			batteryStartActivity <- self.batteryLife/maxBatteryLife * 100;
 			write "cycle: " + cycle + ", " + string(self) + " is following " + leader;
-			write "cycle: " + cycle + ", " + string(leader) + " has followers " + leader.followers;
 		}
 		transition to: idle when: declusterCost(leader) < declusterThreshold {}
 		transition to: picking_up when: rider != nil {}
