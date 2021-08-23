@@ -253,8 +253,8 @@ species bike control: fsm skills: [moving] {
 	
 	list<bike> followers;
 	
-	bool any_awaiting <- false;
-	bool every_follower_following <- false;
+	bool any_awaiting <- true; //checks if a bike has any followers that are awaiting_leader
+	bool every_follower_following <- false; //checks if all of a bike's followers are actually following
 	
 	chargingStation stationCharging; //Station where being charged [id]
 	float chargingStartTime; //Charge start time [s]
@@ -426,7 +426,7 @@ species bike control: fsm skills: [moving] {
 			bool any_awaiting_here <- false;
 			loop i from: 0 to: length(followers) - 1{
 				bike follower <- followers at i;
-				//write "follower " + string(follower) + " has leader " + string(self) + " and is currently " + follower.state;
+				write "follower " + string(follower) + " has leader " + string(self) + " and is currently " + follower.state;
 				any_awaiting_here <- any_awaiting_here or follower.state = "seeking_leader";
 			}
 			any_awaiting <- any_awaiting_here;
@@ -442,7 +442,7 @@ species bike control: fsm skills: [moving] {
 			}
 			if all_following != every_follower_following{
 				write "every follower is following: " + all_following;
-				every_follower_following <- all_following;		
+				every_follower_following <- all_following;
 			}
 		}
 	}
@@ -666,7 +666,9 @@ species bike control: fsm skills: [moving] {
 			target <- nil;
 		}
 		
-		transition to: awaiting_follower when: length(followers) != 0 and any_awaiting {}
+		transition to: awaiting_follower when: length(followers) != 0 and any_awaiting {
+			//write 
+		}
 		transition to: seeking_leader when: length(followers) = 0 and evaluateclusters() {
 			write string(self) + " is now following " + leader;
 			ask leader {
@@ -689,7 +691,7 @@ species bike control: fsm skills: [moving] {
 	state low_battery {
 		//seek either a charging station or another vehicle
 		enter{
-			write "cycle: " + cycle + ", " + string(self) + " has low battery";
+			//write "cycle: " + cycle + ", " + string(self) + " has low battery";
 			
 			//Technically, the bike would pause at each intersection to read the direction to the nearest charging station
 			//This wastes a lot of time in simulation, so we are cheating
