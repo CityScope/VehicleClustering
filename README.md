@@ -8,3 +8,7 @@ Agent-Based Model developped in the [CityScience](https://www.media.mit.edu/grou
   - right click on User Models->Import->GAMA Project..
   - Select CS_CityScope_GAMA in the CS_Simulation_GAMA folder that you have clone
 
+# Overall Structure:
+- The `parameters.gama` file specificies universal constants and simulation parameters
+- The `Agents.gama` file specifies simulation species and their behaviors.
+- The `clustering.gama` file specifies the initialization state, as well as the different experiments to be run and a few global functions
