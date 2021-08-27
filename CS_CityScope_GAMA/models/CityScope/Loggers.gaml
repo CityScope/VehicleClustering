@@ -79,7 +79,7 @@ species pheromoneLogger parent: Logger mirrors: tagRFID {
 	}
 	
 	reflex saveState {
-		do log(1, tagtarget.pheromoneMap.pairs);
+		do log(1, tagtarget.pheromoneMap.pairs, "");
 	}
 	
 }
@@ -281,7 +281,7 @@ species bikeLogger_fullState parent: Logger mirrors: bike {
 			biketarget.readPheromones,
 			biketarget.pheromoneToDiffuse,
 			biketarget.pheromoneMark
-		]);
+		], "");
 	}
 }
 
