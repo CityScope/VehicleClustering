@@ -43,10 +43,10 @@ species Logger {
 	
 	agent loggingAgent;
 	
-	action log(int level, list data) {
+	action log(int level, list data, string toReplace) {
 		if logPredicate() {
 			ask host {
-				do log(myself.filename, level, [string(myself.loggingAgent)] + data, myself.columns);
+				do log(myself.filename, level, [string(myself.loggingAgent.name)] + data, myself.columns);
 			}
 		}
 	}
@@ -65,7 +65,7 @@ species peopleLogger_trip parent: Logger mirrors: people {
 		"Home [long]",
 		"Work [lat]",
 		"Work [long]",
-		"Distance (straight Line)",
+		"Distance",
 		"Duration (estimated)"
 	];
 	
@@ -79,7 +79,7 @@ species peopleLogger_trip parent: Logger mirrors: people {
 	}
 	
 	action logTrip(bool served, string type, float waitTime, float departure, float tripduration, point home, point work, float distance) {
-		do log(1, [served, type, waitTime, departure, tripduration, home.x, home.y, work.x, work.y, distance, distance/BikeSpeed]);
+		do log(1, [served, type, waitTime, departure, tripduration, home.x, home.y, work.x, work.y, distance, distance/BikeSpeed],'people');
 	}
 	
 }
@@ -91,7 +91,7 @@ species peopleLogger parent: Logger mirrors: people {
 		"Start Time",
 		"End Time",
 		"Duration",
-		"Distance (straight Line)"
+		"Distance"
 	];
 	
 	bool logPredicate { return peopleLogs; }
@@ -137,7 +137,7 @@ species peopleLogger parent: Logger mirrors: people {
 		cycleStartActivity <- cycle;
 		locationStartActivity <- persontarget.location;
 		currentState <- persontarget.state;
-		do log(1, ['START: ' + currentState] + [logmessage]);
+		do log(1, ['START: ' + currentState] + [logmessage],'people');
 		
 		
 		switch currentState {
@@ -180,10 +180,10 @@ species peopleLogger parent: Logger mirrors: people {
 		do logExitState("");
 	}
 	action logExitState(string logmessage) {
-		do log(1, ['END: ' + currentState, logmessage, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to persontarget.location]);
+		do log(1, ['END: ' + currentState, logmessage, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to persontarget.location],'people');
 	}
 	action logEvent(string event) {
-		do log(1, [event]);
+		do log(1, [event],'people');
 	}
 }
 
@@ -207,7 +207,7 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike {
 	}
 	
 	action logCharge(chargingStation station, float startTime, float endTime, float chargeDuration, float startBattery, float endBattery) {
-		do log(1, [station, startTime, endTime, chargeDuration, startBattery, endBattery]);
+		do log(1, [station, startTime, endTime, chargeDuration, startBattery, endBattery],'bike');
 	}
 }
 
@@ -237,7 +237,7 @@ species bikeLogger_roadsTraveled parent: Logger mirrors: bike {
 		totalDistance <- totalDistance + distanceTraveled;
 		totalIntersections <- totalIntersections + numIntersections;
 		
-		do log(2, [distanceTraveled, numIntersections]);
+		do log(2, [distanceTraveled, numIntersections],'bike');
 	}
 	
 	float avgRoadLength {
@@ -257,7 +257,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 		"Start Time (s)",
 		"End Time (s)",
 		"Duration (s)",
-		"Distance Traveled (straight line)",
+		"Distance Traveled",
 		"Duration (estimated)",
 		"Start Battery",
 		"End Battery"
@@ -329,7 +329,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 		distanceStartActivity <- biketarget.travelLogger.totalDistance;
 		
 		currentState <- biketarget.state;
-		do log(1, ['START: ' + biketarget.state] + [logmessage]);
+		do log(1, ['START: ' + biketarget.state] + [logmessage],'bike');
 	}
 	action logExitState { do logExitState(""); }
 	action logExitState(string logmessage) {
@@ -344,7 +344,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 			d/BikeSpeed,
 			batteryStartActivity,
 			biketarget.batteryLife/maxBatteryLife * 100
-		]);
+		],'bike');
 		
 		
 		if currentState = "getting_charge" {
@@ -354,6 +354,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 					chargingStation closest_to biketarget,
 					myself.cycleStartActivity*step,
 					cycle*step,
+					//TODO: make charge time dependent on initial battery and charging rate
 					cycle*step - myself.cycleStartActivity*step,
 					myself.batteryStartActivity,
 					biketarget.batteryLife/maxBatteryLife * 100

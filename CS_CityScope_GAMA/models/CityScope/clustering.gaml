@@ -213,7 +213,7 @@ experiment clustering type: gui {
 	parameter var: numBikes init: 135;
 	parameter var: numPeople init: 350;
     output {
-		display city_display type:opengl background: #black draw_env: false{	
+		/*display city_display type:opengl background: #black draw_env: false{	
 			species tagRFID aspect: base ;
 			species building aspect: type ;
 			species road aspect: base ;
@@ -225,7 +225,7 @@ experiment clustering type: gui {
 				{world.shape.width * 0.8, world.shape.height * 0.975};
 				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
 			}
-		}
+		}*/
     }
 }
 
