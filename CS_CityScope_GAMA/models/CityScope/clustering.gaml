@@ -117,7 +117,8 @@ global {
 	        living_place <- one_of(residentialBuildings) ;
 	        working_place <- one_of(officeBuildings) ;
 	        location <- any_location_in(living_place);
-    		 
+	        
+	        speed <- peopleSpeed;
 	    }
 	 	// ----------------------------------The RFIDs tag on each road intersection------------------------
 		
@@ -133,41 +134,6 @@ global {
 		
 		write "FINISH INITIALIZATION";
     }
-	
-	
-	
-	
-		
-	list<bike> availableBikes(people person) {
-		return bike where (each.availableForRide() and (each distance_to person) <= rideDistance);
-	}
-
-	
-	bool requestBike(people person) { //returns true if bike is available
-		list<bike> candidates <- availableBikes(person);
-		if empty(availableBikes(person)) {
-			return false; //Here we would consider wait time and return false if too high. Currently un-implemented
-		}
-		map<bike, float> costs <- map( candidates collect(each::bikeCost(person, each)));
-		float minCost <- min(costs.values);
-		bike b <- costs.keys[ costs.values index_of minCost ];
-		
-		//Ask for pickup
-		ask b {
-			do pickUp(person);
-		}
-		ask person {
-			do ride(b);
-		}
-		
-		return true;
-	}
-	
-	float bikeCost(people person, bike b) {
-		//We like the bike less if its far, more if it has power
-		//BatteryLife normalized to make this system agnostic to maxBatteryLife
-		return (person distance_to b) - (b.batteryLife / maxBatteryLife)*200;
-	}
 }
 
 

@@ -11,6 +11,40 @@ model Agents
 import "./clustering.gaml"
 
 
+global {
+	list<bike> availableBikes(people person) {
+		//Here we would consider wait time and return false if too high. Currently un-implemented
+		return bike where (each.availableForRide() and (each distance_to person) <= rideDistance);
+	}
+
+	
+	bool requestBike(people person) { //returns true if bike is available
+		list<bike> candidates <- availableBikes(person);
+		if empty(candidates) {
+			return false;
+		}
+		map<bike, float> costs <- map( candidates collect(each::bikeCost(person, each)));
+		float minCost <- min(costs.values);
+		bike b <- costs.keys[ costs.values index_of minCost ];
+		
+		//Ask for pickup
+		ask b {
+			do pickUp(person);
+		}
+		ask person {
+			do ride(b);
+		}
+		
+		return true;
+	}
+	
+	float bikeCost(people person, bike b) {
+		//We like the bike less if its far, more if it has power
+		//BatteryLife normalized to make this system agnostic to maxBatteryLife
+		return (person distance_to b) - (b.batteryLife / maxBatteryLife)*bikeCostBatteryCoef;
+	}
+}
+
 species road {
 	aspect base {
 		draw shape color: rgb(125, 125, 125);
@@ -53,12 +87,9 @@ species tagRFID {
 	list<tagRFID> neighbors { return pheromoneMap.keys;	}
 	
 	
-	rgb color;
-	reflex set_color {
-		color <- #purple;
-	}
+	rgb color <- #purple;
 	aspect base {
-		draw circle(10) color:color border: #black;
+		draw circle(10) color:color;
 	}
 	
 	aspect realistic {
@@ -67,7 +98,6 @@ species tagRFID {
 }
 
 species people control: fsm skills: [moving] {
-	
 	rgb color <- #yellow ;
     building living_place; //Home [lat,lon]
     building working_place; //Work [lat, lon]
@@ -79,14 +109,12 @@ species people control: fsm skills: [moving] {
     
     
     
-        
     point final_destination; //Final destination for the trip
     point target; //Interim destination; the thing we are currently moving toward
     point closestIntersection;
     float waitTime;
     
     bike bikeToRide;
-    
     
     aspect base {
 		if state != "riding" {
@@ -106,7 +134,7 @@ species people control: fsm skills: [moving] {
     bool timeToSleep { return (current_date.hour = end_work) and !(self overlaps living_place); }
     
     state idle initial: true {
-    	//Watch netflix at home or something
+    	//Watch netflix at home (and/or work)
     	enter {
     		ask logger { do logEnterState; }
     		target <- nil;
@@ -132,12 +160,11 @@ species people control: fsm skills: [moving] {
 			target <- closestIntersection;
 		}
 		transition to: idle {
-			//teleport home
-			ask logger { do logEvent( "Teleported Home, wait too long" ); }
+			ask logger { do logEvent( "Teleported, wait too long" ); }
 			location <- final_destination;
 		}
 		exit {
-			ask logger { do logExitState; }
+			ask logger { do logExitState("Requesteed Bike " + myself.bikeToRide); }
 		}
 	}
 	state awaiting_bike {
@@ -219,9 +246,9 @@ species bike control: fsm skills: [moving] {
 	bike follower;
 	people rider;
 	
-	
+	list<string> rideStates <- ["idle", "following"];//, "awaiting_follower", "seeking_leader"];
 	bool availableForRide {
-		return (state = "idle" or state = "following") and !setLowBattery();
+		return (state in rideStates) and !setLowBattery() and rider = nil;
 	}
 	list<string> platoonStates <- ["idle","picking_up"];
 	bool availableForPlatoon {
@@ -247,15 +274,15 @@ species bike control: fsm skills: [moving] {
 	//----------------Clustering-----------------
 	//These are our cost functions, and will be the basis of how we decide to form clusters
 	float clusterCost(bike other) {
-		return 10000 - chargeToGive(other);
+		return clusterThreshold - chargeToGive(other);
 	}
-	float declusterCost(bike other) {
+	bool shouldDecluster(bike other) {
 		//Don't decluster until you need to or you've nothing left to give
-		if other.state = "dropping_off" { return -10; }
-		if setLowBattery() { return -10; }
-		if chargeToGive(other) <= 0 { return -10; }
+		if other.state = "dropping_off" { return true; }
+		if setLowBattery() { return true; }
+		if chargeToGive(other) <= 0 { return true; }
 		
-		return 10;
+		return false;
 	}
 	
 	//decide to follow another bike
@@ -267,7 +294,7 @@ species bike control: fsm skills: [moving] {
 		if empty(costs) { return false; }
 		
 		float minCost <- min(costs.values);
-		if minCost < clusterThreshold {
+		if minCost < 0 {
 			leader <- costs.keys[ costs.values index_of minCost ];
 			return true;
 		}
@@ -280,10 +307,10 @@ species bike control: fsm skills: [moving] {
 	float chargeToGive(bike other) {
 		//never go less than some minimum battery level
 		//never charge leader to have more power than you
-		float chargeDifference <- batteryLife - other.batteryLife;
+		float chargeDifferenceHalved <- (batteryLife - other.batteryLife)/2;
 		float chargeToSpare <- batteryLife - minSafeBattery;
-		float batteryToSpare <- maxBatteryLife - other.batteryLife;
-		return min(chargeDifference/2, chargeToSpare, batteryToSpare);
+		float chargeToGain <- maxBatteryLife - other.batteryLife;
+		return min(chargeDifferenceHalved, chargeToSpare, chargeToGain);
 	}
 	action chargeBike(bike other) {
 		float transfer <- min( step*V2VChargingRate, chargeToGive(other));
@@ -299,9 +326,9 @@ species bike control: fsm skills: [moving] {
 	//Determines when to move into the low_battery state
 	bool setLowBattery {
 		//TODO: perhaps all these minimum values should be merged into one, to be respected here and in cluster-charging
-		if batteryLife < 3*distancePerCycle { return true; } //leave 3 simulation-steps worth of movement
+		if batteryLife <= numberOfStepsReserved*distancePerCycle { return true; } //leave 3 simulation-steps worth of movement
 		if batteryLife < minSafeBattery { return true; } //we have a minSafeBattery value, might as well respect it
-		return batteryLife < 10*lastDistanceToChargingStation; //safety factor
+		return batteryLife < distanceSafetyFactor*lastDistanceToChargingStation; //safety factor
 	}
 	float energyCost(float distance) { //This function will let us alter the efficiency of our bikes, if we decide to look into that
 		if state = "dropping_off" { return 0; } //user will pedal
@@ -339,7 +366,7 @@ species bike control: fsm skills: [moving] {
 	tagRFID nextTag; //tag we ended on OR the next tag we will reach
 	
 	bool canMove {
-		return state != "awaiting_follower" and target != location and (target != nil or state="idle") and batteryLife > 0;
+		return state != "awaiting_follower" and ((target != nil and target != location) or state="idle") and batteryLife > 0;
 	}
 	
 	
@@ -347,7 +374,7 @@ species bike control: fsm skills: [moving] {
 		return goto(on:roadNetwork, target:target, return_path: true);
 	}
 	path wander {
-		//construct a plan, so we don't waste motion: Where will we turn from the next intersection? If we have time left in the cycle, where will we turn from there? And from the intersection after that?
+		//construct a plan, so we don't waste time: Where will we turn from the next intersection? If we have time left in the cycle, where will we turn from there? And from the intersection after that?
 		list<point> plan <- [location, nextTag.location];
 		
 		loop while: pathLength(path(plan)) < distancePerCycle {
@@ -358,7 +385,7 @@ species bike control: fsm skills: [moving] {
 			plan <- plan + newTag.location;
 		}
 		
-		//using follow can result in some drift when the road is curved (follow will use straight lines). I have not found a solution to this
+		//using follow can result in some drift when the road is curved (follow will use straight lines, and not respect topology). I have not found a solution to this
 		return follow(path:path(plan), return_path: true);
 	}
 	
@@ -378,7 +405,6 @@ species bike control: fsm skills: [moving] {
 			 */
 			
 			//oldest intersection is first in the list
-			
 			list<tagRFID> newIntersections <- travelledPath.vertices where (tagRFID(each).location = each);
 			int num <- length(newIntersections);
 			
@@ -462,14 +488,12 @@ species bike control: fsm skills: [moving] {
 		}
 	}
 	
-	
 	//----------------PHEROMONES-----------------
 	float pheromoneToDiffuse; //represents a store of pheremone (a bike can't expend more than this amount). Pheremone is restored by ___
 	float pheromoneMark; //initialized to 0, never updated. Unsure what this represents
 	
 	
 	action updatePheromones(tagRFID tag) {
-	
 		loop k over: tag.pheromoneMap.keys {
 			//evaporation
 			tag.pheromoneMap[k] <- tag.pheromoneMap[k] - (singlePheromoneMark * evaporation * step*(cycle - tag.lastUpdate));
@@ -508,8 +532,8 @@ species bike control: fsm skills: [moving] {
 	state idle initial: true {
 		//wander the map, follow pheromones. Same as the old searching reflex
 		enter {
-			target <- nil;
 			ask eventLogger { do logEnterState; }
+			target <- nil;
 		}
 		transition to: awaiting_follower when: follower != nil and follower.state = "seeking_leader" {}
 		transition to: seeking_leader when: follower = nil and evaluateclusters() {
@@ -559,7 +583,8 @@ species bike control: fsm skills: [moving] {
 		exit {
 			ask eventLogger { do logExitState("Charged at " + (chargingStation closest_to myself)); }
 			
-			//TODO: If possible, refine this so that bikes are not overcharged and we use that time.
+			//If possible, refine this so that bikes are not overcharged and we use that time.
+				//[Q]Unfortunately, we cannot use that time, simply by the nature of the simulation. One state per step
 			ask chargingStation closest_to(self) {
 				bikesToCharge <- bikesToCharge - myself;
 			}
@@ -599,7 +624,7 @@ species bike control: fsm skills: [moving] {
 		enter {
 			ask eventLogger { do logEnterState("Following " + myself.leader); }
 		}
-		transition to: idle when: declusterCost(leader) < declusterThreshold {}
+		transition to: idle when: shouldDecluster(leader) {}
 		transition to: picking_up when: rider != nil {}
 		exit {
 			ask eventLogger { do logExitState("Followed " + myself.leader); }
@@ -614,9 +639,12 @@ species bike control: fsm skills: [moving] {
 		location <- leader.location;
 		do chargeBike(leader);
 		//leader will update our charge level as we move along (see reduceBattery)
-		//TODO: While getting charged, if there is a request for picking up, charging vehicle must leave
+		
+		//While getting charged, if there is a request for picking up, charging vehicle must leave
+			//[Q]It can follow along until the person gets on the bike
 	}
 	
+		
 	//BIKE - PEOPLE
 	state picking_up {
 		//go to rider's location, pick them up

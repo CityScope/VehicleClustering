@@ -53,6 +53,38 @@ species Logger {
 	
 }
 
+
+species pheromoneLogger parent: Logger mirrors: tagRFID {
+	string filename <- "pheromones";
+	list<string> columns <- [
+//		"Trip Served",
+//		"Trip Type",
+//		"Wait Time",
+//		"Departure Time",
+//		"Duration",
+//		"Home [lat]",
+//		"Home [long]",
+//		"Work [lat]",
+//		"Work [long]",
+//		"Distance (straight Line)",
+//		"Duration (estimated)"
+	];
+	
+	bool logPredicate { return pheromoneLogs; }
+	tagRFID tagtarget;
+	
+	init {
+		tagtarget <- tagRFID(target);
+		loggingAgent <- tagtarget;
+	}
+	
+	reflex saveState {
+		do log(1, tagtarget.pheromoneMap.pairs);
+	}
+	
+}
+
+
 species peopleLogger_trip parent: Logger mirrors: people {
 	string filename <- "people_trips";
 	list<string> columns <- [
@@ -211,6 +243,48 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike {
 	}
 }
 
+
+species bikeLogger_fullState parent: Logger mirrors: bike {
+	string filename <- 'bike_fullState';
+	list<string> columns <- [
+		"State",
+		"Rider",
+		"Follower",
+		"Leader",
+		"Battery Life",
+		"Has Target",
+		"Last Tag",
+		"Next Tag",
+		"Read Pheromones",
+		"Pheromone To Diffuse",
+		"Pheromone Mark"
+	];
+	bool logPredicate { return bikeLogs; }
+	bike biketarget;
+	
+	
+	init {
+		biketarget <- bike(target);
+		loggingAgent <- biketarget;
+	}
+	
+	reflex logFullState {
+		do log(2, [
+			biketarget.state,
+			biketarget.rider,
+			biketarget.follower,
+			biketarget.leader,
+			biketarget.batteryLife,
+			biketarget.target != nil,
+			biketarget.lastTag,
+			biketarget.nextTag,
+			biketarget.readPheromones,
+			biketarget.pheromoneToDiffuse,
+			biketarget.pheromoneMark
+		]);
+	}
+}
+
 species bikeLogger_roadsTraveled parent: Logger mirrors: bike {
 	//`target` is the bike we mirror
 	string filename <- 'bike_roadstraveled';
@@ -245,7 +319,7 @@ species bikeLogger_roadsTraveled parent: Logger mirrors: bike {
 		int overallI <- bikeLogger_roadsTraveled sum_of (each.totalIntersections);
 		
 		return overallD / overallI;
-	}	
+	}
 }
 
 species bikeLogger_event parent: Logger mirrors: bike {
