@@ -27,22 +27,12 @@ global {
     // ---------------------------------------Agent Creation----------------------------------------------
     init {
     	// ---------------------------------------Buildings----------------------------------------------
-	    //Case 1 - Urban Swarms Map
-	    /*create building from: buildings_shapefile with: [type:string(read ("Usage"))] {
-		 	if(type!="O" and type!="R"){ type <- "Other"; }
-			if(type!="Office" and type!="Residence"){ type <- "Other"; }
+	    create building from: buildings_shapefile with: [type:string(read ("Usage"))] {
+			if(type!="O" and type!="R"){ type <- "Other"; }
 		}
 	        
 	    list<building> residentialBuildings <- building where (each.type="R");
-	    list<building> officeBuildings <- building where (each.type="O");*/
-
-		 //Case 2 - Cambridge Map
-		 create building from: buildings_shapefile with: [type:string(read ("Category"))] {
-			if(type!="Office" and type!="Residential"){ type <- "Other"; }
-		}
-	        
-	    list<building> residentialBuildings <- building where (each.type="Residential");
-    	list<building> officeBuildings <- building where (each.type="Office");
+	    list<building> officeBuildings <- building where (each.type="O");
 	    
 		// ---------------------------------------The Road Network----------------------------------------------
 		create road from: roads_shapefile;

@@ -89,12 +89,12 @@ global {
 	file roads_shapefile <- file(cityGISFolder + "/Roads.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
 	//Case 1 - Urban Swarms Map
-	//map<string, rgb> color_map <- ["R"::#white, "O"::#gray, "Other"::#black];	
+	map<string, rgb> color_map <- ["R"::#white, "O"::#gray, "Other"::#black];	
 	//Case 2 - Cambridge Map
-	map<string, rgb> color_map <- ["Residential"::#white, "Office"::#gray, "Other"::#black];
+	/*map<string, rgb> color_map <- ["Residential"::#white, "Office"::#gray, "Other"::#black];
 	//file dockingStations <- file(cityGISFolder + "/dockingStations.shp");
 	//file dockingStations <- file("./../../includes/City/clustering" + "/dockingStations.shp");
-	 
+	 */
 	//Image File
 	file imageRaster <- file('./../images/gama_black.png');
 			
