@@ -43,7 +43,7 @@ species Logger {
 	
 	agent loggingAgent;
 	
-	action log(int level, list data, string toReplace) {
+	action log(int level, list data) {
 		if logPredicate() {
 			ask host {
 				do log(myself.filename, level, [string(myself.loggingAgent.name)] + data, myself.columns);
@@ -79,7 +79,7 @@ species pheromoneLogger parent: Logger mirrors: tagRFID {
 	}
 	
 	reflex saveState {
-		do log(1, tagtarget.pheromoneMap.pairs, "");
+		do log(1, tagtarget.pheromoneMap.pairs);
 	}
 	
 }
@@ -111,7 +111,7 @@ species peopleLogger_trip parent: Logger mirrors: people {
 	}
 	
 	action logTrip(bool served, string type, float waitTime, float departure, float tripduration, point home, point work, float distance) {
-		do log(1, [served, type, waitTime, departure, tripduration, home.x, home.y, work.x, work.y, distance, distance/BikeSpeed],'people');
+		do log(1, [served, type, waitTime, departure, tripduration, home.x, home.y, work.x, work.y, distance, distance/BikeSpeed]);
 	}
 	
 }
@@ -169,7 +169,7 @@ species peopleLogger parent: Logger mirrors: people {
 		cycleStartActivity <- cycle;
 		locationStartActivity <- persontarget.location;
 		currentState <- persontarget.state;
-		do log(1, ['START: ' + currentState] + [logmessage],'people');
+		do log(1, ['START: ' + currentState] + [logmessage]);
 		
 		
 		switch currentState {
@@ -212,10 +212,10 @@ species peopleLogger parent: Logger mirrors: people {
 		do logExitState("");
 	}
 	action logExitState(string logmessage) {
-		do log(1, ['END: ' + currentState, logmessage, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to persontarget.location],'people');
+		do log(1, ['END: ' + currentState, logmessage, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to persontarget.location]);
 	}
 	action logEvent(string event) {
-		do log(1, [event],'people');
+		do log(1, [event]);
 	}
 }
 
@@ -239,7 +239,7 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike {
 	}
 	
 	action logCharge(chargingStation station, float startTime, float endTime, float chargeDuration, float startBattery, float endBattery) {
-		do log(1, [station, startTime, endTime, chargeDuration, startBattery, endBattery],'bike');
+		do log(1, [station, startTime, endTime, chargeDuration, startBattery, endBattery]);
 	}
 }
 
@@ -281,7 +281,7 @@ species bikeLogger_fullState parent: Logger mirrors: bike {
 			biketarget.readPheromones,
 			biketarget.pheromoneToDiffuse,
 			biketarget.pheromoneMark
-		], "");
+		]);
 	}
 }
 
@@ -311,7 +311,7 @@ species bikeLogger_roadsTraveled parent: Logger mirrors: bike {
 		totalDistance <- totalDistance + distanceTraveled;
 		totalIntersections <- totalIntersections + numIntersections;
 		
-		do log(2, [distanceTraveled, numIntersections],'bike');
+		do log(2, [distanceTraveled, numIntersections]);
 	}
 	
 	float avgRoadLength {
@@ -403,7 +403,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 		distanceStartActivity <- biketarget.travelLogger.totalDistance;
 		
 		currentState <- biketarget.state;
-		do log(1, ['START: ' + biketarget.state] + [logmessage],'bike');
+		do log(1, ['START: ' + biketarget.state] + [logmessage]);
 	}
 	action logExitState { do logExitState(""); }
 	action logExitState(string logmessage) {
@@ -418,7 +418,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 			d/BikeSpeed,
 			batteryStartActivity,
 			biketarget.batteryLife/maxBatteryLife * 100
-		],'bike');
+		]);
 		
 		
 		if currentState = "getting_charge" {

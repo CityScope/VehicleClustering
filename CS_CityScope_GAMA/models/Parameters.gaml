@@ -75,23 +75,28 @@ global {
 //    float maxSpeedPeople <- 5.0 #km/#h	min: 0.5#km/#h max: 10#km/#h parameter: "People Max Speed (m/s):" category: "People";
     
     float bikeCostBatteryCoef <- 200.0; //(see global.bikeCost)relative importance of batterylife when selecting bikes to ride
-    
+    //----------------------Map Parameters------------------------
 	
 	
-	//GIS FILES To Upload
 	//Case 1 - Urban Swarms Map
- 	string cityScopeCity<-"UrbanSwarm";
- 	//Case 2 - Cambridge Map
- 	//string cityScopeCity<-"Cambridge";
+	string cityScopeCity <- "UrbanSwarm";
+	string residence <- "R";
+	string office <- "O";
+	string usage <- "Usage";
+	//Case 2 - Cambridge Map
+	/*string cityScopeCity <- "Cambridge";
+	string residence <- "Residential";
+	string office <- "Office";
+	string usage <- "Category";*/
+
+    map<string, rgb> color_map <- [residence::#white, office::#gray, "Other"::#black];
+	//GIS FILES To Upload
 	string cityGISFolder <- "./../includes/City/"+cityScopeCity;
 	file bound_shapefile <- file(cityGISFolder + "/Bounds.shp")			parameter: "Bounds Shapefile:" category: "GIS";
 	file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
 	file roads_shapefile <- file(cityGISFolder + "/Roads.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
-	//Case 1 - Urban Swarm
-	map<string, rgb> color_map <- ["R"::#white, "O"::#gray, "Other"::#black];	
-	//Case 2 - Cambridge Map
-	//map<string, rgb> color_map <- ["Residential"::#white, "Office"::#gray, "Other"::#black];
+	//Case Cambridge Map
 	//file dockingStations <- file(cityGISFolder + "/dockingStations.shp");
 	//file dockingStations <- file("./../includes/City/clustering" + "/dockingStations.shp");
 	 
