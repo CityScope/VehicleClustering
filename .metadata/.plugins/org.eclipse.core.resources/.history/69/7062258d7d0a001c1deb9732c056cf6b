@@ -80,9 +80,9 @@ global {
 	
 	//GIS FILES To Upload
 	//Case 1 - Urban Swarms Map
- 	string cityScopeCity<-"UrbanSwarm";
+ 	//string cityScopeCity<-"UrbanSwarm";
  	//Case 2 - Cambridge Map
- 	//string cityScopeCity<-"Cambridge";
+ 	string cityScopeCity<-"Cambridge";
 	string cityGISFolder <- "./../includes/City/"+cityScopeCity;
 	file bound_shapefile <- file(cityGISFolder + "/Bounds.shp")			parameter: "Bounds Shapefile:" category: "GIS";
 	file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";

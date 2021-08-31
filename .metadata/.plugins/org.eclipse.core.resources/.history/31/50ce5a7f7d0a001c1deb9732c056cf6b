@@ -15,7 +15,7 @@ global {
 	map<string, string> filenames <- []; //Maps log types to filenames
 	
 	action registerLogFile(string filename) {
-		filenames[filename] <- './../data/' + string(starting_date, 'yyyy-MM-dd hh.mm.ss','en') + '/' + filename + '.csv';
+		filenames[filename] <- '../data/' + string(starting_date, 'yyyy-MM-dd hh.mm.ss','en') + '/' + filename + '.csv';
 	}
 	
 	action log(string filename, int level, list data, list<string> columns) {
