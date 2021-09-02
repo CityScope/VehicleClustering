@@ -112,7 +112,7 @@ global {
 		}
 	    
 		// -------------------------------------------The People -----------------------------------------
-	    create people number: numPeople {
+	    create randomPerson number: numPeople {
 	        start_work <- rnd (workStartMin, workStartMax);
 	        end_work <- rnd(workEndMin, workEndMax);
 	        living_place <- one_of(residentialBuildings) ;
@@ -180,7 +180,7 @@ experiment clustering type: gui {
 	parameter var: numBikes init: 135;
 	parameter var: numPeople init: 350;
     output {
-		/*display city_display type:opengl background: #black draw_env: false{	
+		display city_display type:opengl background: #black draw_env: false{	
 			species tagRFID aspect: base ;
 			species building aspect: type ;
 			species road aspect: base ;
@@ -192,7 +192,7 @@ experiment clustering type: gui {
 				{world.shape.width * 0.8, world.shape.height * 0.975};
 				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
 			}
-		}*/
+		}
     }
 }
 
@@ -210,7 +210,7 @@ experiment one_person type: gui {
 			species tagRFID aspect: base ;
 			species building aspect: type ;
 			species road aspect: base ;
-			species people aspect: base ;
+			species randomPerson aspect: base ;
 			species chargingStation aspect: base ;
 			species bike aspect: realistic ;
 			graphics "text" {
@@ -230,7 +230,7 @@ experiment one_each type: gui {
 			species tagRFID aspect: base ;
 			species building aspect: type ;
 			species road aspect: base ;
-			species people aspect: base ;
+			species randomPerson aspect: base ;
 			species chargingStation aspect: base ;
 			species bike aspect: realistic ;
 			graphics "text" {
@@ -250,7 +250,7 @@ experiment one_bike type: gui {
 			species tagRFID aspect: base ;
 			species building aspect: type ;
 			species road aspect: base ;
-			species people aspect: base ;
+			species randomPerson aspect: base ;
 			species chargingStation aspect: base ;
 			species bike aspect: realistic ;
 			
@@ -272,7 +272,7 @@ experiment just_a_lot_of_bikes type: gui {
 //			species tagRFID aspect: base;
 			species building aspect: type;
 			species road aspect: base;
-			species people aspect: base;
+			species randomPerson aspect: base;
 			species chargingStation aspect: base;
 			species bike aspect: realistic;
 			

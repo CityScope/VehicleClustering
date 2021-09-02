@@ -18,13 +18,14 @@ global {
 	//----------------------Logging Parameters------------------------
 	int loggingLevel <- 10		min: 0 max: 10 parameter: "Logging Level" category: "Logs";
 	int printLevel <- 1			min: 0 max: 10 parameter: "Printing Level" category: "Logs";
+	bool fullStateLogs <- false parameter: "Full State Logs" category: "Logs";
 	bool bikeLogs <- true		parameter: "Bike Logs" category: "Logs";
-	string bikeFile <- "bikes"	parameter: "Bike Logfile" category: "Logs";
+//	string bikeFile <- "bikes"	parameter: "Bike Logfile" category: "Logs";
 	bool peopleLogs <- true		parameter: "People Logs" category: "Logs";
-	string peopleFile <- "people"	parameter: "Person Logfile" category: "Logs";
+//	string peopleFile <- "people"	parameter: "Person Logfile" category: "Logs";
 	bool stationLogs <- true		parameter: "Charging Station Logs" category: "Logs";
-	string stationFile <- "stations"	parameter: "Charging Station Logfile" category: "Logs";
-	bool pheromoneLogs <- true;
+//	string stationFile <- "stations"	parameter: "Charging Station Logfile" category: "Logs";
+	bool pheromoneLogs <- true  parameter: "Pheromone Logs" category: "Logs";
 	
 	//----------------------Pheromone Parameters------------------------
     float singlePheromoneMark <- 0.5;
