@@ -97,6 +97,37 @@ species tagRFID {
 	}
 }
 
+
+species scheduler {
+	file demand;
+	matrix demand_matrix;
+	
+	action processDemand {
+		demand_matrix <- matrix( demand );
+		int num <- int( length(demand_matrix) / demand_columns ); //length of a matrix returns number of cells
+	}
+	
+	int index <- 0;
+	reflex spawn_people {
+		loop while: current_date > date( demand_matrix[demand_column_time,index] ) {
+			create determinedPerson {
+				location <- point([
+					myself.demand_matrix[demand_column_start_x, myself.index],
+					myself.demand_matrix[demand_column_start_y, myself.index],
+					0.0
+				]);
+				
+				determined_destination <- point([
+					myself.demand_matrix[demand_column_end_x, myself.index],
+					myself.demand_matrix[demand_column_end_y, myself.index],
+					0.0
+				]);
+			}
+			index <- index + 1;
+		}
+	}
+}
+
 species people control: fsm skills: [moving] {
 	rgb color <- #yellow ;
 	
@@ -244,8 +275,21 @@ species randomPerson parent: people {
 
 
 species determinedPerson parent: people {
+	point determined_destination;
 	
-	action leave {} //empty
+	action leave {
+		if location = determined_destination {
+			do die;
+		} else {
+			final_destination <- determined_destination;
+		}
+	}
+	
+	aspect base {
+		if state != "riding" {
+			draw circle(10) color: color border: #black;
+		}
+    }
 }
 
 

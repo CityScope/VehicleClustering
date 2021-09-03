@@ -94,10 +94,10 @@ species peopleLogger_trip parent: Logger {
 		"Wait Time",
 		"Departure Time",
 		"Duration",
-		"Origin [lat]",
-		"Origin [long]",
-		"Destination [lat]",
-		"Destination [long]",
+		"Origin [x]",
+		"Origin [y]",
+		"Destination [x]",
+		"Destination [y]",
 		"Distance",
 		"Duration (estimated)"
 	];

@@ -94,6 +94,15 @@ global {
 	file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
 	file roads_shapefile <- file(cityGISFolder + "/Roads.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
+	file demand_file <- file("./../includes/Demand/user_trips_0.csv")	parameter: "Demand File:" category: "GIS";
+	// Ensure these match the demand file, or rides will not be processed correctly.
+	int demand_columns <- 23;
+	int demand_column_time <- 1;
+	int demand_column_start_x <- 10;
+	int demand_column_start_y <- 10;
+	int demand_column_end_x <- 10;
+	int demand_column_end_y <- 10;
+	
 	//Case Cambridge Map
 	//file dockingStations <- file(cityGISFolder + "/dockingStations.shp");
 	//file dockingStations <- file("./../includes/City/clustering" + "/dockingStations.shp");

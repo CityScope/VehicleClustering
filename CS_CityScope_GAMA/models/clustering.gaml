@@ -112,15 +112,23 @@ global {
 		}
 	    
 		// -------------------------------------------The People -----------------------------------------
-	    create randomPerson number: numPeople {
-	        start_work <- rnd (workStartMin, workStartMax);
-	        end_work <- rnd(workEndMin, workEndMax);
-	        living_place <- one_of(residentialBuildings) ;
-	        working_place <- one_of(officeBuildings) ;
-	        location <- any_location_in(living_place);
-	        
-	        speed <- peopleSpeed;
-	    }
+		if demand_file = nil {
+			create randomPerson number: numPeople {
+		        start_work <- rnd (workStartMin, workStartMax);
+		        end_work <- rnd(workEndMin, workEndMax);
+		        living_place <- one_of(residentialBuildings) ;
+		        working_place <- one_of(officeBuildings) ;
+		        location <- any_location_in(living_place);
+		        
+		        speed <- peopleSpeed;
+		    }
+		    
+		} else {
+			create scheduler {
+				demand <- demand_file;
+				do processDemand;
+			}
+		}
 	 	// ----------------------------------The RFIDs tag on each road intersection------------------------
 		
 		ask tagRFID {
