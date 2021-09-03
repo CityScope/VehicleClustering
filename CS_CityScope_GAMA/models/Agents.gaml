@@ -145,6 +145,7 @@ species people control: fsm skills: [moving] {
     	enter {
     		ask logger { do logEnterState; }
     		target <- nil;
+    		final_destination <- nil;
     	}
     	transition to: requesting_bike when: final_destination != nil {}
     	
@@ -171,7 +172,7 @@ species people control: fsm skills: [moving] {
 			location <- final_destination;
 		}
 		exit {
-			ask logger { do logExitState("Requesteed Bike " + myself.bikeToRide); }
+			ask logger { do logExitState("Requested " + myself.bikeToRide); }
 		}
 	}
 	state awaiting_bike {

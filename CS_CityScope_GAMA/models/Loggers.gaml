@@ -94,10 +94,10 @@ species peopleLogger_trip parent: Logger {
 		"Wait Time",
 		"Departure Time",
 		"Duration",
-		"Home [lat]",
-		"Home [long]",
-		"Work [lat]",
-		"Work [long]",
+		"Origin [lat]",
+		"Origin [long]",
+		"Destination [lat]",
+		"Destination [long]",
 		"Distance",
 		"Duration (estimated)"
 	];
@@ -111,8 +111,8 @@ species peopleLogger_trip parent: Logger {
 //		loggingAgent <- persontarget;
 //	}
 	
-	action logTrip(bool served, string type, float waitTime, float departure, float tripduration, point home, point work, float distance) {
-		do log(1, [served, type, waitTime, departure, tripduration, home.x, home.y, work.x, work.y, distance, distance/BikeSpeed]);
+	action logTrip(bool served, string type, float waitTime, float departure, float tripduration, point origin, point destination, float distance) {
+		do log(1, [served, type, waitTime, departure, tripduration, origin.x, origin.y, destination.x, destination.y, distance, distance/BikeSpeed]);
 	}
 	
 }
@@ -178,6 +178,11 @@ species peopleLogger parent: Logger {
 				//trip starts
 				timeBikeRequested <- time;
 				served <- false;
+				
+				//reset values in case trip is unserved
+				waitTime <- 0.0;
+				departureTime <- 0.0;
+				
 			}
 			match "riding" {
 				//trip is served
@@ -195,10 +200,10 @@ species peopleLogger parent: Logger {
 					ask persontarget.tripLogger {
 						do logTrip(
 							myself.served,
-							current_date.hour > 12 ? "Evening":"Morning",
+							current_date.hour < 12 ? "Morning":"Evening",
 							myself.waitTime,
 							myself.departureTime,
-							time - myself.departureTime,
+							myself.served ? time - myself.departureTime : 0.0,
 							persontarget.beginning_location,
 							persontarget.final_destination,
 							myself.tripdistance

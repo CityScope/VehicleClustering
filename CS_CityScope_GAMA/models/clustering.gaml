@@ -226,7 +226,7 @@ experiment one_each type: gui {
 	parameter var: numBikes init: 1;
 	parameter var: numPeople init: 1;
     output {
-		display city_display type:opengl background: #white draw_env: false{	
+		display city_display type:opengl background: #black draw_env: false{	
 			species tagRFID aspect: base ;
 			species building aspect: type ;
 			species road aspect: base ;
