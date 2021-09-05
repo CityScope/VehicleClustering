@@ -420,7 +420,8 @@ species bike control: fsm skills: [moving] {
 				if location = mostRecentTag.location {
 					//we have stopped at an intersection
 					nextTag <- mostRecentTag;
-					lastTag <- penultimateTag;
+					//If stucked on an intersection, both lastTag and nextTag are the same.
+					lastTag <- penultimateTag = nil? nextTag:penultimateTag;
 					newIntersections <- copy_between( newIntersections, 0, num-1); 
 					//pop the last intersection off the end, we'll process it next iteration
 					//(We should always read the data _before_ we overwrite it. We have not yet read this tag, so we push writing over it to the future)
@@ -428,7 +429,6 @@ species bike control: fsm skills: [moving] {
 				} else {
 					//we have stopped in the middle of a road
 					lastTag <- mostRecentTag;
-					
 					//current edge will have two points on it, one is lastTag, the otherr is nextTag
 					nextTag <- tagRFID( (current_edge.points where (each != lastTag.location))[0] );
 				}
@@ -571,9 +571,8 @@ species bike control: fsm skills: [moving] {
 	state getting_charge {
 		//sit at a charging station until charged
 		enter {
-			ask eventLogger { do logEnterState("Charging at " + (chargingStation closest_to myself)); }
-			
 			target <- nil;
+			ask eventLogger { do logEnterState("Charging at " + (chargingStation closest_to myself)); }			
 			
 			ask chargingStation closest_to(self) {
 				bikesToCharge <- bikesToCharge + myself;
