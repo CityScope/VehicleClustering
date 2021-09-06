@@ -79,15 +79,15 @@ global {
 	
 	
 	//Case 1 - Urban Swarms Map
-	string cityScopeCity <- "UrbanSwarm";
+	/*string cityScopeCity <- "UrbanSwarm";
 	string residence <- "R";
 	string office <- "O";
-	string usage <- "Usage";
+	string usage <- "Usage";*/
 	//Case 2 - Cambridge Map
-	/*string cityScopeCity <- "Cambridge";
+	string cityScopeCity <- "Cambridge";
 	string residence <- "Residential";
 	string office <- "Office";
-	string usage <- "Category";*/
+	string usage <- "Category";
 
     map<string, rgb> color_map <- [residence::#white, office::#gray, "Other"::#black];
 	//GIS FILES To Upload

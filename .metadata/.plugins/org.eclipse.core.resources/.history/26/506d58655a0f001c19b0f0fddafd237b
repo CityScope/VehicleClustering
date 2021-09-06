@@ -79,8 +79,8 @@ species pheromoneLogger parent: Logger mirrors: tagRFID {
 	}
 	
 	reflex saveState {
-		float average <- tagtarget.pheromoneMap.pairs sum_of (each.value);
-		do log(1, list(average/length(tagtarget.pheromoneMap.pairs)));
+		float average <- sum(tagtarget.pheromoneMap.pairs[1])/length(tagtarget.pheromoneMap.pairs);
+		do log(1, list(average));
 	}
 	
 }
