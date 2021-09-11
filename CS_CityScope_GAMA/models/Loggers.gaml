@@ -77,8 +77,9 @@ species pheromoneLogger parent: Logger mirrors: tagRFID {
 	
 }
 
-
-species peopleLogger_trip parent: Logger mirrors: people {
+// NOTE: Because people is now a parent class, mirroring no longer works. This is a GAMA bug and there's nothing I can do about it.
+//       As a workaround, people objects now manually create their loggers
+species peopleLogger_trip parent: Logger {
 	string filename <- "people_trips";
 	list<string> columns <- [
 		"Trip Served",
@@ -86,10 +87,10 @@ species peopleLogger_trip parent: Logger mirrors: people {
 		"Wait Time",
 		"Departure Time",
 		"Duration",
-		"Home [lat]",
-		"Home [long]",
-		"Work [lat]",
-		"Work [long]",
+		"Origin [x]",
+		"Origin [y]",
+		"Destination [x]",
+		"Destination [y]",
 		"Distance",
 		"Duration (estimated)"
 	];
@@ -97,18 +98,18 @@ species peopleLogger_trip parent: Logger mirrors: people {
 	bool logPredicate { return peopleLogs; }
 	people persontarget;
 	
-	init {
-		persontarget <- people(target);
-		persontarget.tripLogger <- self;
-		loggingAgent <- persontarget;
-	}
+//	init {
+//		persontarget <- people(target);
+//		persontarget.tripLogger <- self;
+//		loggingAgent <- persontarget;
+//	}
 	
-	action logTrip(bool served, string type, float waitTime, float departure, float tripduration, point home, point work, float distance) {
-		do log(1, [served, type, waitTime, departure, tripduration, home.x, home.y, work.x, work.y, distance, distance/BikeSpeed]);
+	action logTrip(bool served, string type, float waitTime, float departure, float tripduration, point origin, point destination, float distance) {
+		do log(1, [served, type, waitTime, departure, tripduration, origin.x, origin.y, destination.x, destination.y, distance, distance/BikeSpeed]);
 	}
 	
 }
-species peopleLogger parent: Logger mirrors: people {
+species peopleLogger parent: Logger {
 	string filename <- "people_event";
 	list<string> columns <- [
 		"Event",
@@ -122,11 +123,11 @@ species peopleLogger parent: Logger mirrors: people {
 	bool logPredicate { return peopleLogs; }
 	people persontarget;
 	
-	init {
-		persontarget <- people(target);
-		persontarget.logger <- self;
-		loggingAgent <- persontarget;
-	}
+//	init {
+//		persontarget <- people(target);
+//		persontarget.logger <- self;
+//		loggingAgent <- persontarget;
+//	}
 	
 	
 	// Variables for people's CSVs
@@ -170,6 +171,11 @@ species peopleLogger parent: Logger mirrors: people {
 				//trip starts
 				timeBikeRequested <- time;
 				served <- false;
+				
+				//reset values in case trip is unserved
+				waitTime <- 0.0;
+				departureTime <- 0.0;
+				
 			}
 			match "riding" {
 				//trip is served
@@ -180,19 +186,19 @@ species peopleLogger parent: Logger mirrors: people {
 			match "idle" {
 				//trip has ended
 				if tripdistance = 0 {
-					tripdistance <- topology(roadNetwork) distance_between [persontarget.living_place, persontarget.working_place];
+					tripdistance <- topology(roadNetwork) distance_between [persontarget.beginning_location, persontarget.final_destination];
 				}
 				
 				if cycle != 0 {
 					ask persontarget.tripLogger {
 						do logTrip(
 							myself.served,
-							current_date.hour > 12 ? "Evening":"Morning",
+							current_date.hour < 12 ? "Morning":"Evening",
 							myself.waitTime,
 							myself.departureTime,
-							time - myself.departureTime,
-							persontarget.living_place.location,
-							persontarget.working_place.location,
+							myself.served ? time - myself.departureTime : 0.0,
+							persontarget.beginning_location,
+							persontarget.final_destination,
 							myself.tripdistance
 						);
 					}
@@ -275,7 +281,7 @@ species bikeLogger_fullState parent: Logger mirrors: bike {
 		"Pheromone To Diffuse",
 		"Pheromone Mark"
 	];
-	bool logPredicate { return bikeLogs; }
+	bool logPredicate { return fullStateLogs; }
 	bike biketarget;
 	
 	

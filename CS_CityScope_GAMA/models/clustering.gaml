@@ -112,15 +112,23 @@ global {
 		}
 	    
 		// -------------------------------------------The People -----------------------------------------
-	    create people number: numPeople {
-	        start_work <- rnd (workStartMin, workStartMax);
-	        end_work <- rnd(workEndMin, workEndMax);
-	        living_place <- one_of(residentialBuildings) ;
-	        working_place <- one_of(officeBuildings) ;
-	        location <- any_location_in(living_place);
-	        
-	        speed <- peopleSpeed;
-	    }
+		if demand_file = nil {
+			create randomPerson number: numPeople {
+		        start_work <- rnd (workStartMin, workStartMax);
+		        end_work <- rnd(workEndMin, workEndMax);
+		        living_place <- one_of(residentialBuildings) ;
+		        working_place <- one_of(officeBuildings) ;
+		        location <- any_location_in(living_place);
+		        
+		        speed <- peopleSpeed;
+		    }
+		    
+		} else {
+			create scheduler {
+				demand <- demand_file;
+				do processDemand;
+			}
+		}
 	 	// ----------------------------------The RFIDs tag on each road intersection------------------------
 		
 		ask tagRFID {
@@ -210,7 +218,7 @@ experiment one_person type: gui {
 			species tagRFID aspect: base ;
 			species building aspect: type ;
 			species road aspect: base ;
-			species people aspect: base ;
+			species randomPerson aspect: base ;
 			species chargingStation aspect: base ;
 			species bike aspect: realistic ;
 			graphics "text" {
@@ -226,11 +234,11 @@ experiment one_each type: gui {
 	parameter var: numBikes init: 1;
 	parameter var: numPeople init: 1;
     output {
-		display city_display type:opengl background: #white draw_env: false{	
+		display city_display type:opengl background: #black draw_env: false{	
 			species tagRFID aspect: base ;
 			species building aspect: type ;
 			species road aspect: base ;
-			species people aspect: base ;
+			species randomPerson aspect: base ;
 			species chargingStation aspect: base ;
 			species bike aspect: realistic ;
 			graphics "text" {
@@ -250,7 +258,7 @@ experiment one_bike type: gui {
 			species tagRFID aspect: base ;
 			species building aspect: type ;
 			species road aspect: base ;
-			species people aspect: base ;
+			species randomPerson aspect: base ;
 			species chargingStation aspect: base ;
 			species bike aspect: realistic ;
 			
@@ -272,7 +280,7 @@ experiment just_a_lot_of_bikes type: gui {
 //			species tagRFID aspect: base;
 			species building aspect: type;
 			species road aspect: base;
-			species people aspect: base;
+			species randomPerson aspect: base;
 			species chargingStation aspect: base;
 			species bike aspect: realistic;
 			

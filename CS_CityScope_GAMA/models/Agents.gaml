@@ -56,7 +56,7 @@ species building {
     aspect type {
 		draw shape color: color_map[type];
 	}
-	string type; 
+	string type;
 }
 
 species chargingStation {
@@ -97,22 +97,63 @@ species tagRFID {
 	}
 }
 
+
+species scheduler {
+	file demand;
+	matrix demand_matrix;
+	
+	action processDemand {
+		demand_matrix <- matrix( demand );
+		int num <- int( length(demand_matrix) / demand_columns ); //length of a matrix returns number of cells
+	}
+	
+	int index <- 0;
+	reflex spawn_people {
+		loop while: current_date > date( demand_matrix[demand_column_time,index] ) {
+			create determinedPerson {
+				location <- point([
+					myself.demand_matrix[demand_column_start_x, myself.index],
+					myself.demand_matrix[demand_column_start_y, myself.index],
+					0.0
+				]);
+				
+				determined_destination <- point([
+					myself.demand_matrix[demand_column_end_x, myself.index],
+					myself.demand_matrix[demand_column_end_y, myself.index],
+					0.0
+				]);
+			}
+			index <- index + 1;
+		}
+	}
+}
+
 species people control: fsm skills: [moving] {
 	rgb color <- #yellow ;
-    building living_place; //Home [lat,lon]
-    building working_place; //Work [lat, lon]
-    int start_work;
-    int end_work;
-    
+	
     peopleLogger logger;
     peopleLogger_trip tripLogger;
     
+    init {
+    	create peopleLogger returns: l {
+    		persontarget <- myself;
+    		loggingAgent <- persontarget;
+    	}
+    	logger <- l[0];
+    	
+    	create peopleLogger_trip returns: lt {
+    		persontarget <- myself;
+    		loggingAgent <- persontarget;
+    	}
+    	tripLogger <- lt[0];
+    }
     
+    action leave virtual: true;
     
+    point beginning_location;
     point final_destination; //Final destination for the trip
     point target; //Interim destination; the thing we are currently moving toward
     point closestIntersection;
-    float waitTime;
     
     bike bikeToRide;
     
@@ -126,28 +167,26 @@ species people control: fsm skills: [moving] {
 	// these are how other agents interact with this one. Not used by self
     action ride(bike b) {
     	bikeToRide <- b;
-    }	
+    }
 	
-	
-    //Should we leave for work/home? Only if it is time, and we are not already there
-    bool timeToWork { return (current_date.hour = start_work) and !(self overlaps working_place); }
-    bool timeToSleep { return (current_date.hour = end_work) and !(self overlaps living_place); }
+    
     
     state idle initial: true {
     	//Watch netflix at home (and/or work)
     	enter {
     		ask logger { do logEnterState; }
     		target <- nil;
+    		final_destination <- nil;
     	}
-    	transition to: requesting_bike when: timeToWork() {
-    		final_destination <- any_location_in (working_place);
-    	}
-    	transition to: requesting_bike when: timeToSleep() {
-    		final_destination <- any_location_in (living_place);
-    	}
+    	transition to: requesting_bike when: final_destination != nil {}
+    	
     	exit {
+    		beginning_location <- location; //saved for logging reasons
+    		
 			ask logger { do logExitState; }
 		}
+		
+		do leave();
     }
 	state requesting_bike {
 		//Ask the system for a bike, teleport home if wait is too long
@@ -164,7 +203,7 @@ species people control: fsm skills: [moving] {
 			location <- final_destination;
 		}
 		exit {
-			ask logger { do logExitState("Requesteed Bike " + myself.bikeToRide); }
+			ask logger { do logExitState("Requested " + myself.bikeToRide); }
 		}
 	}
 	state awaiting_bike {
@@ -209,6 +248,51 @@ species people control: fsm skills: [moving] {
 		do goto target: target on: roadNetwork;
 	}
 }
+
+
+species randomPerson parent: people {
+    int start_work;
+    int end_work;
+    
+    building living_place; //Home [lat,lon]
+    building working_place; //Work [lat, lon]
+    
+    //Should we leave for work/home? Only if it is time, and we are not already there
+    bool timeToWork { return (current_date.hour = start_work) and !(self overlaps working_place); }
+    bool timeToSleep { return (current_date.hour = end_work) and !(self overlaps living_place); }
+    
+    action leave {
+    	if timeToWork() { final_destination <- any_location_in (working_place); }
+    	else if timeToSleep() { final_destination <- any_location_in (living_place); }
+    }
+    
+    aspect base {
+		if state != "riding" {
+			draw circle(10) color: color border: #black;
+		}
+    }
+}
+
+
+species determinedPerson parent: people {
+	point determined_destination;
+	
+	action leave {
+		if location = determined_destination {
+			do die;
+		} else {
+			final_destination <- determined_destination;
+		}
+	}
+	
+	aspect base {
+		if state != "riding" {
+			draw circle(10) color: color border: #black;
+		}
+    }
+}
+
+
 
 species bike control: fsm skills: [moving] {
 	//----------------Display-----------------

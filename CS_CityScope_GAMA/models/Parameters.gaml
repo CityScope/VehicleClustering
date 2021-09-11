@@ -18,13 +18,11 @@ global {
 	//----------------------Logging Parameters------------------------
 	int loggingLevel <- 10		min: 0 max: 10 parameter: "Logging Level" category: "Logs";
 	int printLevel <- 0		min: 0 max: 10 parameter: "Printing Level" category: "Logs";
+	bool fullStateLogs <- false parameter: "Full State Logs" category: "Logs";
 	bool bikeLogs <- true		parameter: "Bike Logs" category: "Logs";
-	string bikeFile <- "bikes"	parameter: "Bike Logfile" category: "Logs";
 	bool peopleLogs <- true		parameter: "People Logs" category: "Logs";
-	string peopleFile <- "people"	parameter: "Person Logfile" category: "Logs";
-	bool stationLogs <- true		parameter: "Charging Station Logs" category: "Logs";
-	string stationFile <- "stations"	parameter: "Charging Station Logfile" category: "Logs";
-	bool pheromoneLogs <- true;
+	bool stationLogs <- false		parameter: "Charging Station Logs" category: "Logs";
+	bool pheromoneLogs <- false  parameter: "Pheromone Logs" category: "Logs";
 	
 	//----------------------Pheromone Parameters------------------------
     float singlePheromoneMark <- 0.5;
@@ -95,6 +93,15 @@ global {
 	file bound_shapefile <- file(cityGISFolder + "/Bounds.shp")			parameter: "Bounds Shapefile:" category: "GIS";
 	file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
 	file roads_shapefile <- file(cityGISFolder + "/Roads.shp")			parameter: "Road Shapefile:" category: "GIS";
+	
+	file demand_file <- file("./../includes/Demand/user_trips_0.csv")	parameter: "Demand File:" category: "GIS";
+	// Ensure these match the demand file, or rides will not be processed correctly.
+	int demand_columns <- 23;
+	int demand_column_time <- 1;
+	int demand_column_start_x <- 10;
+	int demand_column_start_y <- 10;
+	int demand_column_end_x <- 10;
+	int demand_column_end_y <- 10;
 	
 	//Case Cambridge Map
 	//file dockingStations <- file(cityGISFolder + "/dockingStations.shp");
