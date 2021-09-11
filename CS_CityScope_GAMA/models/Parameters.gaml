@@ -13,7 +13,7 @@ import "./clustering.gaml"
 global {
 	//----------------------Simulation Parameters------------------------
 	//Simulation time step
-	float step <- 1 #sec;
+	float step <- 35 #sec;
 	
 	//----------------------Logging Parameters------------------------
 	int loggingLevel <- 10		min: 0 max: 10 parameter: "Logging Level" category: "Logs";
@@ -38,7 +38,7 @@ global {
 	//Number of Bikes to generate. Juan: Change this so nb is generated according to real GIS Data.
 	int numBikes <- 5 				min: 0 max: 500 parameter: "Num Bikes:" category: "Initial";
 	//Max battery life of bikes - Maximum number of meters with the battery
-	float maxBatteryLife <- 100000 #m	min: 10000#m max: 300000#m parameter: "Battery Capacity (m):" category: "Bike";
+	float maxBatteryLife <- 100000.0 #m	min: 10000#m max: 300000#m parameter: "Battery Capacity (m):" category: "Bike";
 	//speed of bikes - about 5.5  m/s for PEV (it can be changed accordingly to different robot specification)
 	float BikeSpeed <- 2.5 #m/#s min: 1 #m/#s max: 15#m/#s parameter: "Bike Speed (m/s):" category:  "Bike";
 	
