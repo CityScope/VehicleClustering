@@ -15,7 +15,7 @@ global {
 	map<string, string> filenames <- []; //Maps log types to filenames
 	
 	action registerLogFile(string filename) {
-		filenames[filename] <- './../data/' + string(starting_date, 'yyyy-MM-dd hh.mm.ss','en') + '/' + filename + '.csv';
+		filenames[filename] <- './../data/' + string(logDate, 'yyyy-MM-dd hh.mm.ss','en') + '/' + filename + '.csv';
 	}
 	
 	action log(string filename, int level, list data, list<string> columns) {
@@ -31,6 +31,68 @@ global {
 			write [cycle, string(#now), time] + data;
 		}
 	}
+	
+	action logForSetUp (list<string> parameters) {
+		loop param over: parameters {
+			save (param) to: './../data/' + string(#now, 'yyyy-MM-dd hh.mm.ss','en') + '/' + 'setUp' + '.txt' type: "text" rewrite: false header: false;}
+	}
+	
+	action logSetUp { //TODO: To complete with the rest of parameters
+		list<string> parameters <- [
+		"------------------------------SIMULATION PARAMETERS------------------------------",
+		"Step: "+string(step),
+		"Starting Date: "+string(starting_date),
+		"------------------------------LOGGING PARAMETERS------------------------------",
+		"Logging Level: "+string(loggingLevel),
+		"Print Level: "+string(printLevel),
+		"Bike Logs: "+string(bikeLogs),
+		"People Logs: "+string(peopleLogs),
+		"People File: "+string(peopleFile),
+		"Station Logs: "+string(stationLogs),
+		"Station File: "+string(stationFile),
+		"Pheromone Logs: "+string(pheromoneLogs),
+		"------------------------------PHEROMONE PARAMETERS------------------------------",
+		"Single Pheromone Mark: "+string(singlePheromoneMark),
+		"Exploratory Rate: "+string(exploratoryRate),
+		"Diffusion Rate: "+string(diffusion),
+		"Max Pheromone Level: "+string(maxPheromoneLevel),
+		"Min Pheromone Level: "+string(minPheromoneLevel),
+		"------------------------------BIKE PARAMETERS------------------------------",
+		"Number of Bikes to Generate: "+string(numBikes),
+		"Max Battery Life of Bikes [m]: "+string(maxBatteryLife),
+		"Speed of Bikes [m/s]: "+string(BikeSpeed),
+		"Speed of Bikes when autonomous driving [m/s]: "+string(BikeAutDrivingSpeed),
+		"Speed of Bikes when dropping off someone [m/s]: "+string(BikeDroppingOffSpeed),
+		"Cluster Distance (Radius in which we look for bikes to cluster with) [m]: "+string(clusterDistance),
+		"Cluster Threshold (the charge a follower must be able to give the leader in order to cluster) [m]: "+string(clusterThreshold),
+		"Follow Distance [m]: "+string(followDistance),
+		"V2V Charging Rate [m/s]: "+string(V2VChargingRate),
+		"Charging Pheromone Threshold (disables charge-seeking when low pheromone): "+string(chargingPheromoneThreshold),
+		"MinSafeBattery (amount of battery always reserved when charging another bike, also at which we seek battery) [m]: "+string(minSafeBattery),
+		"numberOfStepsReserved (number of simulation steps worth of movement to reserve before seeking charge): "+string(numberOfStepsReserved),
+		"distanceSafetyFactor (factor of distanceToChargingStation at which we seek charge): "+string(distanceSafetyFactor),
+		"rideDistance [m]: "+string(rideDistance),
+		"------------------------------DOCKING PARAMETERS------------------------------",
+		"numDockingStations: "+string(numDockingStations),
+		"V2IChargingRate: "+string(V2IChargingRate),
+		"dockingStationCapacity: "+string(dockingStationCapacity),
+		"------------------------------PEOPLE PARAMETERS------------------------------",
+		"numPeople: "+string(numPeople),
+		"maxWaitTime: "+string(maxWaitTime),
+		"workStartMax: "+string(workStartMax),
+		"workEndMin: "+string(workEndMin),
+		"workEndMax: "+string(workEndMax),
+		"peopleSpeed: "+string(peopleSpeed),
+		"bikeCostBatteryCoef: "+string(bikeCostBatteryCoef),
+		"------------------------------MAP PARAMETERS------------------------------",
+		"cityScopeCity: "+string(cityScopeCity),
+		"Redisence: "+string(residence),
+		"Office: "+string(office),
+		"Usage: "+string(usage),
+		"Color Map: "+string(color_map)
+		];
+		do logForSetUp(parameters);
+		}
 }
 
 

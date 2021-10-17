@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
-		<item key="selection" value="clusterDistance"/>
+		<item key="selection" value="loop"/>
 		<item key="wrap" value="true"/>
 		<item key="casesensitive" value="false"/>
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="loop"/>
+			<item value="for"/>
+			<item value="lastIntersections"/>
+			<item value="depositPheromones"/>
+			<item value="pheromoneMark"/>
+			<item value="pheromonemark"/>
+			<item value="write"/>
+			<item value="starting_date"/>
+			<item value="chargingStation"/>
+			<item value="getting_charge"/>
 			<item value="clusterDistance"/>
 			<item value="updatePheromones"/>
 			<item value="depositPheromone"/>
 			<item value="rememberPheromones"/>
-			<item value="depositPheromones"/>
 			<item value="chooseWanderTarget"/>
-			<item value="updatepheromones"/>
-			<item value="update"/>
-			<item value="move"/>
-			<item value="speed"/>
-			<item value="logtrip"/>
-			<item value="tripduration"/>
-			<item value="tagrfid"/>
-			<item value="pheromones"/>
-			<item value="pherom"/>
 		</list>
 		<list key="replacehistory">
 			<item value=""/>
 		</list>
 	</section>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
-		<item key="DIALOG_X_ORIGIN" value="1973"/>
+		<item key="DIALOG_X_ORIGIN" value="1593"/>
 		<item key="DIALOG_Y_ORIGIN" value="101"/>
 		<item key="DIALOG_WIDTH" value="336"/>
 		<item key="DIALOG_HEIGHT" value="443"/>

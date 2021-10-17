@@ -14,6 +14,11 @@ global {
 	//----------------------Simulation Parameters------------------------
 	//Simulation time step
 	float step <- 35 #sec;
+	//Simulation starting date
+	//date starting_date <- #now;
+	date starting_date <- date("2021-10-12 05:00:00");
+	date logDate <- #now;
+	
 	
 	//----------------------Logging Parameters------------------------
 	int loggingLevel <- 10		min: 0 max: 10 parameter: "Logging Level" category: "Logs";
@@ -27,8 +32,8 @@ global {
 	bool pheromoneLogs <- true;
 	
 	//----------------------Pheromone Parameters------------------------
-    float singlePheromoneMark <- 0.5;
-	float evaporation <- 0.3; //unsure of this value - changed evaporation to be proportional to time instead of cycles
+    float singlePheromoneMark <- 1.0;
+	float evaporation <- 1.0; //unsure of this value - changed evaporation to be proportional to time instead of cycles
 	float exploratoryRate <- 0.99;
 	float diffusion <- (1-exploratoryRate) * 0.5; 
 	float maxPheromoneLevel <- 50*singlePheromoneMark;

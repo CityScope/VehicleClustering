@@ -1,10 +1,10 @@
-*/.metadata/
+.metadata/**
+CS_CityScope_GAMA/data/**
 
-
-*/.DS_Store
-*/.gama_application_workspace
-*/.built_in_models_*
-*/.gama.epf
+.DS_Store
+.gama_application_workspace
+.built_in_models_*
+.gama.epf
 
 
 types_hierarchy.png

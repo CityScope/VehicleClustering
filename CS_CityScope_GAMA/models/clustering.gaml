@@ -13,7 +13,6 @@ import "./Loggers.gaml"
 import "./Parameters.gaml"
 
 global {
-	date starting_date <- #now;
 	//---------------------------------------------------------Performance Measures-----------------------------------------------------------------------------
 	//-------------------------------------------------------------------Necessary Variables--------------------------------------------------------------------------------------------------
 
@@ -27,7 +26,7 @@ global {
     // ---------------------------------------Agent Creation----------------------------------------------
     init {
     	// ---------------------------------------Buildings----------------------------------------------
-
+		do logSetUp;
 	    create building from: buildings_shapefile with: [type:string(read (usage))] {
 		 	if(type!=office and type!=residence){ type <- "Other"; }
 		}
@@ -102,7 +101,8 @@ global {
 			lastTag <- nextTag;
 			
 			pheromoneToDiffuse <- 0.0;
-			pheromoneMark <- 0.0;
+			//Pheromone mark to remain 5 minutes
+			pheromoneMark <- 300/step*singlePheromoneMark;
 			//Battery life random but not starting on 0. Now 75% of MaxBatteryLife
 			batteryLife <- rnd(maxBatteryLife*0.75,maxBatteryLife);
 			speed <- BikeSpeed;

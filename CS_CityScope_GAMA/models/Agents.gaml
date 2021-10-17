@@ -410,11 +410,7 @@ species bike control: fsm skills: [moving] {
 			
 			//oldest intersection is first in the list
 			list<tagRFID> newIntersections <- travelledPath.vertices where (tagRFID(each).location = each);
-			int num <- length(newIntersections);
-			
-			
-			//update pheromones from first traveled to last traveled, ignoring those that were updated last cycle
-			
+			int num <- length(newIntersections);			
 			
 			//update lastTag, nextTag. If we landed on nextTag, remove it from the list
 			if (!empty(newIntersections)) {
@@ -495,7 +491,7 @@ species bike control: fsm skills: [moving] {
 	
 	//----------------PHEROMONES-----------------
 	float pheromoneToDiffuse; //represents a store of pheremone (a bike can't expend more than this amount). Pheremone is restored by ___
-	float pheromoneMark; //initialized to 0, never updated. Unsure what this represents
+	float pheromoneMark <- 100*singlePheromoneMark; //TODO: This took in account the amount of waste found. Let's see how we adapt it
 	
 	
 	action updatePheromones(tagRFID tag) {
@@ -516,13 +512,12 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	action depositPheromones(tagRFID tag, tagRFID previousTag) {
-		
 		// add _all_ of my pheremone to nearest tag. If I am picking someone up, add 0 to pheremone tag (???). Set my pheremone levels to whatever the tag has diffused to me
 		bool depositPheromone <- state = "picking_up" or state = "dropping_off";
 		loop k over: tag.pheromoneMap.keys {
 			tag.pheromoneMap[k] <- tag.pheromoneMap[k] + pheromoneToDiffuse; //Why do we add pheromone to all of them?
 			if k = previousTag and depositPheromone {
-				tag.pheromoneMap[k] <- tag.pheromoneMap[k] + pheromoneMark; //This line does nothing and I don't understand why
+				tag.pheromoneMap[k] <- tag.pheromoneMap[k] + pheromoneMark;
 			}
 		}
 		
