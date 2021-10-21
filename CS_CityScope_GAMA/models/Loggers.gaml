@@ -60,9 +60,9 @@ global {
 		"------------------------------BIKE PARAMETERS------------------------------",
 		"Number of Bikes to Generate: "+string(numBikes),
 		"Max Battery Life of Bikes [m]: "+string(maxBatteryLife),
-		"Speed of Bikes [m/s]: "+string(BikeSpeed),
-		"Speed of Bikes when autonomous driving [m/s]: "+string(BikeAutDrivingSpeed),
-		"Speed of Bikes when dropping off someone [m/s]: "+string(BikeDroppingOffSpeed),
+		"Wandering speed [m/s]: "+string(WanderingSpeed),
+		"Pick-up speed [m/s]: "+string(PickUpSpeed),
+		"Riding speed [m/s]: "+string(RidingSpeed),
 		"Cluster Distance (Radius in which we look for bikes to cluster with) [m]: "+string(clusterDistance),
 		"Cluster Threshold (the charge a follower must be able to give the leader in order to cluster) [m]: "+string(clusterThreshold),
 		"Follow Distance [m]: "+string(followDistance),
@@ -72,10 +72,10 @@ global {
 		"numberOfStepsReserved (number of simulation steps worth of movement to reserve before seeking charge): "+string(numberOfStepsReserved),
 		"distanceSafetyFactor (factor of distanceToChargingStation at which we seek charge): "+string(distanceSafetyFactor),
 		"rideDistance [m]: "+string(rideDistance),
-		"------------------------------DOCKING PARAMETERS------------------------------",
-		"numDockingStations: "+string(numDockingStations),
+		"------------------------------STATION PARAMETERS------------------------------",
+		"numChargingStations: "+string(numChargingStations),
 		"V2IChargingRate: "+string(V2IChargingRate),
-		"dockingStationCapacity: "+string(dockingStationCapacity),
+		"chargingStationCapacity: "+string(chargingStationCapacity),
 		"------------------------------PEOPLE PARAMETERS------------------------------",
 		"numPeople: "+string(numPeople),
 		"maxWaitTime: "+string(maxWaitTime),
@@ -166,7 +166,7 @@ species peopleLogger_trip parent: Logger mirrors: people {
 	}
 	
 	action logTrip(bool served, string type, float waitTime, float departure, float tripduration, point home, point work, float distance) {
-		do log(1, [served, type, waitTime, departure, tripduration, home.x, home.y, work.x, work.y, distance, distance/BikeSpeed]);
+		do log(1, [served, type, waitTime, departure, tripduration, home.x, home.y, work.x, work.y, distance, distance/WanderingSpeed]);
 	}
 	
 }
@@ -239,7 +239,7 @@ species peopleLogger parent: Logger mirrors: people {
 				departureTime <- time;
 				served <- true;
 			}
-			match "idle" {
+			match "wander" {
 				//trip has ended
 				if tripdistance = 0 {
 					tripdistance <- topology(roadNetwork) distance_between [persontarget.living_place, persontarget.working_place];
@@ -494,7 +494,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 			cycle*step,
 			cycle*step - cycleStartActivity*step,
 			int(d),
-			int(d/BikeSpeed),
+			int(d/WanderingSpeed),
 			int(batteryStartActivity),
 			int(biketarget.batteryLife)
 		

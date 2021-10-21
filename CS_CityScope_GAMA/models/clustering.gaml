@@ -42,7 +42,7 @@ global {
 		matrix allPairs <- all_pairs_shortest_path (roadNetwork);    
 	    
 		// -------------------------------------Location of the charging stations----------------------------------------   
-	    //from docking locations to closest intersection
+	    //from charging locations to closest intersection
 	    list<int> tmpDist;
 
 		loop vertex over: roadNetwork.vertices {
@@ -57,7 +57,7 @@ global {
 		list<list> instances <- tagRFID collect ([each.location.x, each.location.y]);
 
 		//from the vertices list, create k groups  with the Kmeans algorithm (https://en.wikipedia.org/wiki/K-means_clustering)
-		list<list<int>> kmeansClusters <- list<list<int>>(kmeans(instances, numDockingStations));
+		list<list<int>> kmeansClusters <- list<list<int>>(kmeans(instances, numChargingStations));
 
 		//from clustered vertices to centroids locations
 		int groupIndex <- 0;
@@ -105,7 +105,7 @@ global {
 			pheromoneMark <- 300/step*singlePheromoneMark;
 			//Battery life random but not starting on 0. Now 75% of MaxBatteryLife
 			batteryLife <- rnd(maxBatteryLife*0.75,maxBatteryLife);
-			speed <- BikeSpeed;
+			speed <- WanderingSpeed;
 			distancePerCycle <- step * speed;
 			
 //			write "cycle: " + cycle + ", " + string(self) + " created with batteryLife " + self.batteryLife;
