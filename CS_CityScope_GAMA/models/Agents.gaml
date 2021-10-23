@@ -67,7 +67,7 @@ species chargingStation {
 	}
 	
 	reflex chargeBikes {
-		ask dockingStationCapacity first bikesToCharge {
+		ask chargingStationCapacity first bikesToCharge {
 			batteryLife <- batteryLife + step*V2IChargingRate;
 		}
 	}
@@ -135,7 +135,7 @@ species people control: fsm skills: [moving] {
     bool timeToWork { return (current_date.hour = start_work_hour and current_date.minute >= start_work_minute) and !(self overlaps working_place); }
     bool timeToSleep { return (current_date.hour = end_work_hour and current_date.minute >= end_work_minute) and !(self overlaps living_place); }
     
-    state idle initial: true {
+    state wander initial: true {
     	//Watch netflix at home (and/or work)
     	enter {
     		ask logger { do logEnterState; }
@@ -161,7 +161,7 @@ species people control: fsm skills: [moving] {
 		transition to: walking when: host.requestBike(self) {
 			target <- closestIntersection;
 		}
-		transition to: idle {
+		transition to: wander {
 			ask logger { do logEvent( "Teleported, wait too long" ); }
 			location <- final_destination;
 		}
@@ -175,17 +175,17 @@ species people control: fsm skills: [moving] {
 			ask logger { do logEnterState( "awaiting " + string(myself.bikeToRide) ); }
 			target <- nil;
 		}
-		transition to: riding when: bikeToRide.state = "dropping_off" {}
+		transition to: riding when: bikeToRide.state = "in_use" {}
 		exit {
 			ask logger { do logExitState; }
 		}
 	}
 	state riding {
-		//do nothing, follow the bike around until it drops you off and you have to walk
+		//do nothing, follow the bike around until it drops you off (i.e., ride it) and you have to walk
 		enter {
 			ask logger { do logEnterState( "riding " + string(myself.bikeToRide) ); }
 		}
-		transition to: walking when: bikeToRide.state != "dropping_off" {
+		transition to: walking when: bikeToRide.state != "in_use" {
 			target <- final_destination;
 		}
 		exit {
@@ -201,7 +201,7 @@ species people control: fsm skills: [moving] {
 		enter {
 			ask logger { do logEnterState; }
 		}
-		transition to: idle when: location = final_destination {}
+		transition to: wander when: location = final_destination {}
 		transition to: awaiting_bike when: location = target {}
 		exit {
 			ask logger { do logExitState; }
@@ -216,7 +216,7 @@ species bike control: fsm skills: [moving] {
 	//----------------Display-----------------
 	rgb color;
 	map<string, rgb> color_map <- [
-		"idle"::#lime,
+		"wander"::#lime,
 		
 		"low_battery":: #red,
 		"getting_charge":: #pink,
@@ -226,7 +226,7 @@ species bike control: fsm skills: [moving] {
 		"following"::#yellow,
 		
 		"picking_up"::rgb(175*1.1,175*1.6,200),
-		"dropping_off"::#gamagreen
+		"in_use"::#gamagreen
 	];
 	aspect realistic {
 		color <- color_map[state];
@@ -249,18 +249,18 @@ species bike control: fsm skills: [moving] {
 	bike follower;
 	people rider;
 	
-	list<string> rideStates <- ["idle", "following"];//, "awaiting_follower", "seeking_leader"];
+	list<string> rideStates <- ["wander", "following"];//, "awaiting_follower", "seeking_leader"];
 	bool availableForRide {
 		return (state in rideStates) and !setLowBattery() and rider = nil;
 	}
-	list<string> platoonStates <- ["idle","picking_up"];
+	list<string> platoonStates <- ["wander","picking_up"];
 	bool availableForPlatoon {
-		// Bike must either be idle, or awaiting another follower, have no followers
-		//TODO: may need more filters. Must exclude dropping_off, for example
+		// Bike must either be wander, or awaiting another follower, have no followers
+		//TODO: may need more filters. Must exclude in_use, for example
 		return (state in platoonStates) and follower = nil and !setLowBattery();
 	}
 	
-	//transition from idle to picking_up. Called by the global scheduler
+	//transition from wander to picking_up. Called by the global scheduler
 	action pickUp(people person) {
 		rider <- person;
 	}
@@ -281,7 +281,7 @@ species bike control: fsm skills: [moving] {
 	}
 	bool shouldDecluster(bike other) {
 		//Don't decluster until you need to or you've nothing left to give
-		if other.state = "dropping_off" { return true; }
+		if other.state = "in_use" { return true; }
 		if setLowBattery() { return true; }
 		if chargeToGive(other) <= 0 { return true; }
 		
@@ -334,7 +334,7 @@ species bike control: fsm skills: [moving] {
 		return batteryLife < distanceSafetyFactor*lastDistanceToChargingStation; //safety factor
 	}
 	float energyCost(float distance) { //This function will let us alter the efficiency of our bikes, if we decide to look into that
-		if state = "dropping_off" { return 0; } //user will pedal
+		if state = "in_use" { return 0; } //user will pedal
 		return distance;
 	}
 	action reduceBattery(float distance) {
@@ -370,13 +370,13 @@ species bike control: fsm skills: [moving] {
 	tagRFID lastTagOI; //last RFID tag we passed in previous cycle. Useful for deposit pheromones.
 	
 	bool canMove {
-		return state != "awaiting_follower" and ((target != nil and target != location) or state="idle") and batteryLife > 0;
+		return state != "awaiting_follower" and ((target != nil and target != location) or state="wander") and batteryLife > 0;
 	}
 	
 	
 	path moveTowardTarget {
-		if (state="dropping_off"){return goto(on:roadNetwork, target:target, return_path: true, speed:BikeDroppingOffSpeed);}
-		return goto(on:roadNetwork, target:target, return_path: true, speed:BikeAutDrivingSpeed);
+		if (state="in_use"){return goto(on:roadNetwork, target:target, return_path: true, speed:RidingSpeed);}
+		return goto(on:roadNetwork, target:target, return_path: true, speed:PickUpSpeed);
 	}
 	path wander {
 		//construct a plan, so we don't waste time: Where will we turn from the next intersection? If we have time left in the cycle, where will we turn from there? And from the intersection after that?
@@ -397,7 +397,7 @@ species bike control: fsm skills: [moving] {
 	reflex move when: canMove() {
 		lastTagOI <- lastTag;
 		//do goto (or follow in the case of wandering, where we've prepared a probably-suboptimal route)
-		travelledPath <- (state = "idle") ? wander() : moveTowardTarget();
+		travelledPath <- (state = "wander") ? wander() : moveTowardTarget();
 		float distanceTraveled <- pathLength(travelledPath);
 		
 		do reduceBattery(distanceTraveled);
@@ -515,7 +515,7 @@ species bike control: fsm skills: [moving] {
 	
 	action depositPheromones(tagRFID tag, tagRFID previousTag) {
 		// add _all_ of my pheremone to nearest tag. If I am picking someone up, add 0 to pheremone tag (???). Set my pheremone levels to whatever the tag has diffused to me
-		bool depositPheromone <- state = "picking_up" or state = "dropping_off";
+		bool depositPheromone <- state = "picking_up" or state = "in_use";
 		loop k over: tag.pheromoneMap.keys {
 			tag.pheromoneMap[k] <- tag.pheromoneMap[k] + pheromoneToDiffuse; //Why do we add pheromone to all of them?
 			if k = previousTag and depositPheromone {
@@ -531,7 +531,7 @@ species bike control: fsm skills: [moving] {
 	
 	
 	/* ========================================== STATE MACHINE ========================================= */
-	state idle initial: true {
+	state wander initial: true {
 		//wander the map, follow pheromones. Same as the old searching reflex
 		enter {
 			ask eventLogger { do logEnterState; }
@@ -580,7 +580,7 @@ species bike control: fsm skills: [moving] {
 				bikesToCharge <- bikesToCharge + myself;
 			}
 		}
-		transition to: idle when: batteryLife >= maxBatteryLife {}
+		transition to: wander when: batteryLife >= maxBatteryLife {}
 		exit {
 			ask eventLogger { do logExitState("Charged at " + (chargingStation closest_to myself)); }
 			
@@ -599,7 +599,7 @@ species bike control: fsm skills: [moving] {
 		enter {
 			ask eventLogger { do logEnterState("Awaiting Follower " + myself.follower); }
 		}
-		transition to: idle when: follower.state = "following" {}
+		transition to: wander when: follower.state = "following" {}
 		exit {
 			ask eventLogger { do logExitState("Awaited Follower " + myself.follower); }
 		}
@@ -625,7 +625,7 @@ species bike control: fsm skills: [moving] {
 		enter {
 			ask eventLogger { do logEnterState("Following " + myself.leader); }
 		}
-		transition to: idle when: shouldDecluster(leader) {}
+		transition to: wander when: shouldDecluster(leader) {}
 		transition to: picking_up when: rider != nil {}
 		exit {
 			ask eventLogger { do logExitState("Followed " + myself.leader); }
@@ -654,24 +654,24 @@ species bike control: fsm skills: [moving] {
 			target <- rider.closestIntersection; //Go to the rider's closest intersection
 		}
 		
-		transition to: dropping_off when: location=target and rider.location=target {}
+		transition to: in_use when: location=target and rider.location=target {}
 		exit{
 			ask eventLogger { do logExitState("Picked up " + myself.rider); }
 		}
 	}
 	
-	state dropping_off {
-		//go to rider's destination, drop them off
+	state in_use {
+		//go to rider's destination, In Use will use it
 		enter {
-			ask eventLogger { do logEnterState("Dropping Off " + myself.rider); }
+			ask eventLogger { do logEnterState("In Use " + myself.rider); }
 			target <- (tagRFID closest_to rider.final_destination).location;
 		}
 		
-		transition to: idle when: location=target {
+		transition to: wander when: location=target {
 			rider <- nil;
 		}
 		exit {
-			ask eventLogger { do logExitState("Dropped Off " + myself.rider); }
+			ask eventLogger { do logExitState("Used" + myself.rider); }
 		}
 	}
 }

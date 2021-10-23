@@ -16,7 +16,7 @@ global {
 	float step <- 35 #sec;
 	//Simulation starting date
 	//date starting_date <- #now;
-	date starting_date <- date("2021-10-12 05:00:00");
+	date starting_date <- date("2021-10-12 00:00:00");
 	date logDate <- #now;
 	
 	
@@ -45,40 +45,41 @@ global {
 	//Max battery life of bikes - Maximum number of meters with the battery
 	float maxBatteryLife <- 40000.0 #m	min: 10000#m max: 300000#m parameter: "Battery Capacity (m):" category: "Bike";
 	//speed of bikes - about 5.5  m/s for PEV (it can be changed accordingly to different robot specification)
-	float BikeSpeed <- 1.39 #m/#s min: 1 #m/#s max: 15#m/#s parameter: "Bike Speed Wandering (m/s):" category:  "Bike";
-	float BikeAutDrivingSpeed <-  2.22 #m/#s min: 1 #m/#s max: 15#m/#s parameter: "Bike Autonomous Driving Speed (m/s):" category:  "Bike";
-	float BikeDroppingOffSpeed <-  2.83 #m/#s min: 1 #m/#s max: 15#m/#s parameter: "Bike Dropping Off Speed (m/s):" category:  "Bike";
+	float WanderingSpeed <- 5/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Bike Wandering  Speed (m/s):" category:  "Bike";
+	float PickUpSpeed <-  8/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Bike Pick-up Speed (m/s):" category:  "Bike";
+	float RidingSpeed <-  10.2/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Riding Speed (m/s):" category:  "Bike";
 	
 	float clusterDistance <- 250#m; //Radius in which we look for bikes to cluster with
-	float clusterThreshold <- 2500.0; //(see bike.clusterCost) the charge a foller must be able to give the leader in order to cluster
+	float clusterThreshold <- 2500.0; //(see bike.clusterCost) the charge a follower must be able to give the leader in order to cluster
 	
-	float followDistance <- 5#m;
-	float V2VChargingRate <- 2.22 #m/#s;
+	float followDistance <- 1#m;
+	float V2VChargingRate <- maxBatteryLife/(4.5*60*60) #m/#s;
 	
 	float chargingPheromoneThreshold <- 0*singlePheromoneMark; //Disables charge-seeking when low pheromone
 	
 	
-	float minSafeBattery <- 25000 #m; //Amount of battery always reserved when charging another bike, also at which we seek battery
+	float minSafeBattery <- 0.25*maxBatteryLife #m; //Amount of battery always reserved when charging another bike, also at which we seek battery
 	int numberOfStepsReserved <- 3; //number of simulation steps worth of movement to reserve before seeking charge
 	int distanceSafetyFactor <- 10; //factor of distancetochargingstaiton at which we seek charge
 	
 	
-	float rideDistance <- 200 #m;
 	
-	//----------------------Docking Parameters------------------------
-	//Number of docking stations
-	int numDockingStations <- 2 	min: 1 max: 10 parameter: "Num Docking Stations:" category: "Initial";
-	float V2IChargingRate <- 2.22 #m/#s min: 1 #m/#s max: 2000 #m/#s parameter: "V2I Charging Rate (m/s):" category: "Charging";
-	int dockingStationCapacity <- 10;
+	
+	//----------------------numChargingStationsion Parameters------------------------
+	//Number of charging stations
+	int numChargingStations <- 2 	min: 1 max: 10 parameter: "Num Charging Stations:" category: "Initial";
+	float V2IChargingRate <- maxBatteryLife/(4.5*60*60) #m/#s min: 1.4 #m/#s max: 20 #m/#s parameter: "V2I Charging Rate (m/s):" category: "Charging";
+	int chargingStationCapacity <- 10;
 	
 	//----------------------People Parameters------------------------
 	int numPeople <- 250 				min: 0 max: 1000 parameter: "Num People:" category: "Initial";
 	float maxWaitTime <- 20#mn		min: 3#mn max: 60#mn parameter: "Max Wait Time:" category: "People";
+	float rideDistance <- maxWaitTime*60*PickUpSpeed #m;
     int workStartMin <- 6			min: 4 max: 12 parameter: "Min Work Start Time:" category: "People";
     int workStartMax <- 8			min: 4 max: 12 parameter: "Max Work Start Time:" category: "People";
     int workEndMin <- 16			min: 14 max: 24 parameter: "Min Work End Time:" category: "People";
     int workEndMax <- 20			min: 14 max: 24 parameter: "Max Work End Time:" category: "People";
-    float peopleSpeed <- 1.39 #m/#s	min: 0.5#m/#s max: 10#m/#s parameter: "People Speed (m/s):" category: "People";
+    float peopleSpeed <- 5/3.6 #m/#s	min: 1/3.6 #m/#s max: 10/3.6 #m/#s parameter: "People Speed (m/s):" category: "People";
 //    float maxSpeedPeople <- 5.0 #km/#h	min: 0.5#km/#h max: 10#km/#h parameter: "People Max Speed (m/s):" category: "People";
     
     float bikeCostBatteryCoef <- 200.0; //(see global.bikeCost)relative importance of batterylife when selecting bikes to ride
@@ -104,8 +105,8 @@ global {
 	file roads_shapefile <- file(cityGISFolder + "/Roads.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
 	//Case Cambridge Map
-	//file dockingStations <- file(cityGISFolder + "/dockingStations.shp");
-	//file dockingStations <- file("./../includes/City/clustering" + "/dockingStations.shp");
+	//file chargingStations <- file(cityGISFolder + "/chargingStations.shp");
+	//file chargingStations <- file("./../includes/City/clustering" + "/chargingStations.shp");
 	 
 	//Image File
 	file imageRaster <- file('./../images/gama_black.png');
