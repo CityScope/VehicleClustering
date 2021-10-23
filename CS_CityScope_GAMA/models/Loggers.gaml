@@ -34,7 +34,7 @@ global {
 	
 	action logForSetUp (list<string> parameters) {
 		loop param over: parameters {
-			save (param) to: './../data/' + string(#now, 'yyyy-MM-dd hh.mm.ss','en') + '/' + 'setUp' + '.txt' type: "text" rewrite: false header: false;}
+			save (param) to: './../data/' + string(logDate, 'yyyy-MM-dd hh.mm.ss','en') + '/' + 'setUp' + '.txt' type: "text" rewrite: false header: false;}
 	}
 	
 	action logSetUp { //TODO: To complete with the rest of parameters

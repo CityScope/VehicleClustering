@@ -101,8 +101,10 @@ species people control: fsm skills: [moving] {
 	rgb color <- #yellow ;
     building living_place; //Home [lat,lon]
     building working_place; //Work [lat, lon]
-    int start_work;
-    int end_work;
+    int start_work_hour;
+    int start_work_minute;
+    int end_work_hour;
+    int end_work_minute;
     
     peopleLogger logger;
     peopleLogger_trip tripLogger;
@@ -130,8 +132,8 @@ species people control: fsm skills: [moving] {
 	
 	
     //Should we leave for work/home? Only if it is time, and we are not already there
-    bool timeToWork { return (current_date.hour = start_work) and !(self overlaps working_place); }
-    bool timeToSleep { return (current_date.hour = end_work) and !(self overlaps living_place); }
+    bool timeToWork { return (current_date.hour = start_work_hour and current_date.minute >= start_work_minute) and !(self overlaps working_place); }
+    bool timeToSleep { return (current_date.hour = end_work_hour and current_date.minute >= end_work_minute) and !(self overlaps living_place); }
     
     state idle initial: true {
     	//Watch netflix at home (and/or work)

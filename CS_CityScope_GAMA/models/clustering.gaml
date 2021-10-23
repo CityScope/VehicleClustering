@@ -113,8 +113,10 @@ global {
 	    
 		// -------------------------------------------The People -----------------------------------------
 	    create people number: numPeople {
-	        start_work <- rnd (workStartMin, workStartMax);
-	        end_work <- rnd(workEndMin, workEndMax);
+	        start_work_hour <- rnd (workStartMin, workStartMax);
+	        start_work_minute <- rnd(0,59);
+	        end_work_hour <- rnd(workEndMin, workEndMax);
+	        end_work_minute <- rnd(0,59);
 	        living_place <- one_of(residentialBuildings) ;
 	        working_place <- one_of(officeBuildings) ;
 	        location <- any_location_in(living_place);
