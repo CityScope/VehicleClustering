@@ -456,6 +456,13 @@ species bike control: fsm skills: [moving] {
 			lastIntersections <- newIntersections;
 			
 			ask travelLogger { do logRoads(distanceTraveled, num); }
+			if (follower != nil) {
+				ask follower {
+					ask travelLogger {
+						do logRoads(distanceTraveled, num);
+					}
+				}
+			}
 		}
 		
 		

@@ -432,47 +432,11 @@ species bikeLogger_event parent: Logger mirrors: bike {
 	float chargingStartTime; //Charge start time [s]
 	float batteryLifeBeginningCharge; //Battery when beginning charge [%]
 	
-	/*//Activities' start times
-	float timeStartWandering;
-	float timeStartPickingUp;
-	float timeStartDroppingOff;
-	float timeStartSeekingLeader;
-	float timeStartAwaitingFollower;
-	float timeStartFollowing;
-	float timeStartGoingForACharge;
-	
-	//Activities' distances variables
-	float distanceWandering;
-	point locationStartPickingUp;
-	point locationStartDroppingOff;
-	point locationStartSeekingLeader;
-	point locationStartAwaitingFollower;
-	point locationStartFollowing;
-	point locationStartGoingForACharge;
-	
-	//Battery when beggining activity
-	float batteryStartWandering;
-	float batteryStartPickingUp;
-	float batteryStartDroppingOff;
-	float batteryStartSeekingLeader;
-	float batteryStartAwaitingFollower;
-	float batteryStartFollowing;
-	float batteryStartGoingForACharge;*/
 	int cycleStartActivity;
 	point locationStartActivity;
 	float distanceStartActivity;
 	float batteryStartActivity;
 	string currentState;
-	
-//	action logActivity(bike main, string activity, string otherInvolved){
-//		if bikeLogs {
-//			if biketarget.state = "wandering" {
-//				save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, (cycle-cycleStartActivity)*biketarget.distancePerCycle, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;			
-//			} else {
-//				save [string(main), activity, otherInvolved, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to main.location, batteryStartActivity, main.batteryLife/maxBatteryLife * 100] to: "BikeTrips.csv" type: "csv" rewrite: false;		
-//			}
-//		}
-//	}
 	
 	action logEnterState { do logEnterState(""); }
 	action logEnterState(string logmessage) {
@@ -495,7 +459,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 			int(cycle*step),
 			int(cycle*step - cycleStartActivity*step),
 			int(d),
-			int(d/WanderingSpeed),
+			int(d/WanderingSpeed), //TODO: Change this, as wandering speed does not apply for every state
 			int(batteryStartActivity),
 			int(biketarget.batteryLife)
 		
