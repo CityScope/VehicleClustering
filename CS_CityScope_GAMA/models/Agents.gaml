@@ -12,14 +12,20 @@ import "./clustering.gaml"
 
 
 global {
-	list<bike> availableBikes(people person) {
+	float distanceInGraph (point origin, point destination) {
+		using topology(roadNetwork) {
+			return (origin distance_to destination);
+		}
+	}
+	list<bike> availableBikes(people person, float tripDistance) {
 		//Here we would consider wait time and return false if too high. Currently un-implemented
-		return bike where (each.availableForRide() and (each distance_to person) <= rideDistance);
+		return bike where (each.availableForRide() and (each distance_to person) <= rideDistance and (each.batteryLife > tripSafetyFactor*tripDistance));
 	}
 
 	
-	bool requestBike(people person) { //returns true if bike is available
-		list<bike> candidates <- availableBikes(person);
+	bool requestBike(people person, point destination) { //returns true if bike is available
+		float estimatedTripDistance <- distanceInGraph(person.location,destination);
+		list<bike> candidates <- availableBikes(person,estimatedTripDistance);
 		if empty(candidates) {
 			return false;
 		}
@@ -158,7 +164,7 @@ species people control: fsm skills: [moving] {
 			closestIntersection <- (tagRFID closest_to(self)).location;
 		}
 		
-		transition to: walking when: host.requestBike(self) {
+		transition to: walking when: host.requestBike(self, final_destination) {
 			target <- closestIntersection;
 		}
 		transition to: wander {
@@ -329,7 +335,7 @@ species bike control: fsm skills: [moving] {
 	//Determines when to move into the low_battery state
 	bool setLowBattery {
 		//TODO: perhaps all these minimum values should be merged into one, to be respected here and in cluster-charging
-		if batteryLife <= numberOfStepsReserved*distancePerCycle { return true; } //leave 3 simulation-steps worth of movement
+		//if batteryLife <= numberOfStepsReserved*distancePerCycle { return true; } //leave 3 simulation-steps worth of movement
 		if batteryLife < minSafeBattery { return true; } //we have a minSafeBattery value, might as well respect it
 		return batteryLife < distanceSafetyFactor*lastDistanceToChargingStation; //safety factor
 	}
@@ -359,10 +365,10 @@ species bike control: fsm skills: [moving] {
 	int lastDistanceToChargingStation;
 	path travelledPath; //preallocation. Only used within the moveTowardTarget reflex
 	
-	float pathLength(path p) {
+	/*float pathLength(path p) {
 		if empty(p) or p.shape = nil { return 0; }
 		return p.shape.perimeter; //TODO: may be accidentally doubled
-	}
+	}*/ //No longer used. Old function. Delete ASAP
 	list<tagRFID> lastIntersections;
 	
 	tagRFID lastTag; //last RFID tag we passed. Useful for wander function
@@ -381,13 +387,15 @@ species bike control: fsm skills: [moving] {
 	path wander {
 		//construct a plan, so we don't waste time: Where will we turn from the next intersection? If we have time left in the cycle, where will we turn from there? And from the intersection after that?
 		list<point> plan <- [location, nextTag.location];
+		float distancePlan <- host.distanceInGraph(location, nextTag.location);
 		
-		loop while: pathLength(path(plan)) < distancePerCycle {
+		loop while: distancePlan < distancePerCycle {
 			tagRFID newTag <- chooseWanderTarget(nextTag, lastTag);
 			
 			lastTag <- nextTag;
 			nextTag <- newTag;
 			plan <- plan + newTag.location;
+			distancePlan <- host.distanceInGraph(location, newTag.location);
 		}
 		
 		//using follow can result in some drift when the road is curved (follow will use straight lines, and not respect topology). I have not found a solution to this
@@ -398,8 +406,8 @@ species bike control: fsm skills: [moving] {
 		lastTagOI <- lastTag;
 		//do goto (or follow in the case of wandering, where we've prepared a probably-suboptimal route)
 		travelledPath <- (state = "wander") ? wander() : moveTowardTarget();
-		float distanceTraveled <- pathLength(travelledPath);
-		
+		//float distanceTraveled <- pathLength(travelledPath); // Old way of doing it with Perimeter
+		float distanceTraveled <- host.distanceInGraph(travelledPath.source,travelledPath.target);
 		do reduceBattery(distanceTraveled);
 			
 		if !empty(travelledPath) {
@@ -537,6 +545,7 @@ species bike control: fsm skills: [moving] {
 			ask eventLogger { do logEnterState; }
 			target <- nil;
 		}
+		transition to: picking_up when: rider != nil {}
 		transition to: awaiting_follower when: follower != nil and follower.state = "seeking_leader" {}
 		transition to: seeking_leader when: follower = nil and evaluateclusters() {
 			//Don't form cluster if you're already a leader
@@ -545,7 +554,6 @@ species bike control: fsm skills: [moving] {
 			}
 		}
 		transition to: low_battery when: setLowBattery() or readPheromones < chargingPheromoneThreshold {}
-		transition to: picking_up when: rider != nil {}
 		exit {
 			ask eventLogger { do logExitState; }
 		}

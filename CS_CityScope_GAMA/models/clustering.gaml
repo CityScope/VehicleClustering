@@ -137,6 +137,11 @@ global {
 		
 		write "FINISH INITIALIZATION";
     }
+
+reflex stop_simulation when: cycle >= numberOfDays * 24 * 3600 / step {
+	do pause ;
+}
+
 }
 
 

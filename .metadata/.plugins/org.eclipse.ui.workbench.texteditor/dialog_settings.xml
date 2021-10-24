@@ -1,13 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
-		<item key="selection" value="timeToWork"/>
+		<item key="selection" value="logCharge"/>
 		<item key="wrap" value="true"/>
 		<item key="casesensitive" value="false"/>
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+			<item value="logCharge"/>
+			<item value="logTrip"/>
+			<item value="rideDistance"/>
+			<item value="availableForRide"/>
+			<item value="requestBike"/>
+			<item value="waittime"/>
+			<item value="wait"/>
 			<item value="timeToWork"/>
 			<item value="loop"/>
 			<item value="for"/>
@@ -16,13 +23,6 @@
 			<item value="pheromoneMark"/>
 			<item value="pheromonemark"/>
 			<item value="write"/>
-			<item value="starting_date"/>
-			<item value="chargingStation"/>
-			<item value="getting_charge"/>
-			<item value="clusterDistance"/>
-			<item value="updatePheromones"/>
-			<item value="depositPheromone"/>
-			<item value="rememberPheromones"/>
 		</list>
 		<list key="replacehistory">
 			<item value=""/>

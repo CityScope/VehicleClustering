@@ -13,11 +13,13 @@ import "./clustering.gaml"
 global {
 	//----------------------Simulation Parameters------------------------
 	//Simulation time step
-	float step <- 35 #sec;
+	float step <- 35.0 #sec;
 	//Simulation starting date
 	//date starting_date <- #now;
 	date starting_date <- date("2021-10-12 00:00:00");
 	date logDate <- #now;
+	//How many days we simulate
+	int numberOfDays <- 1;
 	
 	
 	//----------------------Logging Parameters------------------------
@@ -59,8 +61,9 @@ global {
 	
 	
 	float minSafeBattery <- 0.25*maxBatteryLife #m; //Amount of battery always reserved when charging another bike, also at which we seek battery
-	int numberOfStepsReserved <- 3; //number of simulation steps worth of movement to reserve before seeking charge
+	//int numberOfStepsReserved <- 3; //number of simulation steps worth of movement to reserve before seeking charge
 	int distanceSafetyFactor <- 10; //factor of distancetochargingstaiton at which we seek charge
+	float tripSafetyFactor <- 1.15;
 	
 	
 	
