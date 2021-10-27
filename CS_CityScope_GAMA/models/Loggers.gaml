@@ -284,7 +284,7 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike {
 		"Station",
 		"Start Time",
 		"End Time",
-		"Duration",
+		"Duration (h)",
 		"Start Battery %",
 		"End Battery %",
 		"Battery Gain %"

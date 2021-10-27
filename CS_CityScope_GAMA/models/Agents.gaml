@@ -26,7 +26,7 @@ global {
 		//Here we would consider wait time and return false if too high. Currently un-implemented
 		return bike where (each.availableForRide() and (each distance_to person) <= rideDistance);
 	}
-	
+
 
 	
 	bool requestBike(people person, point destination) { //returns true if bike is available
@@ -82,6 +82,7 @@ species chargingStation {
 	
 	reflex chargeBikes {
 		ask chargingStationCapacity first bikesToCharge {
+			write "cycle: " + cycle + ", current time "+ current_date.hour +':' + current_date.minute + ' agent ' +string(self) + ", battery life " + self.batteryLife + ' step '+ step + ' chargRate '+ V2IChargingRate ;
 			batteryLife <- batteryLife + step*V2IChargingRate;
 		}
 	}

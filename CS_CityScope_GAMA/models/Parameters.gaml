@@ -73,7 +73,7 @@ global {
 	//----------------------numChargingStationsion Parameters------------------------
 	//Number of charging stations
 	int numChargingStations <- 2 	min: 1 max: 10 parameter: "Num Charging Stations:" category: "Initial";
-	float V2IChargingRate <- maxBatteryLife/(1*60*60) #m/#s min: 1.4 #m/#s max: 20 #m/#s parameter: "V2I Charging Rate (m/s):" category: "Charging";
+	float V2IChargingRate <- maxBatteryLife/(4.5*60*60) #m/#s; // min: 1.4 #m/#s max: 20 #m/#s parameter: "V2I Charging Rate (m/s):" category: "Charging";
 	int chargingStationCapacity <- 25; //TODO: review, this limit is not working
 	
 	//----------------------People Parameters------------------------
