@@ -103,8 +103,8 @@ global {
 			pheromoneToDiffuse <- 0.0;
 			//Pheromone mark to remain 5 minutes
 			pheromoneMark <- 300/step*singlePheromoneMark;
-			//Battery life random but not starting on 0. Now 75% of MaxBatteryLife
-			batteryLife <- rnd(maxBatteryLife*0.75,maxBatteryLife);
+			//Battery life random but not starting on 0. Now 25% of MaxBatteryLife
+			batteryLife <- rnd(maxBatteryLife*0.25,maxBatteryLife); //TODO: review the impact of this percentage
 			speed <- WanderingSpeed;
 			distancePerCycle <- step * speed;
 			
@@ -113,15 +113,16 @@ global {
 	    
 		// -------------------------------------------The People -----------------------------------------
 	    create people number: numPeople {
-	        start_work_hour <- rnd (workStartMin, workStartMax);
+	        start_work_hour <- rnd (workStartMin, workStartMax-1); // we need to -1 because otherwise we will create agents until workStartMax:59 (eg. 8.59 with 8 as max)
 	        start_work_minute <- rnd(0,59);
-	        end_work_hour <- rnd(workEndMin, workEndMax);
+	        end_work_hour <- rnd(workEndMin, workEndMax-1);
 	        end_work_minute <- rnd(0,59);
 	        living_place <- one_of(residentialBuildings) ;
 	        working_place <- one_of(officeBuildings) ;
 	        location <- any_location_in(living_place);
 	        
 	        speed <- peopleSpeed;
+	        //write "cycle: " + cycle + ", " + string(self) + " created at " + self.start_work_hour + ":"+self.start_work_minute;
 	    }
 	 	// ----------------------------------The RFIDs tag on each road intersection------------------------
 		
@@ -138,7 +139,7 @@ global {
 		write "FINISH INITIALIZATION";
     }
 
-reflex stop_simulation when: cycle >= numberOfDays * 24 * 3600 / step {
+reflex stop_simulation when: cycle >= numberOfDays * numberOfHours * 3600 / step {
 	do pause ;
 }
 
@@ -270,7 +271,7 @@ experiment one_bike type: gui {
     }
 }
 
-experiment just_a_lot_of_bikes type: gui {
+/*experiment just_a_lot_of_bikes type: gui {
 	parameter var: numBikes init: 20;
 	parameter var: numPeople init: 0;
 	
@@ -298,4 +299,4 @@ experiment one_each_headless {
 experiment one_bike_headless {
 	parameter var: numBikes init: 1;
 	parameter var: numPeople init: 0;
-}
+}*/

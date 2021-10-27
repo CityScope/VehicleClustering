@@ -17,15 +17,23 @@ global {
 			return (origin distance_to destination);
 		}
 	}
-	list<bike> availableBikes(people person, float tripDistance) {
+	/*list<bike> availableBikes(people person, float tripDistance) {
 		//Here we would consider wait time and return false if too high. Currently un-implemented
 		return bike where (each.availableForRide() and (each distance_to person) <= rideDistance and (each.batteryLife > tripSafetyFactor*tripDistance));
+	}*/
+	//New version
+	list<bike> availableBikes(people person) {
+		//Here we would consider wait time and return false if too high. Currently un-implemented
+		return bike where (each.availableForRide() and (each distance_to person) <= rideDistance);
 	}
+	
 
 	
 	bool requestBike(people person, point destination) { //returns true if bike is available
-		float estimatedTripDistance <- distanceInGraph(person.location,destination);
-		list<bike> candidates <- availableBikes(person,estimatedTripDistance);
+		//float estimatedTripDistance <- distanceInGraph(person.location,destination);
+		//list<bike> candidates <- availableBikes(person,estimatedTripDistance);
+		//New Version
+		list<bike> candidates <- availableBikes(person);
 		if empty(candidates) {
 			return false;
 		}
@@ -148,6 +156,7 @@ species people control: fsm skills: [moving] {
     		target <- nil;
     	}
     	transition to: requesting_bike when: timeToWork() {
+    		write "cycle: " + cycle + ", current time "+ current_date.hour +':' + current_date.minute + 'agent' +string(self) + " time " + self.start_work_hour + ":"+self.start_work_minute;
     		final_destination <- any_location_in (working_place);
     	}
     	transition to: requesting_bike when: timeToSleep() {
@@ -337,7 +346,10 @@ species bike control: fsm skills: [moving] {
 		//TODO: perhaps all these minimum values should be merged into one, to be respected here and in cluster-charging
 		//if batteryLife <= numberOfStepsReserved*distancePerCycle { return true; } //leave 3 simulation-steps worth of movement
 		if batteryLife < minSafeBattery { return true; } //we have a minSafeBattery value, might as well respect it
-		return batteryLife < distanceSafetyFactor*lastDistanceToChargingStation; //safety factor
+		else {
+			return false;
+		}
+		//return batteryLife < distanceSafetyFactor*lastDistanceToChargingStation; //safety factor
 	}
 	float energyCost(float distance) { //This function will let us alter the efficiency of our bikes, if we decide to look into that
 		if state = "in_use" { return 0; } //user will pedal
