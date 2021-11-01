@@ -17,22 +17,23 @@ global {
 			return (origin distance_to destination);
 		}
 	}
-	/*list<bike> availableBikes(people person, float tripDistance) {
+	list<bike> availableBikes(people person) {
+		return bike where (each.availableForRide() and (each distance_to person) <= maxDistance);
+	}
+	
+	/*Old
+	  list<bike> availableBikes(people person, float tripDistance) {
 		//Here we would consider wait time and return false if too high. Currently un-implemented
 		return bike where (each.availableForRide() and (each distance_to person) <= maxDistance and (each.batteryLife > tripSafetyFactor*tripDistance));
 	}*/
-	//New version
-	list<bike> availableBikes(people person) {
-		//Here we would consider wait time and return false if too high. Currently un-implemented
-		return bike where (each.availableForRide() and (each distance_to person) <= maxDistance);
-	}
-
 
 	
-	bool requestBike(people person, point destination) { //returns true if bike is available
-		//float estimatedTripDistance <- distanceInGraph(person.location,destination);
-		//list<bike> candidates <- availableBikes(person,estimatedTripDistance);
-		//New Version
+	bool requestBike(people person, point destination) { //returns true if there is any bike available
+
+		/*old
+		float estimatedTripDistance <- distanceInGraph(person.location,destination);
+		list<bike> candidates <- availableBikes(person,estimatedTripDistance); */
+		
 		list<bike> candidates <- availableBikes(person);
 		if empty(candidates) {
 			return false;
@@ -53,9 +54,8 @@ global {
 	}
 	
 	float bikeCost(people person, bike b) {
-		//We like the bike less if its far, more if it has power
-		//BatteryLife normalized to make this system agnostic to maxBatteryLife
-		return (person distance_to b) - (b.batteryLife / maxBatteryLife)*bikeCostBatteryCoef;
+		//We like the bike less if its far, more if it has power + it's BatteryLife normalized to make this system agnostic to maxBatteryLife
+		return (person distance_to b) - bikeCostBatteryCoef*(b.batteryLife / maxBatteryLife);
 	}
 }
 
@@ -127,7 +127,7 @@ species people control: fsm skills: [moving] {
     
     
     point final_destination; //Final destination for the trip
-    point target; //Interim destination; the thing we are currently moving toward
+    point target; //Interim destination; the point we are currently moving toward
     point closestIntersection;
     float waitTime;
     
@@ -144,8 +144,6 @@ species people control: fsm skills: [moving] {
     action ride(bike b) {
     	bikeToRide <- b;
     }	
-	
-	
     //Should we leave for work/home? Only if it is time, and we are not already there
     bool timeToWork { return (current_date.hour = start_work_hour and current_date.minute >= start_work_minute) and !(self overlaps working_place); }
     bool timeToSleep { return (current_date.hour = end_work_hour and current_date.minute >= end_work_minute) and !(self overlaps living_place); }
@@ -168,7 +166,7 @@ species people control: fsm skills: [moving] {
 		}
     }
 	state requesting_bike {
-		//Ask the system for a bike, teleport home if wait is too long
+		//Ask the system for a bike, teleport (use another transportation mode) if wait is too long
 		enter {
 			ask logger { do logEnterState; }
 			closestIntersection <- (tagRFID closest_to(self)).location;
@@ -197,7 +195,7 @@ species people control: fsm skills: [moving] {
 		}
 	}
 	state riding {
-		//do nothing, follow the bike around until it drops you off (i.e., ride it) and you have to walk
+		//Follow the bike around (i.e., ride it) until it drops you off 
 		enter {
 			ask logger { do logEnterState( "riding " + string(myself.bikeToRide) ); }
 		}
@@ -208,9 +206,8 @@ species people control: fsm skills: [moving] {
 			ask logger { do logExitState; }
 			bikeToRide <- nil;
 		}
-		
-		//Always be at the same place as the bike
-		location <- bikeToRide.location;
+
+		location <- bikeToRide.location; //Always be at the same place as the bike
 	}
 	state walking {
 		//go to your destination or nearest intersection, then wait
@@ -266,13 +263,15 @@ species bike control: fsm skills: [moving] {
 	people rider;
 	
 	list<string> rideStates <- ["wander", "following"];//, "awaiting_follower", "seeking_leader"];
+	//TODO: all states are ["wander","low_battery","getting_charge","awaiting_follower","seeking_leader","following","picking_up","in_use"]
 	bool availableForRide {
 		return (state in rideStates) and !setLowBattery() and rider = nil;
 	}
-	list<string> platoonStates <- ["wander","picking_up"];
+	list<string> platoonStates <- ["wander","picking_up"]; //TODO: the bike that will provide battery -> can it be picking up?? 
 	bool availableForPlatoon {
 		// Bike must either be wander, or awaiting another follower, have no followers
 		//TODO: may need more filters. Must exclude in_use, for example
+		// Naroa -> It already filters this by state in platoonStates right?
 		return (state in platoonStates) and follower = nil and !setLowBattery();
 	}
 	
@@ -288,7 +287,6 @@ species bike control: fsm skills: [moving] {
 	
 	/* ========================================== PRIVATE FUNCTIONS ========================================= */
 	// no other species should touch these
-	
 	
 	//----------------Clustering-----------------
 	//These are our cost functions, and will be the basis of how we decide to form clusters
@@ -307,7 +305,6 @@ species bike control: fsm skills: [moving] {
 	//decide to follow another bike
 	bool evaluateclusters {
 		//create a map of every available bike within a certain distance and their clustering costs
-		//perhaps we want to cluster with following bikes in the future. Megacluster
 		map<bike, float> costs <- map(((bike where (each.availableForPlatoon())) at_distance clusterDistance) collect(each::clusterCost(each)));
 		
 		if empty(costs) { return false; }
@@ -321,15 +318,12 @@ species bike control: fsm skills: [moving] {
 		return false;
 	}
 	
-	
-	//determines how much charge we could give another bike
-	float chargeToGive(bike other) {
-		//never go less than some minimum battery level
-		//never charge leader to have more power than you
-		float chargeDifferenceHalved <- (batteryLife - other.batteryLife)/2;
-		float chargeToSpare <- batteryLife - minSafeBattery;
+	float chargeToGive(bike other) {	//determines how much charge we could give another bike
+		float chargeDifferenceHalved <- (batteryLife - other.batteryLife)/2; //never charge leader to have more power than you
+		float chargeToSpare <- batteryLife - minSafeBattery; //never go less than some minimum battery level
 		float chargeToGain <- maxBatteryLife - other.batteryLife;
 		return min(chargeDifferenceHalved, chargeToSpare, chargeToGain);
+		//TODO: tweak these hypotheses so that the fleet behavior makes sense
 	}
 	action chargeBike(bike other) {
 		float transfer <- min( step*V2VChargingRate, chargeToGive(other));
@@ -338,19 +332,19 @@ species bike control: fsm skills: [moving] {
 		batteryLife <- batteryLife - transfer;
 	}
 	
-	
-	
 	//----------------BATTERY-----------------
 	
 	//Determines when to move into the low_battery state
 	bool setLowBattery {
-		//TODO: perhaps all these minimum values should be merged into one, to be respected here and in cluster-charging
-		//if batteryLife <= numberOfStepsReserved*distancePerCycle { return true; } //leave 3 simulation-steps worth of movement
-		if batteryLife < minSafeBattery { return true; } //we have a minSafeBattery value, might as well respect it
+		/*Old // perhaps all these minimum values should be merged into one, to be respected here and in cluster-charging
+		if batteryLife <= numberOfStepsReserved*distancePerCycle { return true; } //leave 3 simulation-steps worth of movement*/
+		
+		if batteryLife < minSafeBattery { return true; } 
 		else {
 			return false;
 		}
-		//return batteryLife < distanceSafetyFactor*lastDistanceToChargingStation; //safety factor
+		
+		//Old:return batteryLife < distanceSafetyFactor*lastDistanceToChargingStation; //safety factor
 	}
 	float energyCost(float distance) { //This function will let us alter the efficiency of our bikes, if we decide to look into that
 		if state = "in_use" { return 0; } //user will pedal
@@ -370,8 +364,6 @@ species bike control: fsm skills: [moving] {
 	//----------------MOVEMENT-----------------
 	point target;
 	
-	//this should be affected by how many bikes there are in a cluster
-		//[Q] Nah. Instead, see the energy_cost function
 	float batteryLife min: 0.0 max: maxBatteryLife; //Number of meters we can travel on current battery
 	float distancePerCycle;
 	
@@ -380,8 +372,10 @@ species bike control: fsm skills: [moving] {
 	
 	/*float pathLength(path p) {
 		if empty(p) or p.shape = nil { return 0; }
-		return p.shape.perimeter; //TODO: may be accidentally doubled
-	}*/ //No longer used. Old function. Delete ASAP
+		return p.shape.perimeter; 
+	}*/ 
+	//TODO:	//No longer used. Old function. Delete ASAP	
+	
 	list<tagRFID> lastIntersections;
 	
 	tagRFID lastTag; //last RFID tag we passed. Useful for wander function
@@ -592,6 +586,7 @@ species bike control: fsm skills: [moving] {
 		//seek either a charging station or another vehicle
 		enter{
 			ask eventLogger { do logEnterState(myself.state); }
+			//TODO: review and formalize all of this notes about this
 			//Technically, the bike would pause at each intersection to read the direction to the nearest charging station
 			//This wastes a lot of time in simulation, so we are cheating
 			//The path the bike follows is identical.
@@ -618,9 +613,6 @@ species bike control: fsm skills: [moving] {
 		transition to: wander when: batteryLife >= maxBatteryLife {}
 		exit {
 			ask eventLogger { do logExitState("Charged at " + (chargingStation closest_to myself)); }
-			
-			//If possible, refine this so that bikes are not overcharged and we use that time.
-				//[Q]Unfortunately, we cannot use that time, simply by the nature of the simulation. One state per step
 			ask chargingStation closest_to(self) {
 				bikesToCharge <- bikesToCharge - myself;
 			}
@@ -643,7 +635,7 @@ species bike control: fsm skills: [moving] {
 	}
 	state seeking_leader {
 		//catch up to the leader
-		//(when two bikes form a cluster, one will await_follower, the other will seek_leader)
+		//when two bikes form a cluster, one will await_follower, the other will seek_leader
 		enter {
 			ask eventLogger { do logEnterState("Seeking Leader " + myself.leader); }
 		}
@@ -657,6 +649,7 @@ species bike control: fsm skills: [moving] {
 		target <- leader.location;
 	}
 	state following {
+		//transfer charge to host, follow them around the map
 		enter {
 			ask eventLogger { do logEnterState("Following " + myself.leader); }
 		}
@@ -670,14 +663,12 @@ species bike control: fsm skills: [moving] {
 			leader <- nil;
 		}
 		
-		
-		//transfer charge to host, follow them around the map
 		location <- leader.location;
-		do chargeBike(leader);
-		//leader will update our charge level as we move along (see reduceBattery)
+		do chargeBike(leader); //leader will update our charge level as we move along (see reduceBattery)
 		
 		//While getting charged, if there is a request for picking up, charging vehicle must leave
 			//[Q]It can follow along until the person gets on the bike
+			//TODO: Review what it does now
 	}
 	
 		
