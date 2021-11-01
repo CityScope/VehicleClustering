@@ -75,7 +75,7 @@ global {
 		"MinSafeBattery (amount of battery always reserved when charging another bike, also at which we seek battery) [m]: "+string(minSafeBattery),
 		//"numberOfStepsReserved (number of simulation steps worth of movement to reserve before seeking charge): "+string(numberOfStepsReserved),
 		//"distanceSafetyFactor (factor of distanceToChargingStation at which we seek charge): "+string(distanceSafetyFactor),
-		"rideDistance [m]: "+string(rideDistance),
+		"maxDistance [m]: "+string(maxDistance),
 		"------------------------------STATION PARAMETERS------------------------------",
 		"numChargingStations: "+string(numChargingStations),
 		"V2IChargingRate: "+string(V2IChargingRate),

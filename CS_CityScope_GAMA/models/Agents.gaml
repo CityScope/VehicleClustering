@@ -19,12 +19,12 @@ global {
 	}
 	/*list<bike> availableBikes(people person, float tripDistance) {
 		//Here we would consider wait time and return false if too high. Currently un-implemented
-		return bike where (each.availableForRide() and (each distance_to person) <= rideDistance and (each.batteryLife > tripSafetyFactor*tripDistance));
+		return bike where (each.availableForRide() and (each distance_to person) <= maxDistance and (each.batteryLife > tripSafetyFactor*tripDistance));
 	}*/
 	//New version
 	list<bike> availableBikes(people person) {
 		//Here we would consider wait time and return false if too high. Currently un-implemented
-		return bike where (each.availableForRide() and (each distance_to person) <= rideDistance);
+		return bike where (each.availableForRide() and (each distance_to person) <= maxDistance);
 	}
 
 
@@ -484,6 +484,11 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	//Low-pass filter average!
+	
+	//Naroa: The idea is that if there's low pheromone levels it means that it's a low demand period
+	//so some vehicles could go for a charge even if they don't need it to get charged and be ready for the period of higher demand
+	//TODO: we need to review this 
+	
 	float readPheromones <- 2*chargingPheromoneThreshold; //init above the threshold so we don't imediately go to charge
 	float alpha <- 0.2; //tune this so our average updates at desired speed. may need a factor of `step`
 	action rememberPheromones(list<tagRFID> tags) {
@@ -508,7 +513,7 @@ species bike control: fsm skills: [moving] {
 		
 		//if the strongest pheromone is behind us, keep pheromone level with p=exploratory rate
 		if pmap[previousTag] = max(pmap) and not flip(exploratoryRate) {
-			pmap[previousTag] <- 0.0; //alters local copy only :)
+			pmap[previousTag] <- 0.0; //alters local copy only :) TODO: Is this an issue?
 		}
 		
 		//head toward (possibly new) strongest pheromone, or choose randomly
@@ -521,13 +526,15 @@ species bike control: fsm skills: [moving] {
 	
 	//----------------PHEROMONES-----------------
 	float pheromoneToDiffuse; //represents a store of pheremone (a bike can't expend more than this amount). Pheremone is restored by ___
+	//Naroa: I'd say it's the amount of pheromone that the bike has, but not some kind of maximum
 	float pheromoneMark <- 100*singlePheromoneMark; //TODO: This took in account the amount of waste found. Let's see how we adapt it
-	
+
 	
 	action updatePheromones(tagRFID tag) {
 		loop k over: tag.pheromoneMap.keys {
 			//evaporation
-			tag.pheromoneMap[k] <- tag.pheromoneMap[k] - (singlePheromoneMark * evaporation * step*(cycle - tag.lastUpdate));
+			tag.pheromoneMap[k] <- tag.pheromoneMap[k] - (singlePheromoneMark * evaporation * step*(cycle - tag.lastUpdate)); 
+			//TODO: review, Quinn added *step* here so that it's proportional to time, not only the num cycles
 
 			//saturation
 			if (tag.pheromoneMap[k]<minPheromoneLevel){
@@ -554,7 +561,7 @@ species bike control: fsm skills: [moving] {
 		// Saturation, Evaporation
 		do updatePheromones(tag);
 		
-		pheromoneToDiffuse <- max(tag.pheromoneMap)*diffusion;
+		pheromoneToDiffuse <- max(tag.pheromoneMap)*diffusion; //TODO: review in their code myself.pheromoneToDiffuse <- max(self.pheromones)*diffusion;
 	}
 	
 	

@@ -71,8 +71,6 @@ global {
 			add mean(coordinatesVertices) to: coordinatesCentroids;
 		}    
 	    
-
-
 		loop centroid from:0 to:length(coordinatesCentroids)-1 {
 			tmpDist <- [];
 			loop vertices from:0 to:length(roadNetwork.vertices)-1{
@@ -97,31 +95,34 @@ global {
 		// -------------------------------------------The Bikes -----------------------------------------
 		create bike number:numBikes{						
 			location <- point(one_of(roadNetwork.vertices));
+			
+			batteryLife <- rnd(minSafeBattery,maxBatteryLife); 	//Battery life random bewteen max and min
+			speed <- WanderingSpeed;
+			distancePerCycle <- step * speed; //Used to check pheromones in advance
+			
 			nextTag <- tagRFID( location );
 			lastTag <- nextTag;
-			
 			pheromoneToDiffuse <- 0.0;
-			//Pheromone mark to remain 5 minutes
-			pheromoneMark <- 300/step*singlePheromoneMark;
-			//Battery life random but not starting on 0. Now 25% of MaxBatteryLife
-			batteryLife <- rnd(maxBatteryLife*0.25,maxBatteryLife); //TODO: review the impact of this percentage
-			speed <- WanderingSpeed;
-			distancePerCycle <- step * speed;
-			
-//			write "cycle: " + cycle + ", " + string(self) + " created with batteryLife " + self.batteryLife;
+			pheromoneMark <- 300/step*singlePheromoneMark; //Pheromone mark to remain 5 minutes TODO: WHY?
+
+			//write "cycle: " + cycle + ", " + string(self) + " created with batteryLife " + self.batteryLife;
 		}
 	    
 		// -------------------------------------------The People -----------------------------------------
 	    create people number: numPeople {
+	    	
 	        start_work_hour <- rnd (workStartMin, workStartMax-1); // we need to -1 because otherwise we will create agents until workStartMax:59 (eg. 8.59 with 8 as max)
 	        start_work_minute <- rnd(0,59);
+	        
 	        end_work_hour <- rnd(workEndMin, workEndMax-1);
 	        end_work_minute <- rnd(0,59);
+	        
 	        living_place <- one_of(residentialBuildings) ;
 	        working_place <- one_of(officeBuildings) ;
 	        location <- any_location_in(living_place);
 	        
 	        speed <- peopleSpeed;
+	        
 	        //write "cycle: " + cycle + ", " + string(self) + " created at " + self.start_work_hour + ":"+self.start_work_minute;
 	    }
 	 	// ----------------------------------The RFIDs tag on each road intersection------------------------

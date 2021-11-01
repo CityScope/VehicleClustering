@@ -9,23 +9,25 @@
 model Parameters
 
 import "./clustering.gaml"
-/* Insert your model definition here */
+
 global {
 	//----------------------Simulation Parameters------------------------
+	
 	//Simulation time step
-	float step <- 35.0 #sec;
+	float step <- 35.0 #sec; //For tangible we need about 0.1s
+	
 	//Simulation starting date
-	//date starting_date <- #now;
-	date starting_date <- date("2021-10-12 06:00:00");
+	date starting_date <- date("2021-10-12 06:00:00"); // <- #now;
+	
+	//Date for log files
 	date logDate <- #now;
-	//How many days we simulate
-	int numberOfDays <- 1;
-	int numberOfHours <- 14; //If one day, we can also specify the number of hours, otherwise set 24h
-
-
+	
+	//Duration of the simulation
+	int numberOfDays <- 1; //WARNING: If >1 set numberOfHours to 24h
+	int numberOfHours <- 14; //WARNING: If one day, we can also specify the number of hours, otherwise set 24h
 	
 	//----------------------Logging Parameters------------------------
-	int loggingLevel <- 10		min: 0 max: 10 parameter: "Logging Level" category: "Logs";
+	int loggingLevel <- 10		min: 0 max: 10 parameter: "Logging Level" category: "Logs"; // Question posted as issue on GitHUb
 	int printLevel <- 0		min: 0 max: 10 parameter: "Printing Level" category: "Logs";
 	bool bikeLogs <- true		parameter: "Bike Logs" category: "Logs";
 	string bikeFile <- "bikes"	parameter: "Bike Logfile" category: "Logs";
@@ -37,18 +39,15 @@ global {
 	
 	//----------------------Pheromone Parameters------------------------
     float singlePheromoneMark <- 1.0;
-	float evaporation <- 1.0; //unsure of this value - changed evaporation to be proportional to time instead of cycles
+	float evaporation <- 1.0; //changed evaporation to be proportional to time instead of just cycles
 	float exploratoryRate <- 0.8;
-	float diffusion <- (1-exploratoryRate) * 0.5; 
-	float maxPheromoneLevel <- 50*singlePheromoneMark;
+	float diffusion <- (1-exploratoryRate) * 0.5;  // the more they explore randomly, they are less 'trustable' so they have to diffuse less for system convergence
+	float maxPheromoneLevel <- 50*singlePheromoneMark; //satutration
 	float minPheromoneLevel <- 0.0;
 	
 	//----------------------Bike Parameters------------------------
-	//Number of Bikes to generate. Juan: Change this so nb is generated according to real GIS Data.
 	int numBikes <- 50 				min: 0 max: 500 parameter: "Num Bikes:" category: "Initial";
-	//Max battery life of bikes - Maximum number of meters with the battery
-	float maxBatteryLife <- 50000.0 #m	min: 10000#m max: 300000#m parameter: "Battery Capacity (m):" category: "Bike";
-	//speed of bikes - about 5.5  m/s for PEV (it can be changed accordingly to different robot specification)
+	float maxBatteryLife <- 50000.0 #m	min: 10000#m max: 300000#m parameter: "Battery Capacity (m):" category: "Bike"; //battery capacity in m
 	float WanderingSpeed <- 3/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Bike Wandering  Speed (m/s):" category:  "Bike";
 	float PickUpSpeed <-  8/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Bike Pick-up Speed (m/s):" category:  "Bike";
 	float RidingSpeed <-  10.2/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Riding Speed (m/s):" category:  "Bike";
@@ -56,40 +55,39 @@ global {
 	float clusterDistance <- 300#m; //Radius in which we look for bikes to cluster with
 	float clusterThreshold <- 0.05*maxBatteryLife; //(see bike.clusterCost) the charge a follower must be able to give the leader in order to cluster
 	
-	float followDistance <- 5#m;
+	float followDistance <- 0.1#m; //distance at which we consider bikes to be clustered and able to share battery
 	float V2VChargingRate <- maxBatteryLife/(1*60*60) #m/#s; //assuming 1h fast charge
 	
 	float chargingPheromoneThreshold <- 0*singlePheromoneMark; //Disables charge-seeking when low pheromone
 	
 	
-	float minSafeBattery <- 0.25*maxBatteryLife #m; //Amount of battery always reserved when charging another bike, also at which we seek battery
+	float minSafeBattery <- 0.25*maxBatteryLife #m; //Amount of battery at which we seek battery and that is always reserved when charging another bike
+	
+	//Old - other parameters to decide if a bike should go for a charge 
 	//int numberOfStepsReserved <- 3; //number of simulation steps worth of movement to reserve before seeking charge
 	//int distanceSafetyFactor <- 10; //factor of distancetochargingstaiton at which we seek charge
-	float tripSafetyFactor <- 1.15;
 	
-	
-	
+	//Inactive- If bikes are going to consume battery when the user is riding and we assume users provide their desired destination in advances we could implement this again
+	//float tripSafetyFactor <- 1.15;
 	
 	//----------------------numChargingStationsion Parameters------------------------
-	//Number of charging stations
 	int numChargingStations <- 2 	min: 1 max: 10 parameter: "Num Charging Stations:" category: "Initial";
-	float V2IChargingRate <- maxBatteryLife/(4.5*60*60) #m/#s; // min: 1.4 #m/#s max: 20 #m/#s parameter: "V2I Charging Rate (m/s):" category: "Charging";
-	int chargingStationCapacity <- 25; //TODO: review, this limit is not working
+	float V2IChargingRate <- maxBatteryLife/(4.5*60*60) #m/#s; // 
+	int chargingStationCapacity <- 15; //TODO: review, is this working? What is the status of the bikes while waiting?
 	
 	//----------------------People Parameters------------------------
 	int numPeople <- 250 				min: 0 max: 1000 parameter: "Num People:" category: "Initial";
 	float maxWaitTime <- 20#mn		min: 3#mn max: 60#mn parameter: "Max Wait Time:" category: "People";
-	float rideDistance <- maxWaitTime*60*PickUpSpeed #m;
+	float maxDistance <- maxWaitTime*60*PickUpSpeed #m; //The maxWaitTime is translated into a max radius taking into account the speed of the bikes
     int workStartMin <- 6			min: 4 max: 12 parameter: "Min Work Start Time:" category: "People";
     int workStartMax <- 10			min: 4 max: 12 parameter: "Max Work Start Time:" category: "People";
     int workEndMin <- 16			min: 14 max: 24 parameter: "Min Work End Time:" category: "People";
     int workEndMax <- 20			min: 14 max: 24 parameter: "Max Work End Time:" category: "People";
     float peopleSpeed <- 5/3.6 #m/#s	min: 1/3.6 #m/#s max: 10/3.6 #m/#s parameter: "People Speed (m/s):" category: "People";
-//    float maxSpeedPeople <- 5.0 #km/#h	min: 0.5#km/#h max: 10#km/#h parameter: "People Max Speed (m/s):" category: "People";
     
     float bikeCostBatteryCoef <- 200.0; //(see global.bikeCost)relative importance of batterylife when selecting bikes to ride
+    
     //----------------------Map Parameters------------------------
-	
 	
 	//Case 1 - Urban Swarms Map
 	string cityScopeCity <- "UrbanSwarm";
@@ -103,6 +101,7 @@ global {
 	string usage <- "Category";*/
 
     map<string, rgb> color_map <- [residence::#white, office::#gray, "Other"::#black];
+    
 	//GIS FILES To Upload
 	string cityGISFolder <- "./../includes/City/"+cityScopeCity;
 	file bound_shapefile <- file(cityGISFolder + "/Bounds.shp")			parameter: "Bounds Shapefile:" category: "GIS";
