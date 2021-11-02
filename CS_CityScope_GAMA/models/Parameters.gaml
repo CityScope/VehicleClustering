@@ -39,8 +39,8 @@ global {
 	
 	//----------------------Pheromone Parameters------------------------
     float singlePheromoneMark <- 1.0;
-	float evaporation <- 1.0; //changed evaporation to be proportional to time instead of just cycles
-	float exploitationRate <- 0.8; // note: 0.8 means 0.2 of randomness 
+	float evaporation <- 0.15; //0.05%, *0.15%,* and 0.3% in the paper but we changed evaporation to be proportional to time instead of just cycles
+	float exploitationRate <- 0.6; // Paper values: *0.6*, 0.75, and 0.9. Note: 0.8 means 0.2 of randomness 
 	float diffusion <- (1-exploitationRate) * 0.5;  // the more they explore randomly, they are less 'trustable' so they have to diffuse less for system convergence
 	float maxPheromoneLevel <- 50*singlePheromoneMark; //satutration
 	float minPheromoneLevel <- 0.0;
@@ -59,7 +59,7 @@ global {
 	float V2VChargingRate <- maxBatteryLife/(1*60*60) #m/#s; //assuming 1h fast charge
 	
 	float chargingPheromoneThreshold <- 0.2*singlePheromoneMark; //Disables charge-seeking when low pheromone
-	
+	float pLowPheromoneCharge <- 0.05; // probability of going for a charge when reading low pheromone levels
 	
 	float minSafeBattery <- 0.25*maxBatteryLife #m; //Amount of battery at which we seek battery and that is always reserved when charging another bike
 	

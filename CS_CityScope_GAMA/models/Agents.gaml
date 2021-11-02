@@ -570,7 +570,7 @@ species bike control: fsm skills: [moving] {
 				do waitFor(myself);
 			}
 		}
-		transition to: low_battery when: setLowBattery() or readPheromones < chargingPheromoneThreshold {
+		transition to: low_battery when: setLowBattery() or readPheromones < chargingPheromoneThreshold and flip(pLowPheromoneCharge) {
 			bool lowPass <- false;
 			if readPheromones < chargingPheromoneThreshold {
 				lowPass <- true;
