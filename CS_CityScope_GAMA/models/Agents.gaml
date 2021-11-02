@@ -262,21 +262,18 @@ species bike control: fsm skills: [moving] {
 	bike follower;
 	people rider;
 	
-	list<string> rideStates <- ["wander", "following"];//, "awaiting_follower", "seeking_leader"];
-	//TODO: all states are ["wander","low_battery","getting_charge","awaiting_follower","seeking_leader","following","picking_up","in_use"]
+	list<string> rideStates <- ["wander", "following"];
+
 	bool availableForRide {
 		return (state in rideStates) and !setLowBattery() and rider = nil;
 	}
-	list<string> platoonStates <- ["wander","picking_up"]; //TODO: the bike that will provide battery -> can it be picking up?? 
+	list<string> platoonStates <- ["wander"]; 
 	bool availableForPlatoon {
-		// Bike must either be wander, or awaiting another follower, have no followers
-		//TODO: may need more filters. Must exclude in_use, for example
-		// Naroa -> It already filters this by state in platoonStates right?
-		return (state in platoonStates) and follower = nil and !setLowBattery();
+		return (state in platoonStates) and follower = nil and !setLowBattery(); //this would be different with 'megaclusters'
 	}
 	
-	//transition from wander to picking_up. Called by the global scheduler
-	action pickUp(people person) {
+	action pickUp(people person) { 
+		//transition from wander to picking_up. Called by the global scheduler
 		rider <- person;
 	}
 	
