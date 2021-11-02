@@ -146,17 +146,13 @@ reflex stop_simulation when: cycle >= numberOfDays * numberOfHours * 3600 / step
 
 }
 
-
-
-//TODO: fill this out with tests to verify that all functions work properly
+/*//TODO: fill this out with tests to verify that all functions work properly
 //Also, figure out how to even use tests
 species Tester {
-	setup {
-		
+	setup {	
 	}
 	
-	test  test1 {
-		
+	test  test1 {	
 	}
 }
 //TODO fill this out with benchmarks for each function, to be evaluated at different populations
@@ -167,22 +163,7 @@ experiment benchmarks {
 			int a <- int(1*54.2);
 		}
 	}
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}*/
 
 
 experiment clustering type: gui {
@@ -272,7 +253,7 @@ experiment one_bike type: gui {
     }
 }
 
-/*experiment just_a_lot_of_bikes type: gui {
+experiment just_a_lot_of_bikes type: gui {
 	parameter var: numBikes init: 20;
 	parameter var: numPeople init: 0;
 	
@@ -300,4 +281,4 @@ experiment one_each_headless {
 experiment one_bike_headless {
 	parameter var: numBikes init: 1;
 	parameter var: numPeople init: 0;
-}*/
+}

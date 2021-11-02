@@ -21,7 +21,7 @@ global {
 		return bike where (each.availableForRide() and (each distance_to person) <= maxDistance);
 	}
 	
-	/*Old
+	/*Old: include if we add the safetyFactor
 	  list<bike> availableBikes(people person, float tripDistance) {
 		//Here we would consider wait time and return false if too high. Currently un-implemented
 		return bike where (each.availableForRide() and (each distance_to person) <= maxDistance and (each.batteryLife > tripSafetyFactor*tripDistance));
@@ -292,7 +292,7 @@ species bike control: fsm skills: [moving] {
 	}
 	bool shouldDecluster(bike other) {
 		//Don't decluster until you need to or you've nothing left to give
-		if other.state = "in_use" { return true; }
+		if other.state = "in_use" { return true; } //they can do the pickup together but then they decluster for the ride
 		if setLowBattery() { return true; }
 		if chargeToGive(other) <= 0 { return true; }
 		
@@ -333,7 +333,7 @@ species bike control: fsm skills: [moving] {
 	
 	//Determines when to move into the low_battery state
 	bool setLowBattery {
-		/*Old // perhaps all these minimum values should be merged into one, to be respected here and in cluster-charging
+		/*Old- Naroa: I considered this to be redundant
 		if batteryLife <= numberOfStepsReserved*distancePerCycle { return true; } //leave 3 simulation-steps worth of movement*/
 		
 		if batteryLife < minSafeBattery { return true; } 
@@ -341,7 +341,8 @@ species bike control: fsm skills: [moving] {
 			return false;
 		}
 		
-		//Old:return batteryLife < distanceSafetyFactor*lastDistanceToChargingStation; //safety factor
+		//Old: Include if the bikes cosume battery during the ride and we assume that users imput destinayion
+		//return batteryLife < distanceSafetyFactor*lastDistanceToChargingStation;
 	}
 	float energyCost(float distance) { //This function will let us alter the efficiency of our bikes, if we decide to look into that
 		if state = "in_use" { return 0; } //user will pedal
@@ -366,12 +367,6 @@ species bike control: fsm skills: [moving] {
 	
 	int lastDistanceToChargingStation;
 	path travelledPath; //preallocation. Only used within the moveTowardTarget reflex
-	
-	/*float pathLength(path p) {
-		if empty(p) or p.shape = nil { return 0; }
-		return p.shape.perimeter; 
-	}*/ 
-	//TODO:	//No longer used. Old function. Delete ASAP	
 	
 	list<tagRFID> lastIntersections;
 	
@@ -502,9 +497,12 @@ species bike control: fsm skills: [moving] {
 		if sum(pmap.values) <= 0 { return one_of( pmap.keys ); }
 
 		
-		//if the strongest pheromone is behind us, keep pheromone level with p=exploratory rate
+		//if the strongest pheromone is behind us, keep pheromone level with p=exploratory rate 
+		// if flip(exploratoryRate) == True -> we follow strongest pheromone, if false we ignore it
+		
 		if pmap[previousTag] = max(pmap) and not flip(exploratoryRate) {
-			pmap[previousTag] <- 0.0; //alters local copy only :) TODO: Is this an issue?
+			pmap[previousTag] <- 0.0; //alters local copy only :) 
+									//TODO: Is this an issue? it means it won't go back with a certain probability
 		}
 		
 		//head toward (possibly new) strongest pheromone, or choose randomly
@@ -540,10 +538,10 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	action depositPheromones(tagRFID tag, tagRFID previousTag) {
-		// add _all_ of my pheremone to nearest tag. If I am picking someone up, add 0 to pheremone tag (???). Set my pheremone levels to whatever the tag has diffused to me
+		// TODO: add _all_ of my pheremone to nearest tag. If I am picking someone up, add 0 to pheremone tag (???). Set my pheremone levels to whatever the tag has diffused to me
 		bool depositPheromone <- state = "picking_up" or state = "in_use";
 		loop k over: tag.pheromoneMap.keys {
-			tag.pheromoneMap[k] <- tag.pheromoneMap[k] + pheromoneToDiffuse; //Why do we add pheromone to all of them?
+			tag.pheromoneMap[k] <- tag.pheromoneMap[k] + pheromoneToDiffuse; // TODO: Why do we add pheromone to all of them?
 			if k = previousTag and depositPheromone {
 				tag.pheromoneMap[k] <- tag.pheromoneMap[k] + pheromoneMark;
 			}
@@ -583,7 +581,7 @@ species bike control: fsm skills: [moving] {
 		//seek either a charging station or another vehicle
 		enter{
 			ask eventLogger { do logEnterState(myself.state); }
-			//TODO: review and formalize all of this notes about this
+			//TODO: review and formalize all of this notes about these prediction functions
 			//Technically, the bike would pause at each intersection to read the direction to the nearest charging station
 			//This wastes a lot of time in simulation, so we are cheating
 			//The path the bike follows is identical.
@@ -628,10 +626,9 @@ species bike control: fsm skills: [moving] {
 			ask eventLogger { do logExitState("Awaited Follower " + myself.follower); }
 		}
 		
-		//Move reflex does not fire when in this state
+		//Move reflex does not fire when in this state (see canMove)
 	}
 	state seeking_leader {
-		//catch up to the leader
 		//when two bikes form a cluster, one will await_follower, the other will seek_leader
 		enter {
 			ask eventLogger { do logEnterState("Seeking Leader " + myself.leader); }
@@ -662,10 +659,6 @@ species bike control: fsm skills: [moving] {
 		
 		location <- leader.location;
 		do chargeBike(leader); //leader will update our charge level as we move along (see reduceBattery)
-		
-		//While getting charged, if there is a request for picking up, charging vehicle must leave
-			//[Q]It can follow along until the person gets on the bike
-			//TODO: Review what it does now
 	}
 	
 		

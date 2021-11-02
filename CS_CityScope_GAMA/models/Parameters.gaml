@@ -40,7 +40,7 @@ global {
 	//----------------------Pheromone Parameters------------------------
     float singlePheromoneMark <- 1.0;
 	float evaporation <- 1.0; //changed evaporation to be proportional to time instead of just cycles
-	float exploratoryRate <- 0.8;
+	float exploratoryRate <- 0.8; // note: 0.8 means 0.2 of randomness 
 	float diffusion <- (1-exploratoryRate) * 0.5;  // the more they explore randomly, they are less 'trustable' so they have to diffuse less for system convergence
 	float maxPheromoneLevel <- 50*singlePheromoneMark; //satutration
 	float minPheromoneLevel <- 0.0;
