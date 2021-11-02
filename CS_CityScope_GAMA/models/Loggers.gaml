@@ -301,7 +301,7 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike {
 	}
 	
 	action logCharge(chargingStation station, int startTime, int endTime, int chargeDuration, int startBattery, int endBattery, int batteryGain) {
-		do log(1, [station, startTime/60, endTime/60, chargeDuration/60, startBattery/maxBatteryLife*100, endBattery/maxBatteryLife*100, batteryGain]);
+		do log(1, [station, startTime, endTime, chargeDuration, startBattery, endBattery, batteryGain]);
 	}
 }
 
@@ -326,7 +326,7 @@ species bikeLogger_ReceiveChargeEvents parent: Logger mirrors: bike {
 	}
 	
 	action logReceivedCharge(agent leader, int startTime, int endTime, int chargeDuration, int startBattery, int endBattery, int batteryGain) {
-		do log(1, [leader, startTime/60, endTime/60, chargeDuration/60, (startBattery/maxBatteryLife*100), (endBattery/maxBatteryLife*100), batteryGain]);
+		do log(1, [leader, startTime, endTime, chargeDuration, startBattery, endBattery/maxBatteryLife, batteryGain]);
 	}
 }
 
