@@ -288,7 +288,7 @@ species bike control: fsm skills: [moving] {
 	//----------------Clustering-----------------
 	//These are our cost functions, and will be the basis of how we decide to form clusters
 	float clusterCost(bike other) {
-		return clusterThreshold - chargeToGive(other);
+		return clusterThreshold - chargeToGive(other); //they need to be able to share a min amount of battery 
 	}
 	bool shouldDecluster(bike other) {
 		//Don't decluster until you need to or you've nothing left to give
@@ -315,7 +315,8 @@ species bike control: fsm skills: [moving] {
 		return false;
 	}
 	
-	float chargeToGive(bike other) {	//determines how much charge we could give another bike
+	//determines how much charge we could give another bike
+	float chargeToGive(bike other) {	
 		float chargeDifferenceHalved <- (batteryLife - other.batteryLife)/2; //never charge leader to have more power than you
 		float chargeToSpare <- batteryLife - minSafeBattery; //never go less than some minimum battery level
 		float chargeToGain <- maxBatteryLife - other.batteryLife;
@@ -497,16 +498,16 @@ species bike control: fsm skills: [moving] {
 		if sum(pmap.values) <= 0 { return one_of( pmap.keys ); }
 
 		
-		//if the strongest pheromone is behind us, keep pheromone level with p=exploratory rate 
-		// if flip(exploratoryRate) == True -> we follow strongest pheromone, if false we ignore it
+		//if the strongest pheromone is behind us, keep pheromone level with p=exploitation rate 
+		// if flip(exploitationRate) == True -> we follow strongest pheromone, if false we ignore it
 		
-		if pmap[previousTag] = max(pmap) and not flip(exploratoryRate) {
+		if pmap[previousTag] = max(pmap) and not flip(exploitationRate) {
 			pmap[previousTag] <- 0.0; //alters local copy only :) 
 									//TODO: Is this an issue? it means it won't go back with a certain probability
 		}
 		
 		//head toward (possibly new) strongest pheromone, or choose randomly
-		if flip(exploratoryRate) {
+		if flip(exploitationRate) {
 			return pmap index_of max(pmap);
 		} else {
 			return one_of( pmap.keys );
@@ -569,7 +570,13 @@ species bike control: fsm skills: [moving] {
 				do waitFor(myself);
 			}
 		}
-		transition to: low_battery when: setLowBattery() or readPheromones < chargingPheromoneThreshold {}
+		transition to: low_battery when: setLowBattery() or readPheromones < chargingPheromoneThreshold {
+			bool lowPass <- false;
+			if readPheromones < chargingPheromoneThreshold {
+				lowPass <- true;
+			}
+		 write "cycle: " + cycle + ","+ current_date.hour +':' + current_date.minute + ' agent ' +string(self) + ", battery life " + self.batteryLife + ' low-pass: '+ lowPass ;
+		}
 		exit {
 			ask eventLogger { do logExitState; }
 		}

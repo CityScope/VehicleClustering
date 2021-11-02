@@ -57,7 +57,7 @@ global {
 		"Pheromone Logs: "+string(pheromoneLogs),
 		"------------------------------PHEROMONE PARAMETERS------------------------------",
 		"Single Pheromone Mark: "+string(singlePheromoneMark),
-		"Exploratory Rate: "+string(exploratoryRate),
+		"Exploitation Rate: "+string(exploitationRate),
 		"Diffusion Rate: "+string(diffusion),
 		"Max Pheromone Level: "+string(maxPheromoneLevel),
 		"Min Pheromone Level: "+string(minPheromoneLevel),

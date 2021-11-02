@@ -40,8 +40,8 @@ global {
 	//----------------------Pheromone Parameters------------------------
     float singlePheromoneMark <- 1.0;
 	float evaporation <- 1.0; //changed evaporation to be proportional to time instead of just cycles
-	float exploratoryRate <- 0.8; // note: 0.8 means 0.2 of randomness 
-	float diffusion <- (1-exploratoryRate) * 0.5;  // the more they explore randomly, they are less 'trustable' so they have to diffuse less for system convergence
+	float exploitationRate <- 0.8; // note: 0.8 means 0.2 of randomness 
+	float diffusion <- (1-exploitationRate) * 0.5;  // the more they explore randomly, they are less 'trustable' so they have to diffuse less for system convergence
 	float maxPheromoneLevel <- 50*singlePheromoneMark; //satutration
 	float minPheromoneLevel <- 0.0;
 	
@@ -53,12 +53,12 @@ global {
 	float RidingSpeed <-  10.2/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Riding Speed (m/s):" category:  "Bike";
 	
 	float clusterDistance <- 300#m; //Radius in which we look for bikes to cluster with
-	float clusterThreshold <- 0.05*maxBatteryLife; //(see bike.clusterCost) the charge a follower must be able to give the leader in order to cluster
+	float clusterThreshold <- 0.2*maxBatteryLife; //(see bike.clusterCost) the charge a follower must be able to give the leader in order to cluster
 	
 	float followDistance <- 0.1#m; //distance at which we consider bikes to be clustered and able to share battery
 	float V2VChargingRate <- maxBatteryLife/(1*60*60) #m/#s; //assuming 1h fast charge
 	
-	float chargingPheromoneThreshold <- 0*singlePheromoneMark; //Disables charge-seeking when low pheromone
+	float chargingPheromoneThreshold <- 0.2*singlePheromoneMark; //Disables charge-seeking when low pheromone
 	
 	
 	float minSafeBattery <- 0.25*maxBatteryLife #m; //Amount of battery at which we seek battery and that is always reserved when charging another bike
