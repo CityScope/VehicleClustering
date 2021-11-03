@@ -310,7 +310,7 @@ species bikeLogger_ReceiveChargeEvents parent: Logger mirrors: bike {
 	list<string> columns <- [
 		"Start Time (min)",
 		"End Time (min)",
-		"Duratio (min)",
+		"Duration (min)",
 		"Start Battery %",
 		"End Battery %",
 		"Battery Gain %"
