@@ -253,6 +253,7 @@ species bike control: fsm skills: [moving] {
 	bikeLogger_chargeEvents chargeLogger;
 	bikeLogger_ReceiveChargeEvents receiveChargeLogger;
 	bikeLogger_event eventLogger;
+	bikeLogger_bot botLogger;
 	
 	
 	    

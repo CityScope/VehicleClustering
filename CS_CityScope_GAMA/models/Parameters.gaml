@@ -36,6 +36,7 @@ global {
 	bool stationLogs <- true		parameter: "Charging Station Logs" category: "Logs";
 	string stationFile <- "stations"	parameter: "Charging Station Logfile" category: "Logs";
 	bool pheromoneLogs <- true;
+	bool botLogs <- true; //Output for swarm bots
 	
 	//----------------------Pheromone Parameters------------------------
     float singlePheromoneMark <- 1.0;

@@ -115,7 +115,7 @@ species Logger {
 		if logPredicate() {
 			ask host {
 				do log(myself.filename, level, [string(myself.loggingAgent.name)] + data, myself.columns);
-			}
+			} //TODO: fiz the string so that it doesn't say bike(3) but only 3 
 		}
 	}
 	
@@ -126,7 +126,7 @@ species pheromoneLogger parent: Logger mirrors: tagRFID {
 	string filename <- "pheromones";
 	list<string> columns <- [
 		"Tag [lat]",
-		"Tag [long]",
+		"Tag [lon]",
 		"AveragePheromones"
 	];
 	
@@ -155,9 +155,9 @@ species peopleLogger_trip parent: Logger mirrors: people {
 		"Departure Time (min)",
 		"Duration (min)",
 		"Home [lat]",
-		"Home [long]",
+		"Home [lon]",
 		"Work [lat]",
-		"Work [long]",
+		"Work [lon]",
 		"Distance (m)",
 		"Duration (estimated)"
 	];
@@ -510,4 +510,31 @@ species bikeLogger_event parent: Logger mirrors: bike {
 	}
 	
 	
+}
+
+species bikeLogger_bot parent: Logger mirrors: bike{
+	bool logPredicate { return botLogs; }
+	list<string> columns <- [
+		"Cycle",
+		"State",
+		"Lat",
+		"Lon",
+		"Heading",
+		"Battery"
+	];
+	string filename <- "swarm-bots";
+	bike biketarget;
+	init {
+		biketarget <- bike(target);
+		biketarget.botLogger <- self;
+		loggingAgent <- biketarget;
+	}
+
+	
+	reflex saveState {
+	
+		do log(1,[cycle,biketarget.state,biketarget.location.x,biketarget.location.y,biketarget.heading,biketarget.batteryLife/maxBatteryLife*100]);
+
+	}
+
 }
