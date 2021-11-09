@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
+<<<<<<< HEAD
 		<item key="selection" value="rideDistance"/>
+=======
+		<item key="selection" value="time"/>
+>>>>>>> 79fd8631375705f3f324979555b1b15d1ec891b5
 		<item key="wrap" value="true"/>
 		<item key="casesensitive" value="false"/>
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
+<<<<<<< HEAD
 			<item value="ridedistance"/>
 			<item value="followDistance"/>
 			<item value="chargeBike"/>
@@ -23,16 +28,41 @@
 			<item value="numberOfStepsReserved"/>
 			<item value="setLowBattery"/>
 			<item value="availableBikes"/>
+=======
+			<item value="time"/>
+			<item value="Cycle"/>
+			<item value="Time (simulation)"/>
+			<item value="Time"/>
+			<item value="minSafeBattery"/>
+			<item value="setLowBattery()"/>
+			<item value="availableBikes"/>
+			<item value="maxWaitTime"/>
+			<item value="tripSafetyFactor"/>
+			<item value="distanceSafetyFactor"/>
+			<item value="batteryStartReceiving"/>
+			<item value="End Battery"/>
+			<item value="endBattery"/>
+			<item value="logCharge"/>
+			<item value="bike_fullState"/>
+>>>>>>> 79fd8631375705f3f324979555b1b15d1ec891b5
 		</list>
 		<list key="replacehistory">
 			<item value=""/>
 		</list>
 	</section>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
+<<<<<<< HEAD
 		<item key="DIALOG_X_ORIGIN" value="1733"/>
 		<item key="DIALOG_Y_ORIGIN" value="139"/>
 		<item key="DIALOG_WIDTH" value="336"/>
 		<item key="DIALOG_HEIGHT" value="443"/>
 		<item key="DIALOG_FONT_NAME" value="1|Segoe UI|9.0|0|WINDOWS|1|-15|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI"/>
+=======
+		<item key="DIALOG_X_ORIGIN" value="821"/>
+		<item key="DIALOG_Y_ORIGIN" value="265"/>
+		<item key="DIALOG_WIDTH" value="437"/>
+		<item key="DIALOG_HEIGHT" value="435"/>
+		<item key="DIALOG_FONT_NAME" value="1|Segoe UI|9.0|0|WINDOWS|1|-12|0|0|0|400|0|0|0|1|0|0|5|0|Segoe UI"/>
+>>>>>>> 79fd8631375705f3f324979555b1b15d1ec891b5
 	</section>
 </section>

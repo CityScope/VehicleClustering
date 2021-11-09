@@ -71,8 +71,6 @@ global {
 			add mean(coordinatesVertices) to: coordinatesCentroids;
 		}    
 	    
-
-
 		loop centroid from:0 to:length(coordinatesCentroids)-1 {
 			tmpDist <- [];
 			loop vertices from:0 to:length(roadNetwork.vertices)-1{
@@ -97,31 +95,35 @@ global {
 		// -------------------------------------------The Bikes -----------------------------------------
 		create bike number:numBikes{						
 			location <- point(one_of(roadNetwork.vertices));
+			
+			batteryLife <- rnd(minSafeBattery,maxBatteryLife); 	//Battery life random bewteen max and min
+			speed <- WanderingSpeed;
+			distancePerCycle <- step * speed; //Used to check pheromones in advance
+			
 			nextTag <- tagRFID( location );
 			lastTag <- nextTag;
-			
 			pheromoneToDiffuse <- 0.0;
-			//Pheromone mark to remain 5 minutes
-			pheromoneMark <- 300/step*singlePheromoneMark;
-			//Battery life random but not starting on 0. Now 75% of MaxBatteryLife
-			batteryLife <- rnd(maxBatteryLife*0.75,maxBatteryLife);
-			speed <- WanderingSpeed;
-			distancePerCycle <- step * speed;
-			
-//			write "cycle: " + cycle + ", " + string(self) + " created with batteryLife " + self.batteryLife;
+			pheromoneMark <- 300/step*singlePheromoneMark; //Pheromone mark to remain 5 minutes TODO: WHY?
+
+			//write "cycle: " + cycle + ", " + string(self) + " created with batteryLife " + self.batteryLife;
 		}
 	    
 		// -------------------------------------------The People -----------------------------------------
 	    create people number: numPeople {
-	        start_work_hour <- rnd (workStartMin, workStartMax);
+	    	
+	        start_work_hour <- rnd (workStartMin, workStartMax-1); // we need to -1 because otherwise we will create agents until workStartMax:59 (eg. 8.59 with 8 as max)
 	        start_work_minute <- rnd(0,59);
-	        end_work_hour <- rnd(workEndMin, workEndMax);
+	        
+	        end_work_hour <- rnd(workEndMin, workEndMax-1);
 	        end_work_minute <- rnd(0,59);
+	        
 	        living_place <- one_of(residentialBuildings) ;
 	        working_place <- one_of(officeBuildings) ;
 	        location <- any_location_in(living_place);
 	        
 	        speed <- peopleSpeed;
+	        
+	        //write "cycle: " + cycle + ", " + string(self) + " created at " + self.start_work_hour + ":"+self.start_work_minute;
 	    }
 	 	// ----------------------------------The RFIDs tag on each road intersection------------------------
 		
@@ -138,23 +140,19 @@ global {
 		write "FINISH INITIALIZATION";
     }
 
-reflex stop_simulation when: cycle >= numberOfDays * 24 * 3600 / step {
+reflex stop_simulation when: cycle >= numberOfDays * numberOfHours * 3600 / step {
 	do pause ;
 }
 
 }
 
-
-
-//TODO: fill this out with tests to verify that all functions work properly
+/*//TODO: fill this out with tests to verify that all functions work properly
 //Also, figure out how to even use tests
 species Tester {
-	setup {
-		
+	setup {	
 	}
 	
-	test  test1 {
-		
+	test  test1 {	
 	}
 }
 //TODO fill this out with benchmarks for each function, to be evaluated at different populations
@@ -165,22 +163,7 @@ experiment benchmarks {
 			int a <- int(1*54.2);
 		}
 	}
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}*/
 
 
 experiment clustering type: gui {

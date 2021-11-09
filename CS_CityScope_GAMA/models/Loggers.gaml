@@ -21,14 +21,17 @@ global {
 	action log(string filename, int level, list data, list<string> columns) {
 		if not(filename in filenames.keys) {
 			do registerLogFile(filename);
-			save ["Cycle","Time (real)", "Time (simulation)","Agent"] + columns to: filenames[filename] type: "csv" rewrite: false header: false;
+			//save ["Cycle","Time (real)", "Time (simulation)","Agent"] + columns to: filenames[filename] type: "csv" rewrite: false header: false;
+			save ["Cycle", "Time","Agent"] + columns to: filenames[filename] type: "csv" rewrite: false header: false;
 		}
 		
 		if level <= loggingLevel {
-			save [cycle, string(#now), int(time)] + data to: filenames[filename] type: "csv" rewrite: false header: false;
+			//save [cycle, string(#now), int(time)] + data to: filenames[filename] type: "csv" rewrite: false header: false;
+		save [cycle, date(current_date)] + data to: filenames[filename] type: "csv" rewrite: false header: false;
 		}
 		if level <= printLevel {
-			write [cycle, string(#now), int(time)] + data;
+			//write [cycle,int(time)] + data;
+			write [cycle, date(current_date)] + data;
 		}
 	}
 	
@@ -54,10 +57,12 @@ global {
 		"Pheromone Logs: "+string(pheromoneLogs),
 		"------------------------------PHEROMONE PARAMETERS------------------------------",
 		"Single Pheromone Mark: "+string(singlePheromoneMark),
-		"Exploratory Rate: "+string(exploratoryRate),
+		"Exploitation Rate: "+string(exploitationRate),
 		"Diffusion Rate: "+string(diffusion),
 		"Max Pheromone Level: "+string(maxPheromoneLevel),
 		"Min Pheromone Level: "+string(minPheromoneLevel),
+		"Pheromone Threshold Index:"+string(chargingPheromoneThreshold/singlePheromoneMark),
+		"Probability Low Pheromone Charge"+string(pLowPheromoneCharge),
 		"------------------------------BIKE PARAMETERS------------------------------",
 		"Number of Bikes to Generate: "+string(numBikes),
 		"Max Battery Life of Bikes [m]: "+string(maxBatteryLife),
@@ -71,8 +76,8 @@ global {
 		"Charging Pheromone Threshold (disables charge-seeking when low pheromone): "+string(chargingPheromoneThreshold),
 		"MinSafeBattery (amount of battery always reserved when charging another bike, also at which we seek battery) [m]: "+string(minSafeBattery),
 		//"numberOfStepsReserved (number of simulation steps worth of movement to reserve before seeking charge): "+string(numberOfStepsReserved),
-		"distanceSafetyFactor (factor of distanceToChargingStation at which we seek charge): "+string(distanceSafetyFactor),
-		"rideDistance [m]: "+string(rideDistance),
+		//"distanceSafetyFactor (factor of distanceToChargingStation at which we seek charge): "+string(distanceSafetyFactor),
+		"maxDistance [m]: "+string(maxDistance),
 		"------------------------------STATION PARAMETERS------------------------------",
 		"numChargingStations: "+string(numChargingStations),
 		"V2IChargingRate: "+string(V2IChargingRate),
@@ -110,7 +115,7 @@ species Logger {
 		if logPredicate() {
 			ask host {
 				do log(myself.filename, level, [string(myself.loggingAgent.name)] + data, myself.columns);
-			}
+			} //TODO: fiz the string so that it doesn't say bike(3) but only 3 
 		}
 	}
 	
@@ -121,7 +126,7 @@ species pheromoneLogger parent: Logger mirrors: tagRFID {
 	string filename <- "pheromones";
 	list<string> columns <- [
 		"Tag [lat]",
-		"Tag [long]",
+		"Tag [lon]",
 		"AveragePheromones"
 	];
 	
@@ -146,14 +151,14 @@ species peopleLogger_trip parent: Logger mirrors: people {
 	list<string> columns <- [
 		"Trip Served",
 		"Trip Type",
-		"Wait Time",
-		"Departure Time",
-		"Duration",
+		"Wait Time (min)",
+		"Departure Time (min)",
+		"Duration (min)",
 		"Home [lat]",
-		"Home [long]",
+		"Home [lon]",
 		"Work [lat]",
-		"Work [long]",
-		"Distance",
+		"Work [lon]",
+		"Distance (m)",
 		"Duration (estimated)"
 	];
 	
@@ -167,7 +172,7 @@ species peopleLogger_trip parent: Logger mirrors: people {
 	}
 	
 	action logTrip(bool served, string type, int waitTime, int departure, int tripduration, point home, point work, float distance) {
-		do log(1, [served, type, waitTime, departure, tripduration, home.x, home.y, work.x, work.y, distance, string(int(distance/WanderingSpeed))]);
+		do log(1, [served, type, waitTime/60, departure/60, tripduration/60, home.x, home.y, work.x, work.y, distance, string(int(distance/WanderingSpeed))]);
 	}
 	
 }
@@ -176,10 +181,10 @@ species peopleLogger parent: Logger mirrors: people {
 	list<string> columns <- [
 		"Event",
 		"Message",
-		"Start Time",
-		"End Time",
-		"Duration",
-		"Distance"
+		"Start Time (min)",
+		"End Time (min)",
+		"Duration (min)",
+		"Distance (m)"
 	];
 	
 	bool logPredicate { return peopleLogs; }
@@ -268,7 +273,7 @@ species peopleLogger parent: Logger mirrors: people {
 		do logExitState("");
 	}
 	action logExitState(string logmessage) {
-		do log(1, ['END: ' + currentState, logmessage, cycleStartActivity*step, cycle*step, cycle*step - cycleStartActivity*step, locationStartActivity distance_to persontarget.location]);
+		do log(1, ['END: ' + currentState, logmessage, cycleStartActivity*step/60, cycle*step/60, (cycle*step - cycleStartActivity*step)/60, locationStartActivity distance_to persontarget.location]);
 	}
 	action logEvent(string event) {
 		do log(1, [event]);
@@ -279,11 +284,12 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike {
 	string filename <- 'bike_chargeevents';
 	list<string> columns <- [
 		"Station",
-		"Start Time",
-		"End Time",
-		"Duration",
-		"Start Battery",
-		"End Battery"
+		"Start Time (min)",
+		"End Time (min)",
+		"Duration (min)",
+		"Start Battery %",
+		"End Battery %",
+		"Battery Gain %"
 	];
 	bool logPredicate { return bikeLogs; }
 	bike biketarget;
@@ -294,19 +300,20 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike {
 		loggingAgent <- biketarget;
 	}
 	
-	action logCharge(chargingStation station, int startTime, int endTime, int chargeDuration, int startBattery, int endBattery) {
-		do log(1, [station, startTime, endTime, chargeDuration, startBattery, endBattery]);
+	action logCharge(chargingStation station, int startTime, int endTime, int chargeDuration, int startBattery, int endBattery, int batteryGain) {
+		do log(1, [station, startTime, endTime, chargeDuration, startBattery, endBattery, batteryGain]);
 	}
 }
 
 species bikeLogger_ReceiveChargeEvents parent: Logger mirrors: bike {
 	string filename <- 'bike_receiveChargeEvents';
 	list<string> columns <- [
-		"Start Time",
-		"End Time",
-		"Duration",
-		"Start Battery",
-		"End Battery"
+		"Start Time (min)",
+		"End Time (min)",
+		"Duration (min)",
+		"Start Battery %",
+		"End Battery %",
+		"Battery Gain %"
 	];
 	bool logPredicate { return bikeLogs; }
 	bike biketarget;
@@ -318,8 +325,8 @@ species bikeLogger_ReceiveChargeEvents parent: Logger mirrors: bike {
 		loggingAgent <- biketarget;
 	}
 	
-	action logReceivedCharge(agent leader, int startTime, int endTime, int chargeDuration, int startBattery, int endBattery) {
-		do log(1, [leader, startTime, endTime, chargeDuration, startBattery, endBattery]);
+	action logReceivedCharge(agent leader, int startTime, int endTime, int chargeDuration, int startBattery, int endBattery, int batteryGain) {
+		do log(1, [leader, startTime, endTime, chargeDuration, startBattery, endBattery/maxBatteryLife, batteryGain]);
 	}
 }
 
@@ -330,7 +337,8 @@ species bikeLogger_fullState parent: Logger mirrors: bike {
 		"Rider",
 		"Follower",
 		"Leader",
-		"Battery Life",
+		"Battery Life %",
+		//"Max Battery Life",
 		"Has Target",
 		"Last Tag",
 		"Next Tag",
@@ -353,8 +361,8 @@ species bikeLogger_fullState parent: Logger mirrors: bike {
 			biketarget.rider,
 			biketarget.follower,
 			biketarget.leader,
-			int(biketarget.batteryLife),
-			int(maxBatteryLife),
+			int(biketarget.batteryLife/maxBatteryLife*100),
+			//int(maxBatteryLife),
 			biketarget.target != nil,
 			biketarget.lastTag,
 			biketarget.nextTag,
@@ -408,13 +416,14 @@ species bikeLogger_event parent: Logger mirrors: bike {
 	list<string> columns <- [
 		"Event",
 		"Message",
-		"Start Time (s)",
-		"End Time (s)",
-		"Duration (s)",
+		"Start Time (min)",
+		"End Time (min)",
+		"Duration (min)",
 		"Distance Traveled",
 		"Duration (estimated)",
-		"Start Battery",
-		"End Battery"
+		"Start Battery %",
+		"End Battery %",
+		"Battery Gain %"
 	];
 	
 	
@@ -455,13 +464,14 @@ species bikeLogger_event parent: Logger mirrors: bike {
 		do log(1, [
 			'END: ' + currentState,
 			logmessage,
-			int(cycleStartActivity*step),
-			int(cycle*step),
-			int(cycle*step - cycleStartActivity*step),
+			int(cycleStartActivity*step/(60)),
+			int(cycle*step/(60)),
+			int((cycle*step - cycleStartActivity*step)/(60)),
 			int(d),
 			int(d/WanderingSpeed), //TODO: Change this, as wandering speed does not apply for every state
-			int(batteryStartActivity),
-			int(biketarget.batteryLife)
+			int(batteryStartActivity/maxBatteryLife*100),
+			int(biketarget.batteryLife/maxBatteryLife*100),
+			int((biketarget.batteryLife-batteryStartActivity)/maxBatteryLife*100)
 		
 		]);
 		
@@ -471,12 +481,13 @@ species bikeLogger_event parent: Logger mirrors: bike {
 			ask biketarget.chargeLogger {
 				do logCharge(
 					chargingStation closest_to biketarget,
-					int(myself.cycleStartActivity*step),
-					int(cycle*step),
+					int(myself.cycleStartActivity*step/(60)),
+					int(cycle*step/(60)),
 					//TODO: make charge time dependent on initial battery and charging rate
-					int(cycle*step - myself.cycleStartActivity*step),
-					int(myself.batteryStartActivity),
-					int(biketarget.batteryLife)
+					int((cycle*step - myself.cycleStartActivity*step)/(60)),
+					int(myself.batteryStartActivity/maxBatteryLife*100),
+					int(biketarget.batteryLife/maxBatteryLife*100),
+					int((biketarget.batteryLife-myself.batteryStartActivity)/maxBatteryLife*100)
 				);
 			}
 		}
@@ -486,11 +497,12 @@ species bikeLogger_event parent: Logger mirrors: bike {
 			ask biketarget.receiveChargeLogger {
 				do logReceivedCharge(
 					biketarget.leader,
-					int(myself.cycleStartActivity*step),
-					int(cycle*step),
-					int(cycle*step - myself.cycleStartActivity*step),
-					int(batteryStartReceiving),
-					int(biketarget.leader.batteryLife)
+					int(myself.cycleStartActivity*step/(60)),
+					int(cycle*step/(60)),
+					int((cycle*step - myself.cycleStartActivity*step)/(60)),
+					int(batteryStartReceiving/maxBatteryLife*100),
+					int(biketarget.leader.batteryLife/maxBatteryLife*100),
+					int((biketarget.leader.batteryLife-batteryStartReceiving)/maxBatteryLife*100)
 				);
 			}
 		}
@@ -498,4 +510,31 @@ species bikeLogger_event parent: Logger mirrors: bike {
 	}
 	
 	
+}
+
+species bikeLogger_bot parent: Logger mirrors: bike{
+	bool logPredicate { return botLogs; }
+	list<string> columns <- [
+		"Cycle",
+		"State",
+		"Lat",
+		"Lon",
+		"Heading",
+		"Battery"
+	];
+	string filename <- "swarm-bots";
+	bike biketarget;
+	init {
+		biketarget <- bike(target);
+		biketarget.botLogger <- self;
+		loggingAgent <- biketarget;
+	}
+
+	
+	reflex saveState {
+	
+		do log(1,[cycle,biketarget.state,biketarget.location.x,biketarget.location.y,biketarget.heading,biketarget.batteryLife/maxBatteryLife*100]);
+
+	}
+
 }
