@@ -140,7 +140,7 @@ species pheromoneLogger parent: Logger mirrors: tagRFID {
 	
 	reflex saveState {
 		float average <- tagtarget.pheromoneMap.pairs sum_of (each.value);
-		do log(1, [tagtarget.location.x,tagtarget.location.y,average/length(tagtarget.pheromoneMap.pairs)]);
+		do log(1, [int(tagtarget.location.x),int(tagtarget.location.y),int(average/length(tagtarget.pheromoneMap.pairs))]);
 	}
 	
 }
@@ -172,7 +172,7 @@ species peopleLogger_trip parent: Logger mirrors: people {
 	}
 	
 	action logTrip(bool served, string type, int waitTime, int departure, int tripduration, point home, point work, float distance) {
-		do log(1, [served, type, waitTime/60, departure/60, tripduration/60, home.x, home.y, work.x, work.y, distance, string(int(distance/WanderingSpeed))]);
+		do log(1, [served, type, waitTime/60, departure/60, tripduration/60, int(home.x), int(home.y), int(work.x), int(work.y), distance, string(int(distance/WanderingSpeed))]);
 	}
 	
 }

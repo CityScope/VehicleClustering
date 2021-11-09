@@ -82,7 +82,7 @@ species chargingStation {
 	
 	reflex chargeBikes {
 		ask chargingStationCapacity first bikesToCharge {
-			write "cycle: " + cycle + ", current time "+ current_date.hour +':' + current_date.minute + ' agent ' +string(self) + ", battery life " + self.batteryLife + ' step '+ step + ' chargRate '+ V2IChargingRate ;
+			//write "cycle: " + cycle + ", current time "+ current_date.hour +':' + current_date.minute + ' agent ' +string(self) + ", battery life " + self.batteryLife + ' step '+ step + ' chargRate '+ V2IChargingRate ;
 			batteryLife <- batteryLife + step*V2IChargingRate;
 		}
 	}
@@ -155,7 +155,7 @@ species people control: fsm skills: [moving] {
     		target <- nil;
     	}
     	transition to: requesting_bike when: timeToWork() {
-    		write "cycle: " + cycle + ", current time "+ current_date.hour +':' + current_date.minute + 'agent' +string(self) + " time " + self.start_work_hour + ":"+self.start_work_minute;
+    		//write "cycle: " + cycle + ", current time "+ current_date.hour +':' + current_date.minute + 'agent' +string(self) + " time " + self.start_work_hour + ":"+self.start_work_minute;
     		final_destination <- any_location_in (working_place);
     	}
     	transition to: requesting_bike when: timeToSleep() {
@@ -546,6 +546,7 @@ species bike control: fsm skills: [moving] {
 			tag.pheromoneMap[k] <- tag.pheromoneMap[k] + pheromoneToDiffuse; // TODO: Why do we add pheromone to all of them?
 			if k = previousTag and depositPheromone {
 				tag.pheromoneMap[k] <- tag.pheromoneMap[k] + pheromoneMark;
+				//write tag.pheromoneMap[k];
 			}
 		}
 		
@@ -576,7 +577,7 @@ species bike control: fsm skills: [moving] {
 			if readPheromones < chargingPheromoneThreshold {
 				lowPass <- true;
 			}
-		 write "cycle: " + cycle + ","+ current_date.hour +':' + current_date.minute + ' agent ' +string(self) + ", battery life " + self.batteryLife + ' low-pass: '+ lowPass ;
+		 //write "cycle: " + cycle + ","+ current_date.hour +':' + current_date.minute + ' agent ' +string(self) + ", battery life " + self.batteryLife + ' low-pass: '+ lowPass ;
 		}
 		exit {
 			ask eventLogger { do logExitState; }
