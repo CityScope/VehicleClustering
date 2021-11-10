@@ -326,7 +326,7 @@ species bikeLogger_ReceiveChargeEvents parent: Logger mirrors: bike {
 	}
 	
 	action logReceivedCharge(agent leader, int startTime, int endTime, int chargeDuration, int startBattery, int endBattery, int batteryGain) {
-		do log(1, [leader, startTime, endTime, chargeDuration, startBattery, endBattery/maxBatteryLife, batteryGain]);
+		do log(1, [leader, startTime, endTime, chargeDuration, startBattery, endBattery, batteryGain]);
 	}
 }
 
