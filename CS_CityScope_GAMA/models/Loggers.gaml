@@ -140,7 +140,7 @@ species pheromoneLogger parent: Logger mirrors: tagRFID {
 	
 	reflex saveState {
 		float average <- tagtarget.pheromoneMap.pairs sum_of (each.value);
-		do log(1, [int(tagtarget.location.x),int(tagtarget.location.y),int(average/length(tagtarget.pheromoneMap.pairs))]);
+		do log(1, [int(tagtarget.location.x),int(tagtarget.location.y),int(100*average/length(tagtarget.pheromoneMap.pairs))]);
 	}
 	
 }
@@ -366,9 +366,9 @@ species bikeLogger_fullState parent: Logger mirrors: bike {
 			biketarget.target != nil,
 			biketarget.lastTag,
 			biketarget.nextTag,
-			biketarget.readPheromones,
-			biketarget.pheromoneToDiffuse,
-			biketarget.pheromoneMark
+			int(100*biketarget.readPheromones),
+			int(100*biketarget.pheromoneToDiffuse),
+			int(100*biketarget.pheromoneMark)
 		]);
 	}
 }
