@@ -123,6 +123,7 @@ species people control: fsm skills: [moving] {
     
     peopleLogger logger;
     peopleLogger_trip tripLogger;
+    peopleLogger_tangible tangiblePeopleLogger;
     
     
     
@@ -253,7 +254,7 @@ species bike control: fsm skills: [moving] {
 	bikeLogger_chargeEvents chargeLogger;
 	bikeLogger_ReceiveChargeEvents receiveChargeLogger;
 	bikeLogger_event eventLogger;
-	bikeLogger_bot botLogger;
+	bikeLogger_tangible tangibleBikeLogger;
 	
 	
 	    

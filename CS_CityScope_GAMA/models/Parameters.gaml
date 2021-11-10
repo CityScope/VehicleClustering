@@ -14,7 +14,7 @@ global {
 	//----------------------Simulation Parameters------------------------
 	
 	//Simulation time step
-	float step <- 35.0 #sec; //For tangible we need about 0.1s
+	float step <- 35 #sec; //For tangible we need about 0.1s
 	
 	//Simulation starting date
 	date starting_date <- date("2021-10-12 06:00:00"); // <- #now;
@@ -36,7 +36,7 @@ global {
 	bool stationLogs <- true		parameter: "Charging Station Logs" category: "Logs";
 	string stationFile <- "stations"	parameter: "Charging Station Logfile" category: "Logs";
 	bool pheromoneLogs <- true;
-	bool botLogs <- true; //Output for swarm bots
+	bool tangibleLogs <- true; //Output for swarm bots
 	
 	//----------------------Pheromone Parameters------------------------
     float singlePheromoneMark <- 1.0;
@@ -54,13 +54,13 @@ global {
 	float RidingSpeed <-  10.2/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Riding Speed (m/s):" category:  "Bike";
 	
 	float clusterDistance <- 300#m; //Radius in which we look for bikes to cluster with
-	float clusterThreshold <- 0.2*maxBatteryLife; //(see bike.clusterCost) the charge a follower must be able to give the leader in order to cluster
+	float clusterThreshold <- 0.05*maxBatteryLife; //(see bike.clusterCost) the charge a follower must be able to give the leader in order to cluster
 	
 	float followDistance <- 0.1#m; //distance at which we consider bikes to be clustered and able to share battery
 	float V2VChargingRate <- maxBatteryLife/(1*60*60) #m/#s; //assuming 1h fast charge
 	
-	float chargingPheromoneThreshold <- 0.2*singlePheromoneMark; //Disables charge-seeking when low pheromone
-	float pLowPheromoneCharge <- 0.05; // probability of going for a charge when reading low pheromone levels
+	float chargingPheromoneThreshold <- 0.02*singlePheromoneMark; //Disables charge-seeking when low pheromone
+	float pLowPheromoneCharge <- 0.005; // probability of going for a charge when reading low pheromone levels
 	
 	float minSafeBattery <- 0.25*maxBatteryLife #m; //Amount of battery at which we seek battery and that is always reserved when charging another bike
 	

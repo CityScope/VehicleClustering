@@ -512,29 +512,60 @@ species bikeLogger_event parent: Logger mirrors: bike {
 	
 }
 
-species bikeLogger_bot parent: Logger mirrors: bike{
-	bool logPredicate { return botLogs; }
+species bikeLogger_tangible parent: Logger mirrors: bike{
+	bool logPredicate { return tangibleLogs; }
 	list<string> columns <- [
-		"Cycle",
 		"State",
 		"Lat",
 		"Lon",
 		"Heading",
 		"Battery"
 	];
-	string filename <- "swarm-bots";
+
+	
+	string filename <- "bike-tangible";
 	bike biketarget;
 	init {
 		biketarget <- bike(target);
-		biketarget.botLogger <- self;
+		biketarget.tangibleBikeLogger <- self;
 		loggingAgent <- biketarget;
 	}
 
 	
 	reflex saveState {
 	
-		do log(1,[cycle,biketarget.state,biketarget.location.x,biketarget.location.y,biketarget.heading,biketarget.batteryLife/maxBatteryLife*100]);
+		do log(1,[biketarget.state,biketarget.location.x,biketarget.location.y,biketarget.heading,biketarget.batteryLife/maxBatteryLife*100]);
 
 	}
 
 }
+
+species peopleLogger_tangible parent: Logger mirrors: people {
+	string filename <- "people_tangible";
+	list<string> columns <- [
+		"State",
+		"Lat",
+		"Lon",
+		"Heading"
+	];
+	
+	bool logPredicate { return tangibleLogs; }
+	people persontarget;
+	
+	init {
+		
+		persontarget <- people(target);
+		persontarget.tangiblePeopleLogger <- self;
+		loggingAgent <- persontarget;
+	}
+	
+	
+	reflex saveState {
+	
+		do log(1,[persontarget.state,persontarget.location.x,persontarget.location.y,persontarget.heading]);
+
+	}
+	
+}
+
+
