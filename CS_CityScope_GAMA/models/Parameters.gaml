@@ -60,7 +60,7 @@ global {
 	float V2VChargingRate <- maxBatteryLife/(1*60*60) #m/#s; //assuming 1h fast charge
 	
 	float chargingPheromoneThreshold <- 0.02*singlePheromoneMark; //Disables charge-seeking when low pheromone
-	float pLowPheromoneCharge <- 0.005; // probability of going for a charge when reading low pheromone levels
+	float pLowPheromoneCharge <- 0.01; // probability of going for a charge when reading low pheromone levels
 	
 	float minSafeBattery <- 0.25*maxBatteryLife #m; //Amount of battery at which we seek battery and that is always reserved when charging another bike
 	
