@@ -523,7 +523,7 @@ species bikeLogger_tangible parent: Logger mirrors: bike{
 	];
 
 	
-	string filename <- "bike-tangible";
+	string filename <- "bike_tangible";
 	bike biketarget;
 	init {
 		biketarget <- bike(target);
