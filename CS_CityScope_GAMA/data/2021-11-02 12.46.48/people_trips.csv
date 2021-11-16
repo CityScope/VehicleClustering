@@ -1,0 +1,2 @@
+Cycle,Time (real),Time (simulation),Agent,Trip Served,Trip Type,Wait Time,Departure Time,Duration,Home [lat],Home [long],Work [lat],Work [long],Distance,Duration (estimated)
+642,2021-11-02 01:01:20,22470.0,people0,false,Morning,0.0,0.0,22470.0,367.43445295818714,395.95264994343205,740.7885737920368,1210.0672874430497,1168.8644937231238,840.9097077144776

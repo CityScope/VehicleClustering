@@ -1,0 +1,2 @@
+Cycle,Time (real),Time (simulation),Agent,Event,Message,Start Time,End Time,Duration,Distance
+0,2021-10-28 23:29:35,0.0,people0,START: idle,nil

@@ -1,0 +1,106 @@
+Cycle,Time (real),Time (simulation),Agent,Event,Message,Start Time (s),End Time (s),Duration (s),Distance Traveled,Duration (estimated),Start Battery,End Battery
+0,2021-10-28 16:09:09,0.0,bike0,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike1,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike2,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike3,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike4,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike5,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike5,END: idle,nil,0.0,0.0,0.0,0,0,37830,37830
+0,2021-10-28 16:09:09,0.0,bike6,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike7,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike8,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike9,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike10,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike11,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike12,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike13,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike14,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike15,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike16,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike17,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike18,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike19,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike20,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike21,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike22,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike22,END: idle,nil,0.0,0.0,0.0,0,0,37785,37785
+0,2021-10-28 16:09:09,0.0,bike23,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike24,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike25,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike26,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike27,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike28,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike29,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike30,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike30,END: idle,nil,0.0,0.0,0.0,0,0,36163,36163
+0,2021-10-28 16:09:09,0.0,bike31,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike32,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike33,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike33,END: idle,nil,0.0,0.0,0.0,0,0,37829,37829
+0,2021-10-28 16:09:09,0.0,bike34,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike35,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike35,END: idle,nil,0.0,0.0,0.0,0,0,36348,36348
+0,2021-10-28 16:09:09,0.0,bike36,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike37,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike38,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike39,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike39,END: idle,nil,0.0,0.0,0.0,0,0,30433,30433
+0,2021-10-28 16:09:09,0.0,bike40,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike40,END: idle,nil,0.0,0.0,0.0,0,0,38932,38932
+0,2021-10-28 16:09:09,0.0,bike41,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike42,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike43,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike44,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike44,END: idle,nil,0.0,0.0,0.0,0,0,30909,30909
+0,2021-10-28 16:09:09,0.0,bike45,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike46,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike47,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike47,END: idle,nil,0.0,0.0,0.0,0,0,39920,39920
+0,2021-10-28 16:09:09,0.0,bike48,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike49,START: idle,nil
+0,2021-10-28 16:09:09,0.0,bike49,END: idle,nil,0.0,0.0,0.0,0,0,38923,38923
+1,2021-10-28 16:09:11,35.0,bike4,END: idle,nil,0.0,35.0,35.0,48,34,32826,32777
+1,2021-10-28 16:09:11,35.0,bike5,START: seeking_leader,Seeking Leader bike(39)
+1,2021-10-28 16:09:11,35.0,bike7,END: idle,nil,0.0,35.0,35.0,48,34,30576,30527
+1,2021-10-28 16:09:11,35.0,bike18,END: idle,nil,0.0,35.0,35.0,48,34,30660,30612
+1,2021-10-28 16:09:11,35.0,bike22,START: seeking_leader,Seeking Leader bike(44)
+1,2021-10-28 16:09:11,35.0,bike23,END: idle,nil,0.0,35.0,35.0,48,34,31263,31214
+1,2021-10-28 16:09:11,35.0,bike26,END: idle,nil,0.0,35.0,35.0,48,34,30126,30077
+1,2021-10-28 16:09:11,35.0,bike27,END: idle,nil,0.0,35.0,35.0,48,35,31488,31440
+1,2021-10-28 16:09:11,35.0,bike28,END: idle,nil,0.0,35.0,35.0,48,35,38369,38320
+1,2021-10-28 16:09:11,35.0,bike30,START: seeking_leader,Seeking Leader bike(7)
+1,2021-10-28 16:09:11,35.0,bike33,START: seeking_leader,Seeking Leader bike(26)
+1,2021-10-28 16:09:11,35.0,bike35,START: seeking_leader,Seeking Leader bike(18)
+1,2021-10-28 16:09:11,35.0,bike39,START: awaiting_follower,Awaiting Follower bike(5)
+1,2021-10-28 16:09:11,35.0,bike40,START: seeking_leader,Seeking Leader bike(23)
+1,2021-10-28 16:09:11,35.0,bike44,START: awaiting_follower,Awaiting Follower bike(22)
+1,2021-10-28 16:09:11,35.0,bike47,START: seeking_leader,Seeking Leader bike(27)
+1,2021-10-28 16:09:11,35.0,bike49,START: seeking_leader,Seeking Leader bike(4)
+2,2021-10-28 16:09:12,70.0,bike4,START: awaiting_follower,Awaiting Follower bike(49)
+2,2021-10-28 16:09:12,70.0,bike7,START: awaiting_follower,Awaiting Follower bike(30)
+2,2021-10-28 16:09:12,70.0,bike18,START: awaiting_follower,Awaiting Follower bike(35)
+2,2021-10-28 16:09:12,70.0,bike20,END: idle,nil,0.0,70.0,70.0,97,70,31837,31740
+2,2021-10-28 16:09:12,70.0,bike22,END: seeking_leader,Sought Leader bike(44),35.0,70.0,35.0,16,12,37785,37768
+2,2021-10-28 16:09:12,70.0,bike23,START: awaiting_follower,Awaiting Follower bike(40)
+2,2021-10-28 16:09:12,70.0,bike26,START: awaiting_follower,Awaiting Follower bike(33)
+2,2021-10-28 16:09:12,70.0,bike27,START: awaiting_follower,Awaiting Follower bike(47)
+2,2021-10-28 16:09:12,70.0,bike28,START: seeking_leader,Seeking Leader bike(20)
+2,2021-10-28 16:09:12,70.0,bike44,END: awaiting_follower,Awaited Follower bike(22),35.0,70.0,35.0,0,0,30909,30909
+3,2021-10-28 16:09:13,105.0,bike5,END: seeking_leader,Sought Leader bike(39),35.0,105.0,70.0,99,71,37830,37731
+3,2021-10-28 16:09:13,105.0,bike12,END: idle,nil,0.0,105.0,105.0,145,105,38902,38756
+3,2021-10-28 16:09:13,105.0,bike20,START: awaiting_follower,Awaiting Follower bike(28)
+3,2021-10-28 16:09:13,105.0,bike22,START: following,Following bike(44)
+3,2021-10-28 16:09:13,105.0,bike30,END: seeking_leader,Sought Leader bike(7),35.0,105.0,70.0,94,67,36163,36069
+3,2021-10-28 16:09:13,105.0,bike39,END: awaiting_follower,Awaited Follower bike(5),35.0,105.0,70.0,0,0,30433,30433
+3,2021-10-28 16:09:14,105.0,bike44,START: idle,nil
+3,2021-10-28 16:09:14,105.0,bike49,END: seeking_leader,Sought Leader bike(4),35.0,105.0,70.0,145,104,38923,38777
+4,2021-10-28 16:09:15,140.0,bike0,END: idle,nil,0.0,140.0,140.0,194,139,33069,32874
+4,2021-10-28 16:09:15,140.0,bike3,END: idle,nil,0.0,140.0,140.0,194,139,36710,36515
+4,2021-10-28 16:09:15,140.0,bike4,END: awaiting_follower,Awaited Follower bike(49),70.0,140.0,70.0,0,0,32777,32777
+4,2021-10-28 16:09:15,140.0,bike5,START: following,Following bike(39)
+4,2021-10-28 16:09:15,140.0,bike7,END: awaiting_follower,Awaited Follower bike(30),70.0,140.0,70.0,0,0,30527,30527
+4,2021-10-28 16:09:15,140.0,bike8,END: idle,nil,0.0,140.0,140.0,194,140,30631,30437
+4,2021-10-28 16:09:15,140.0,bike12,START: seeking_leader,Seeking Leader bike(0)
+4,2021-10-28 16:09:15,140.0,bike30,START: following,Following bike(7)
+4,2021-10-28 16:09:15,140.0,bike39,START: idle,nil
+4,2021-10-28 16:09:15,140.0,bike49,START: following,Following bike(4)

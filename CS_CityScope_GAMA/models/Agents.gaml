@@ -101,9 +101,35 @@ species tagRFID {
 	//easy access to neighbors
 	list<tagRFID> neighbors { return pheromoneMap.keys;	}
 	
-	
-	rgb color <- #purple;
 	aspect base {
+		rgb color;
+		float sum <- 0;
+		float length <- 0;
+		loop k over: neighbors{
+			sum <- sum + pheromoneMap[k];
+			length <- length + 1;
+			
+		}
+		float avg <- sum/length;
+		
+		float quartile1 <- minPheromoneLevel + (maxPheromoneLevel-minPheromoneLevel)/4;
+		float quartile2 <- minPheromoneLevel + 2*(maxPheromoneLevel-minPheromoneLevel)/4;
+		float quartile3 <- minPheromoneLevel + 3*(maxPheromoneLevel-minPheromoneLevel)/4;
+		
+		if avg < quartile1 {
+			color <- #red;
+		}
+		else if avg < quartile2 {
+			color <- #purple;
+		}
+		else if avg < quartile3 {
+			color <- #blue;
+		}
+		else {
+			color <- #turquoise;
+		}
+
+			
 		draw circle(10) color:color;
 	}
 	
@@ -113,7 +139,19 @@ species tagRFID {
 }
 
 species people control: fsm skills: [moving] {
-	rgb color <- #yellow ;
+	//rgb color <- #yellow ;
+	
+	rgb color;
+	
+    map<string, rgb> color_map <- [
+		"idle"::#green,
+		"requesting_bike":: #orange,
+		"awaiting_bike":: #orange,
+		"riding":: #yellow,
+		"walking":: #lime
+		
+	];
+	
     building living_place; //Home [lat,lon]
     building working_place; //Work [lat, lon]
     int start_work_hour;
@@ -135,9 +173,11 @@ species people control: fsm skills: [moving] {
     bike bikeToRide;
     
     aspect base {
-		if state != "riding" {
-			draw circle(10) color: color border: #black;
-		}
+    	color <- color_map[state];
+    	draw circle(10) color: color border: #black;
+//		if state != "riding" {
+//			draw circle(10) color: color border: #black;
+//		}
     }
     
     //----------------PUBLIC FUNCTIONS-----------------
@@ -525,8 +565,12 @@ species bike control: fsm skills: [moving] {
 	action updatePheromones(tagRFID tag) {
 		loop k over: tag.pheromoneMap.keys {
 			//evaporation
+
 			tag.pheromoneMap[k] <- tag.pheromoneMap[k] - (singlePheromoneMark * evaporation * step*(cycle - tag.lastUpdate)); 
 			//TODO: review, Quinn added *step* here so that it's proportional to time, not only the num cycles
+
+			tag.pheromoneMap[k] <- tag.pheromoneMap[k] - (singlePheromoneMark * evaporation * step*(cycle - tag.lastUpdate));
+			
 
 			//saturation
 			if (tag.pheromoneMap[k]<minPheromoneLevel){
@@ -535,6 +579,8 @@ species bike control: fsm skills: [moving] {
 			if (tag.pheromoneMap[k]>maxPheromoneLevel){
 				tag.pheromoneMap[k] <- maxPheromoneLevel;
 			}
+			
+
 		}
 		
 		tag.lastUpdate <- cycle;

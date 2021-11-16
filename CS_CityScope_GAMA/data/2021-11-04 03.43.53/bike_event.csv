@@ -1,0 +1,53 @@
+Cycle,Time (real),Time (simulation),Agent,Event,Message,Start Time (s),End Time (s),Duration (s),Distance Traveled,Duration (estimated),Start Battery,End Battery
+0,2021-11-04 15:49:25,0.0,bike0,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike1,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike2,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike3,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike4,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike5,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike6,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike7,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike7,END: idle,nil,0.0,0.0,0.0,0,0,38175,38175
+0,2021-11-04 15:49:25,0.0,bike8,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike9,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike10,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike11,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike12,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike12,END: idle,nil,0.0,0.0,0.0,0,0,31589,31589
+0,2021-11-04 15:49:25,0.0,bike13,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike13,END: idle,nil,0.0,0.0,0.0,0,0,37798,37798
+0,2021-11-04 15:49:25,0.0,bike14,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike15,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike16,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike17,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike17,END: idle,nil,0.0,0.0,0.0,0,0,32188,32188
+0,2021-11-04 15:49:25,0.0,bike18,START: idle,nil
+0,2021-11-04 15:49:25,0.0,bike19,START: idle,nil
+1,2021-11-04 15:49:26,35.0,bike7,START: seeking_leader,Seeking Leader bike(12)
+1,2021-11-04 15:49:26,35.0,bike12,START: awaiting_follower,Awaiting Follower bike(7)
+1,2021-11-04 15:49:26,35.0,bike13,START: seeking_leader,Seeking Leader bike(17)
+1,2021-11-04 15:49:26,35.0,bike17,START: awaiting_follower,Awaiting Follower bike(13)
+2,2021-11-04 15:49:28,70.0,bike18,END: idle,nil,0.0,70.0,70.0,97,70,38854,38757
+3,2021-11-04 15:49:28,105.0,bike5,END: idle,nil,0.0,105.0,105.0,145,104,31879,31733
+3,2021-11-04 15:49:28,105.0,bike7,END: seeking_leader,Sought Leader bike(12),35.0,105.0,70.0,111,80,38175,38063
+3,2021-11-04 15:49:28,105.0,bike12,END: awaiting_follower,Awaited Follower bike(7),35.0,105.0,70.0,0,0,31589,31589
+3,2021-11-04 15:49:29,105.0,bike18,START: seeking_leader,Seeking Leader bike(5)
+4,2021-11-04 15:49:30,140.0,bike5,START: awaiting_follower,Awaiting Follower bike(18)
+4,2021-11-04 15:49:30,140.0,bike7,START: following,Following bike(12)
+4,2021-11-04 15:49:30,140.0,bike12,START: idle,nil
+4,2021-11-04 15:49:30,140.0,bike13,END: seeking_leader,Sought Leader bike(17),35.0,140.0,105.0,231,166,37798,37567
+4,2021-11-04 15:49:30,140.0,bike17,END: awaiting_follower,Awaited Follower bike(13),35.0,140.0,105.0,0,0,32188,32188
+5,2021-11-04 15:49:30,175.0,bike13,START: following,Following bike(17)
+5,2021-11-04 15:49:30,175.0,bike17,START: idle,nil
+6,2021-11-04 15:49:31,210.0,bike19,END: idle,nil,0.0,210.0,210.0,291,209,37897,37606
+7,2021-11-04 15:49:32,245.0,bike0,END: idle,nil,0.0,245.0,245.0,340,245,31378,31038
+7,2021-11-04 15:49:32,245.0,bike19,START: seeking_leader,Seeking Leader bike(0)
+8,2021-11-04 15:49:33,280.0,bike0,START: awaiting_follower,Awaiting Follower bike(19)
+8,2021-11-04 15:49:33,280.0,bike18,END: seeking_leader,Sought Leader bike(5),105.0,280.0,175.0,342,246,38757,38415
+9,2021-11-04 15:49:34,315.0,bike5,END: awaiting_follower,Awaited Follower bike(18),140.0,315.0,175.0,0,0,31733,31733
+9,2021-11-04 15:49:34,315.0,bike18,START: following,Following bike(5)
+10,2021-11-04 15:49:34,350.0,bike5,START: idle,nil
+13,2021-11-04 15:49:37,455.0,bike19,END: seeking_leader,Sought Leader bike(0),245.0,455.0,210.0,397,286,37606,37208
+14,2021-11-04 15:49:38,490.0,bike0,END: awaiting_follower,Awaited Follower bike(19),280.0,490.0,210.0,0,0,31038,31038
+14,2021-11-04 15:49:38,490.0,bike19,START: following,Following bike(0)
+15,2021-11-04 15:49:38,525.0,bike0,START: idle,nil
