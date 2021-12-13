@@ -100,9 +100,8 @@ species tagRFID {
 	
 	//easy access to neighbors
 	list<tagRFID> neighbors { return pheromoneMap.keys;	}
-	
-	aspect base {
-		rgb color;
+
+	float average {
 		float sum <- 0;
 		float length <- 0;
 		loop k over: neighbors{
@@ -111,6 +110,13 @@ species tagRFID {
 			
 		}
 		float avg <- sum/length;
+		return avg;
+	}
+	
+	aspect base {
+		rgb color;
+		
+		float avg <- average;
 		
 		float quartile1 <- minPheromoneLevel + (maxPheromoneLevel-minPheromoneLevel)/4;
 		float quartile2 <- minPheromoneLevel + 2*(maxPheromoneLevel-minPheromoneLevel)/4;
@@ -569,9 +575,6 @@ species bike control: fsm skills: [moving] {
 			tag.pheromoneMap[k] <- tag.pheromoneMap[k] - (singlePheromoneMark * evaporation * step*(cycle - tag.lastUpdate)); 
 			//TODO: review, Quinn added *step* here so that it's proportional to time, not only the num cycles
 
-			tag.pheromoneMap[k] <- tag.pheromoneMap[k] - (singlePheromoneMark * evaporation * step*(cycle - tag.lastUpdate));
-			
-
 			//saturation
 			if (tag.pheromoneMap[k]<minPheromoneLevel){
 				tag.pheromoneMap[k] <- minPheromoneLevel;
@@ -579,6 +582,7 @@ species bike control: fsm skills: [moving] {
 			if (tag.pheromoneMap[k]>maxPheromoneLevel){
 				tag.pheromoneMap[k] <- maxPheromoneLevel;
 			}
+			
 			
 
 		}
@@ -601,6 +605,7 @@ species bike control: fsm skills: [moving] {
 		do updatePheromones(tag);
 		
 		pheromoneToDiffuse <- max(tag.pheromoneMap)*diffusion; //TODO: review in their code myself.pheromoneToDiffuse <- max(self.pheromones)*diffusion;
+		write(pheromoneToDiffuse);
 	}
 	
 	

@@ -166,12 +166,36 @@ experiment benchmarks {
 }*/
 
 
-experiment clustering type: gui {
-	parameter var: numBikes init: 50;
-	parameter var: numPeople init: 250;
+/*
+ * Evaporation rate: 0.05%, 0.15%, 0.3%
+ * Exploitation rate: 0.6, 0.75, 0.9
+ * Number of bikes: 40, 50, 60
+ */
+experiment batch_experiments type: batch repeat: 27 until: (cycle = 300) {
+	parameter var: evaporation init: 0.05;
+	parameter var: exploitationRate init: 0.6;
+	parameter var: numBikes init: 40;
+	reflex updateVars{
+		numBikes <- numBikes + 10;
+		if(numBikes >= 60){
+			numBikes <- 40;
+			exploitationRate <- exploitationRate + 0.15;
+		} 
+		
+		if(exploitationRate >= 0.9){
+			exploitationRate <- 0.6;
+			if(evaporation = 0.05){
+				evaporation <- 0.15;
+			}
+			else if(evaporation = 0.15){
+				evaporation <- 0.3;
+			}
+		}
+		
+	}
     output {
 		display city_display type:opengl background: #black draw_env: false{	
-			species tagRFID aspect: base ;
+			species tagRFID aspect: base trace: 10;
 			species building aspect: type ;
 			species road aspect: base ;
 			species people aspect: base ;
@@ -183,6 +207,30 @@ experiment clustering type: gui {
 				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
 			}
 		}
+	
+    }
+	
+}
+
+
+experiment clustering type: gui {
+	parameter var: numBikes init: 50;
+	parameter var: numPeople init: 250;
+    output {
+		display city_display type:opengl background: #black draw_env: false{	
+			species tagRFID aspect: base trace: 10;
+			species building aspect: type ;
+			species road aspect: base ;
+			species people aspect: base ;
+			species chargingStation aspect: base ;
+			species bike aspect: realistic ;
+			graphics "text" {
+				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
+				{world.shape.width * 0.8, world.shape.height * 0.975};
+				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
+			}
+		}
+	
     }
 }
 
@@ -190,6 +238,7 @@ experiment clustering_headless {
 	parameter var: numBikes init: 50;
 	parameter var: numPeople init: 250;
 }
+
 
 experiment one_person type: gui {
 	parameter var: numBikes init: 0;
@@ -231,7 +280,9 @@ experiment one_each type: gui {
 		}
     }
 }
+
 experiment one_bike type: gui {
+	
 	parameter var: numBikes init: 1;
 	parameter var: numPeople init: 0;
 	
