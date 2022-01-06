@@ -212,6 +212,11 @@ experiment batch_experiments type: batch repeat: 27 until: (cycle = 300) {
 	
 }
 
+experiment batch_experiments_headless type: batch until: (cycle = 300) {
+	parameter var: evaporation among: [0.05, 0.15, 0.3];
+	parameter var: exploitationRate among: [0.6, 0.75, 0.9];
+	parameter var: numBikes among: [40, 50, 60];
+}
 
 experiment clustering type: gui {
 	parameter var: numBikes init: 50;
