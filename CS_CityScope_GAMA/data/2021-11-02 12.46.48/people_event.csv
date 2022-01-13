@@ -1,7 +1,0 @@
-Cycle,Time (real),Time (simulation),Agent,Event,Message,Start Time,End Time,Duration,Distance
-0,2021-11-02 00:47:35,0.0,people0,START: idle,nil
-640,2021-11-02 01:01:18,22400.0,people0,END: idle,nil,0.0,22400.0,22400.0,0.0
-641,2021-11-02 01:01:19,22435.0,people0,START: requesting_bike,nil
-641,2021-11-02 01:01:19,22435.0,people0,END: requesting_bike,Requested Bike null,22435.0,22435.0,0.0,0.0
-641,2021-11-02 01:01:19,22435.0,people0,Teleported, wait too long
-642,2021-11-02 01:01:20,22470.0,people0,START: idle,nil

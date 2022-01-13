@@ -1,2 +1,0 @@
-Cycle,Time (real),Time (simulation),Agent,Event,Message,Start Time (s),End Time (s),Duration (s),Distance Traveled,Duration (estimated),Start Battery,End Battery
-0,2021-11-02 19:56:38,0.0,bike0,START: idle,nil
