@@ -421,9 +421,10 @@ species bike control: fsm skills: [moving] {
 		
 		//Old: Include if the bikes cosume battery during the ride and we assume that users imput destinayion
 		//return batteryLife < distanceSafetyFactor*lastDistanceToChargingStation;
+		//TODO: add battery consumption during ride
 	}
-	float energyCost(float distance) { //This function will let us alter the efficiency of our bikes, if we decide to look into that
-		if state = "in_use" { return 0; } //user will pedal
+	float energyCost(float distance) { //TODO: This function will let us alter the efficiency of our bikes, if we decide to look into that
+		//if state = "in_use" { return 0; } //user will pedal
 		return distance;
 	}
 	action reduceBattery(float distance) {
