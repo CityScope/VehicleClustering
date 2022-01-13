@@ -133,12 +133,12 @@ for i in range(1):
     df_trips["target_time"] = (pd.to_datetime(df_trips["stoptime"]) - start_time).astype("timedelta64[s]")
 
     # df_trips.drop(columns = [])
-    df_trips.to_csv("../data/user_trips_new.csv", index=False)
+    df_trips.to_csv("user_trips_new.csv", index=False)
     #df_trips.to_csv("./user_trips_" + str(i) + ".csv", index=False)
 
 # %% PLOT DATA
 
-plot = True
+plot = False
 if plot:
     import matplotlib.pyplot as plt
     from pyproj import Proj
