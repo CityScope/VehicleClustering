@@ -49,13 +49,15 @@ df_trips = df_trips[df_trips["start station id"] != df_trips["end station id"]]
 # LOCATION FILTER
 
 lat_min = 42.356444 
-lat_max = 42.373076
-lon_min= -71.095493  #71.100729 // 
+lat_max = 42.371761
+lon_min= -71.093730 #71.100729 // 
 lon_max = -71.073392 #71.069872
 
 df_trips = df_trips[
     df_trips["start station longitude"].between(lon_min, lon_max) & 
-    df_trips["start station latitude"].between(lat_min, lat_max)]
+    df_trips["start station latitude"].between(lat_min, lat_max) & 
+    df_trips["end station longitude"].between(lon_min, lon_max) & 
+    df_trips["end station latitude"].between(lat_min, lat_max)]
 
 print(len(df_trips))
 
