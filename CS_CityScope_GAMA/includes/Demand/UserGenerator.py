@@ -10,6 +10,10 @@ on: Wed Aug 25 15:00 2021
 by: NaroaCS
 """
 # %%
+
+
+
+## REMEMBER to cd in the terminal to the folder where UserGenerator.py is stored
 import numpy as np
 import pandas as pd
 import os
@@ -46,8 +50,8 @@ df_trips = df_trips[df_trips["start station id"] != df_trips["end station id"]]
 
 lat_min = 42.356444 
 lat_max = 42.373477
-lon_min= -71.117067
-lon_max = -71.095985 #71.098042/ 71.095985
+lon_min= -71.100729  #71.100729 // 
+lon_max = -71.073392 #71.069872
 
 df_trips = df_trips[
     df_trips["start station longitude"].between(lon_min, lon_max) & 
@@ -138,7 +142,7 @@ for i in range(1):
 
 # %% PLOT DATA
 
-plot = False
+plot = True
 if plot:
     import matplotlib.pyplot as plt
     from pyproj import Proj
@@ -146,7 +150,8 @@ if plot:
     pp = Proj("+proj=utm +zone=19 +north +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
 
     df_stations = df_trips[["start station longitude", "start station latitude"]].drop_duplicates()
-    df_trips_sample = df_trips.sample(10000)
+    #df_trips_sample = df_trips.sample(10000)
+    df_trips_sample = df_trips
 
     xx, yy = pp(df_trips_sample["start_lon"].values, df_trips_sample["start_lat"].values)
     df_trips_sample["X"] = xx
