@@ -158,18 +158,31 @@ species people control: fsm skills: [moving] {
 		
 	];
 	
-    building living_place; //Home [lat,lon]
-    building working_place; //Work [lat, lon]
-    int start_work_hour;
-    int start_work_minute;
-    int end_work_hour;
-    int end_work_minute;
+    //building living_place; //Home [lat,lon]
+    //building working_place; //Work [lat, lon]
+    //int start_work_hour;
+    //int start_work_minute;
+    //int end_work_hour;
+    //int end_work_minute;
     
     peopleLogger logger;
     peopleLogger_trip tripLogger;
     peopleLogger_tangible tangiblePeopleLogger;
     
+     // NEW (review peopleSpeed
+     date start_hour;
+     float start_lat;
+     float start_lon;
+     float target_lat;
+     float target_lon;
+     
+     point start_point;
+     point target_point;
+     
+     int start_h;
+     int start_min;
     
+    // new end
     
     point final_destination; //Final destination for the trip
     point target; //Interim destination; the point we are currently moving toward
@@ -177,6 +190,21 @@ species people control: fsm skills: [moving] {
     float waitTime;
     
     bike bikeToRide;
+    
+    init {
+    	
+    start_point  <- to_GAMA_CRS({start_lon,start_lat},"EPSG:4326").location; // (lon, lat) var0 equals a geometry corresponding to the agent geometry transformed into the GAMA CRS
+	target_point <- to_GAMA_CRS({target_lon,target_lat},"EPSG:4326").location;
+	//start_point <-{start_lon,start_lat};
+	//location <- start_point;
+	//target_point <-{target_lon,target_lat};
+	string start_h_str <- string(start_hour,'hh');
+	start_h <- int(start_h_str);
+	
+	string start_min_str <- string(start_hour,'mm');
+	start_min <- int(start_min_str);
+			
+    }
     
     aspect base {
     	color <- color_map[state];
@@ -192,8 +220,8 @@ species people control: fsm skills: [moving] {
     	bikeToRide <- b;
     }	
     //Should we leave for work/home? Only if it is time, and we are not already there
-    bool timeToWork { return (current_date.hour = start_work_hour and current_date.minute >= start_work_minute) and !(self overlaps working_place); }
-    bool timeToSleep { return (current_date.hour = end_work_hour and current_date.minute >= end_work_minute) and !(self overlaps living_place); }
+    bool timeToTravel { return (current_date.hour = start_h and current_date.minute >= start_min) and !(self overlaps target_point); }
+    //bool timeToSleep { return (current_date.hour = end_work_hour and current_date.minute >= end_work_minute) and !(self overlaps living_place); }
     
     state wander initial: true {
     	//Watch netflix at home (and/or work)
@@ -201,12 +229,9 @@ species people control: fsm skills: [moving] {
     		ask logger { do logEnterState; }
     		target <- nil;
     	}
-    	transition to: requesting_bike when: timeToWork() {
+    	transition to: requesting_bike when: timeToTravel() {
     		//write "cycle: " + cycle + ", current time "+ current_date.hour +':' + current_date.minute + 'agent' +string(self) + " time " + self.start_work_hour + ":"+self.start_work_minute;
-    		final_destination <- any_location_in (working_place);
-    	}
-    	transition to: requesting_bike when: timeToSleep() {
-    		final_destination <- any_location_in (living_place);
+    		final_destination <- target_point;
     	}
     	exit {
 			ask logger { do logExitState; }

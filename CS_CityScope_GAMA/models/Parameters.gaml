@@ -88,6 +88,11 @@ global {
     
     float bikeCostBatteryCoef <- 200.0; //(see global.bikeCost)relative importance of batterylife when selecting bikes to ride
     
+    //new demand
+    int demand_i <- 0 min: 0 max: 5 parameter: "Demand File:" category "Pepole";
+    string cityDemandFolder <- "./../includes/Demand";
+    csv_file demand_csv <- csv_file (cityDemandFolder+ "/user_trips_"+ demand_i +".csv",true); //TODO: review -2474 1 day
+     //csv_file f <- csv_file("file.csv", ";",int,true, {5, 100});
     //----------------------Map Parameters------------------------
 	
 	//Case 1 - Urban Swarms Map

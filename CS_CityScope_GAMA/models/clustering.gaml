@@ -109,7 +109,7 @@ global {
 		}
 	    
 		// -------------------------------------------The People -----------------------------------------
-	    create people number: numPeople {
+	    /*create people number: numPeople {
 	    	
 	        start_work_hour <- rnd (workStartMin, workStartMax-1); // we need to -1 because otherwise we will create agents until workStartMax:59 (eg. 8.59 with 8 as max)
 	        start_work_minute <- rnd(0,59);
@@ -124,7 +124,27 @@ global {
 	        speed <- peopleSpeed;
 	        
 	        //write "cycle: " + cycle + ", " + string(self) + " created at " + self.start_work_hour + ":"+self.start_work_minute;
-	    }
+	    }*/
+	    
+	    //New demand
+	    
+	    create people from: demand_csv with:
+			[start_hour::date(get("starttime")),  //'yyyy-MM-dd hh:mm:s'
+				start_lat::float(get("start_lat")),
+				start_lon::float(get("start_lon")),
+				target_lat::float(get("target_lat")),
+				target_lon::float(get("target_lon"))
+			]{
+				
+			location  <- to_GAMA_CRS({start_lon,start_lat},"EPSG:4326").location; // (lon, lat) var0 equals a geometry corresponding to the agent geometry transformed into the GAMA CRS
+	        speed <- peopleSpeed;
+	        write location;
+			}
+			
+			// REVIEW peopleSpeed
+			
+			
+			
 	 	// ----------------------------------The RFIDs tag on each road intersection------------------------
 		
 		ask tagRFID {

@@ -44,10 +44,10 @@ df_trips = df_trips[df_trips["start station id"] != df_trips["end station id"]]
 
 # LOCATION FILTER
 
-lat_min = 42.355013
-lat_max = 42.369192
+lat_min = 42.356444 
+lat_max = 42.373477
 lon_min= -71.117067
-lon_max = -71.075183
+lon_max = -71.095985 #71.098042/ 71.095985
 
 df_trips = df_trips[
     df_trips["start station longitude"].between(lon_min, lon_max) & 
@@ -56,8 +56,7 @@ df_trips = df_trips[
 print(len(df_trips))
 
 # %%
-
-for i in range(5):
+for i in range(1):
     from sklearn.neighbors import BallTree
 
     tree = BallTree(np.deg2rad(df_buildings[["cy", "cx"]].values), leaf_size=50, metric="haversine")
@@ -134,8 +133,8 @@ for i in range(5):
     df_trips["target_time"] = (pd.to_datetime(df_trips["stoptime"]) - start_time).astype("timedelta64[s]")
 
     # df_trips.drop(columns = [])
-    # df_trips.to_csv("../data/user_trips.csv", index=False)
-    df_trips.to_csv("./user_trips_" + str(i) + ".csv", index=False)
+    df_trips.to_csv("../data/user_trips_new.csv", index=False)
+    #df_trips.to_csv("./user_trips_" + str(i) + ".csv", index=False)
 
 # %% PLOT DATA
 

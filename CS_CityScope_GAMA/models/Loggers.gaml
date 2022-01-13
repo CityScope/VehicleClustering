@@ -248,7 +248,7 @@ species peopleLogger parent: Logger mirrors: people {
 			match "wander" {
 				//trip has ended
 				if tripdistance = 0 {
-					tripdistance <- topology(roadNetwork) distance_between [persontarget.living_place, persontarget.working_place];
+					tripdistance <- topology(roadNetwork) distance_between [persontarget.start_point, persontarget.target_point];
 				}
 				
 				if cycle != 0 {
@@ -259,8 +259,8 @@ species peopleLogger parent: Logger mirrors: people {
 							int(myself.waitTime),
 							int(myself.departureTime),
 							int(time - myself.departureTime),
-							persontarget.living_place.location,
-							persontarget.working_place.location,
+							persontarget.start_point.location,
+							persontarget.target_point.location,
 							myself.tripdistance
 						);
 					}
