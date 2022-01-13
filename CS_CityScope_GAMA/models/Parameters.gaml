@@ -17,7 +17,7 @@ global {
 	float step <- 35 #sec; //For tangible we need about 0.1s
 	
 	//Simulation starting date
-	date starting_date <- date("2021-10-12 06:00:00"); // <- #now;
+	date starting_date <- date("2021-10-12 06:00:00"); // <- #now; TODO: Change to now 
 	
 	//Date for log files
 	date logDate <- #now;
@@ -36,7 +36,7 @@ global {
 	bool stationLogs <- true		parameter: "Charging Station Logs" category: "Logs";
 	string stationFile <- "stations"	parameter: "Charging Station Logfile" category: "Logs";
 	bool pheromoneLogs <- true;
-	bool tangibleLogs <- true; //Output for swarm bots
+	bool tangibleLogs <- false; //Output for tangible swarm-bots
 	
 	//----------------------Pheromone Parameters------------------------
     float singlePheromoneMark <- 1.0;
@@ -48,7 +48,7 @@ global {
 	
 	//----------------------Bike Parameters------------------------
 	int numBikes <- 50 				min: 0 max: 500 parameter: "Num Bikes:" category: "Initial";
-	float maxBatteryLife <- 50000.0 #m	min: 10000#m max: 300000#m parameter: "Battery Capacity (m):" category: "Bike"; //battery capacity in m
+	float maxBatteryLife <- 30000.0 #m	min: 10000#m max: 300000#m parameter: "Battery Capacity (m):" category: "Bike"; //battery capacity in m
 	float WanderingSpeed <- 3/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Bike Wandering  Speed (m/s):" category:  "Bike";
 	float PickUpSpeed <-  8/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Bike Pick-up Speed (m/s):" category:  "Bike";
 	float RidingSpeed <-  10.2/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Riding Speed (m/s):" category:  "Bike";
@@ -70,29 +70,36 @@ global {
 	
 	//Inactive- If bikes are going to consume battery when the user is riding and we assume users provide their desired destination in advances we could implement this again
 	//float tripSafetyFactor <- 1.15;
+	//TODO: make users consume battery while riding 
 	
 	//----------------------numChargingStationsion Parameters------------------------
 	int numChargingStations <- 2 	min: 1 max: 10 parameter: "Num Charging Stations:" category: "Initial";
-	float V2IChargingRate <- maxBatteryLife/(4.5*60*60) #m/#s; // 
+	float V2IChargingRate <- maxBatteryLife/(4.5*60*60) #m/#s; //4.5 h of charge
 	int chargingStationCapacity <- 15; //TODO: review, is this working? What is the status of the bikes while waiting?
 	
 	//----------------------People Parameters------------------------
-	int numPeople <- 250 				min: 0 max: 1000 parameter: "Num People:" category: "Initial";
+	//int numPeople <- 250 				min: 0 max: 1000 parameter: "Num People:" category: "Initial";
 	float maxWaitTime <- 20#mn		min: 3#mn max: 60#mn parameter: "Max Wait Time:" category: "People";
 	float maxDistance <- maxWaitTime*60*PickUpSpeed #m; //The maxWaitTime is translated into a max radius taking into account the speed of the bikes
+    /* OLD 
     int workStartMin <- 6			min: 4 max: 12 parameter: "Min Work Start Time:" category: "People";
     int workStartMax <- 10			min: 4 max: 12 parameter: "Max Work Start Time:" category: "People";
     int workEndMin <- 16			min: 14 max: 24 parameter: "Min Work End Time:" category: "People";
-    int workEndMax <- 20			min: 14 max: 24 parameter: "Max Work End Time:" category: "People";
+    int workEndMax <- 20			min: 14 max: 24 parameter: "Max Work End Time:" category: "People";*/
     float peopleSpeed <- 5/3.6 #m/#s	min: 1/3.6 #m/#s max: 10/3.6 #m/#s parameter: "People Speed (m/s):" category: "People";
     
     float bikeCostBatteryCoef <- 200.0; //(see global.bikeCost)relative importance of batterylife when selecting bikes to ride
     
-    //new demand
-    int demand_i <- 0 min: 0 max: 5 parameter: "Demand File:" category "Pepole";
+    //NEW demand 
+    
     string cityDemandFolder <- "./../includes/Demand";
-    csv_file demand_csv <- csv_file (cityDemandFolder+ "/user_trips_"+ demand_i +".csv",true); //TODO: review -2474 1 day
-     //csv_file f <- csv_file("file.csv", ";",int,true, {5, 100});
+    csv_file demand_csv <- csv_file (cityDemandFolder+ "/user_trips_new.csv",true);
+     
+    //csv_file demand_csv <- csv_file (cityDemandFolder+ "/user_trips_"+ demand_i +".csv",true);
+    //int demand_i <- 0 min: 0 max: 5 parameter: "Demand File:" category "Pepole";
+     //csv_file f <- csv_file("file.csv", ";",int,true, {5, 100});//TODO: review -2474 1 day
+     
+     
     //----------------------Map Parameters------------------------
 	
 	//Case 1 - Urban Swarms Map

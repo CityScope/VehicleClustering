@@ -83,11 +83,11 @@ global {
 		"V2IChargingRate: "+string(V2IChargingRate),
 		"chargingStationCapacity: "+string(chargingStationCapacity),
 		"------------------------------PEOPLE PARAMETERS------------------------------",
-		"numPeople: "+string(numPeople),
+		//"numPeople: "+string(numPeople),
 		"maxWaitTime: "+string(maxWaitTime),
-		"workStartMax: "+string(workStartMax),
-		"workEndMin: "+string(workEndMin),
-		"workEndMax: "+string(workEndMax),
+		//"workStartMax: "+string(workStartMax),
+		//"workEndMin: "+string(workEndMin),
+		//"workEndMax: "+string(workEndMax),
 		"peopleSpeed: "+string(peopleSpeed),
 		"bikeCostBatteryCoef: "+string(bikeCostBatteryCoef),
 		"------------------------------MAP PARAMETERS------------------------------",
@@ -115,7 +115,7 @@ species Logger {
 		if logPredicate() {
 			ask host {
 				do log(myself.filename, level, [string(myself.loggingAgent.name)] + data, myself.columns);
-			} //TODO: fiz the string so that it doesn't say bike(3) but only 3 
+			} //TODO: fix the string so that it doesn't say bike(3) but only 3 
 		}
 	}
 	

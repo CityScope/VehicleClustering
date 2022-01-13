@@ -109,7 +109,7 @@ global {
 		}
 	    
 		// -------------------------------------------The People -----------------------------------------
-	    /*create people number: numPeople {
+	    /*OLD: create people number: numPeople {
 	    	
 	        start_work_hour <- rnd (workStartMin, workStartMax-1); // we need to -1 because otherwise we will create agents until workStartMax:59 (eg. 8.59 with 8 as max)
 	        start_work_minute <- rnd(0,59);
@@ -136,15 +136,23 @@ global {
 				target_lon::float(get("target_lon"))
 			]{
 				
-			location  <- to_GAMA_CRS({start_lon,start_lat},"EPSG:4326").location; // (lon, lat) var0 equals a geometry corresponding to the agent geometry transformed into the GAMA CRS
+			//location  <- to_GAMA_CRS({start_lon,start_lat},"EPSG:4326").location; // (lon, lat) var0 equals a geometry corresponding to the agent geometry transformed into the GAMA CRS
+	        
 	        speed <- peopleSpeed;
-	        write location;
+	        start_point  <- to_GAMA_CRS({start_lon,start_lat},"EPSG:4326").location; // (lon, lat) var0 equals a geometry corresponding to the agent geometry transformed into the GAMA CRS
+			target_point <- to_GAMA_CRS({target_lon,target_lat},"EPSG:4326").location;
+			location <- start_point;
+			
+			string start_h_str <- string(start_hour,'kk');
+			start_h <- int(start_h_str);
+			string start_min_str <- string(start_hour,'mm');
+			start_min <- int(start_min_str);
+			
+			
+			write "cycle: " + cycle + ", time "+ self.start_h + ":" + self.start_min + ", "+ string(self) + " will travel from " + self.start_point + " to "+ self.target_point;
+			
 			}
-			
-			// REVIEW peopleSpeed
-			
-			
-			
+						
 	 	// ----------------------------------The RFIDs tag on each road intersection------------------------
 		
 		ask tagRFID {
@@ -195,7 +203,7 @@ experiment batch_experiments_headless type: batch until: (cycle = 300) {
 
 experiment clustering type: gui {
 	parameter var: numBikes init: 50;
-	parameter var: numPeople init: 250;
+	//parameter var: numPeople init: 250;
     output {
 		display city_display type:opengl background: #black draw_env: false{	
 			species tagRFID aspect: base trace: 10;
@@ -216,13 +224,13 @@ experiment clustering type: gui {
 
 experiment clustering_headless {
 	parameter var: numBikes init: 50;
-	parameter var: numPeople init: 250;
+	//parameter var: numPeople init: 250;
 }
 
 
 experiment one_person type: gui {
 	parameter var: numBikes init: 0;
-	parameter var: numPeople init: 1;
+	//parameter var: numPeople init: 1;
 	
     output {
 		display city_display type:opengl background: #black draw_env: false{	
@@ -243,7 +251,7 @@ experiment one_person type: gui {
 
 experiment one_each type: gui {
 	parameter var: numBikes init: 1;
-	parameter var: numPeople init: 1;
+	//parameter var: numPeople init: 1;
     output {
 		display city_display type:opengl background: #white draw_env: false{	
 			species tagRFID aspect: base ;
@@ -264,7 +272,7 @@ experiment one_each type: gui {
 experiment one_bike type: gui {
 	
 	parameter var: numBikes init: 1;
-	parameter var: numPeople init: 0;
+	//parameter var: numPeople init: 0;
 	
     output {
 		display city_display type:opengl background: #black draw_env: false{	
@@ -286,7 +294,7 @@ experiment one_bike type: gui {
 
 experiment just_a_lot_of_bikes type: gui {
 	parameter var: numBikes init: 20;
-	parameter var: numPeople init: 0;
+	//parameter var: numPeople init: 0;
 	
     output {
 		display city_display type:opengl background: #black draw_env: false{	
@@ -307,9 +315,9 @@ experiment just_a_lot_of_bikes type: gui {
 }
 experiment one_each_headless {
 	parameter var: numBikes init: 1;
-	parameter var: numPeople init: 1;
+	//parameter var: numPeople init: 1;
 }
 experiment one_bike_headless {
 	parameter var: numBikes init: 1;
-	parameter var: numPeople init: 0;
+	//parameter var: numPeople init: 0;
 }

@@ -191,7 +191,8 @@ species people control: fsm skills: [moving] {
     
     bike bikeToRide;
     
-    init {
+    //TODO: remove
+    /*init {
     	
     start_point  <- to_GAMA_CRS({start_lon,start_lat},"EPSG:4326").location; // (lon, lat) var0 equals a geometry corresponding to the agent geometry transformed into the GAMA CRS
 	target_point <- to_GAMA_CRS({target_lon,target_lat},"EPSG:4326").location;
@@ -203,8 +204,11 @@ species people control: fsm skills: [moving] {
 	
 	string start_min_str <- string(start_hour,'mm');
 	start_min <- int(start_min_str);
+	
+	
+	write "cycle: " + cycle + ", time "+ self.start_h + ":" + self.start_min + ", "+ string(self) + " will travel from " + self.start_point + " to "+ self.target_point;
 			
-    }
+    }*/
     
     aspect base {
     	color <- color_map[state];
@@ -630,7 +634,7 @@ species bike control: fsm skills: [moving] {
 		do updatePheromones(tag);
 		
 		pheromoneToDiffuse <- max(tag.pheromoneMap)*diffusion; //TODO: review in their code myself.pheromoneToDiffuse <- max(self.pheromones)*diffusion;
-		write(pheromoneToDiffuse);
+		//write(pheromoneToDiffuse);
 	}
 	
 	
@@ -667,7 +671,7 @@ species bike control: fsm skills: [moving] {
 		//seek either a charging station or another vehicle
 		enter{
 			ask eventLogger { do logEnterState(myself.state); }
-			//TODO: review and formalize all of this notes about these prediction functions
+			 //NOTE: This part is a fix to have a good performance with high time steps but for the final experiments we will use a small time step
 			//Technically, the bike would pause at each intersection to read the direction to the nearest charging station
 			//This wastes a lot of time in simulation, so we are cheating
 			//The path the bike follows is identical.
