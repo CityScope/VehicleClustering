@@ -100,7 +100,8 @@ species tagRFID {
 	
 	//easy access to neighbors
 	list<tagRFID> neighbors { return pheromoneMap.keys;	}
-
+	
+	// Start (?) *Larry* Pheromone colors
 	float average {
 		float sum <- 0;
 		float length <- 0;
@@ -142,19 +143,21 @@ species tagRFID {
 	aspect realistic {
 		draw circle(1+5*max(pheromoneMap)) color:rgb(107,171,158);
 	}
+	// end *Larry* Pheromone colors
 }
 
+
+
 species people control: fsm skills: [moving] {
-	//rgb color <- #yellow ;
-	
+
 	rgb color;
 	
     map<string, rgb> color_map <- [
-		"idle"::#green,
-		"requesting_bike":: #orange,
-		"awaiting_bike":: #orange,
-		"riding":: #yellow,
-		"walking":: #lime
+		"idle"::#lavender,
+		"requesting_bike":: #springgreen,
+		"awaiting_bike":: #springgreen,
+		"riding":: #gamagreen,
+		"walking":: #magenta
 		
 	];
 	
@@ -169,7 +172,7 @@ species people control: fsm skills: [moving] {
     peopleLogger_trip tripLogger;
     peopleLogger_tangible tangiblePeopleLogger;
     
-     // NEW (review peopleSpeed
+     // NEW 
      date start_hour;
      float start_lat;
      float start_lon;
@@ -213,19 +216,18 @@ species people control: fsm skills: [moving] {
     aspect base {
     	color <- color_map[state];
     	draw circle(10) color: color border: #black;
-//		if state != "riding" {
-//			draw circle(10) color: color border: #black;
-//		}
     }
     
     //----------------PUBLIC FUNCTIONS-----------------
 	// these are how other agents interact with this one. Not used by self
+	
     action ride(bike b) {
     	bikeToRide <- b;
     }	
-    //Should we leave for work/home? Only if it is time, and we are not already there
+
     bool timeToTravel { return (current_date.hour = start_h and current_date.minute >= start_min) and !(self overlaps target_point); }
-    //bool timeToSleep { return (current_date.hour = end_work_hour and current_date.minute >= end_work_minute) and !(self overlaps living_place); }
+    //Should we leave for work/home? Only if it is time, and we are not already there
+    //Old - bool timeToSleep { return (current_date.hour = end_work_hour and current_date.minute >= end_work_minute) and !(self overlaps living_place); }
     
     state wander initial: true {
     	//Watch netflix at home (and/or work)
@@ -252,7 +254,7 @@ species people control: fsm skills: [moving] {
 			target <- closestIntersection;
 		}
 		transition to: wander {
-			ask logger { do logEvent( "Teleported, wait too long" ); }
+			ask logger { do logEvent( "Used another mode, wait too long" ); }
 			location <- final_destination;
 		}
 		exit {
@@ -305,22 +307,22 @@ species bike control: fsm skills: [moving] {
 	//----------------Display-----------------
 	rgb color;
 	map<string, rgb> color_map <- [
-		"wander"::#lime,
+		"wander"::#lavender,
 		
 		"low_battery":: #red,
 		"getting_charge":: #pink,
 		
-		"awaiting_follower"::#magenta,
-		"seeking_leader"::#magenta,
-		"following"::#yellow,
+		"awaiting_follower"::#lightcyan,
+		"seeking_leader"::#lightcyan,
+		"following"::#skyblue,
 		
-		"picking_up"::rgb(175*1.1,175*1.6,200),
+		"picking_up"::#springgreen,
 		"in_use"::#gamagreen
 	];
 	aspect realistic {
 		color <- color_map[state];
     
-		draw triangle(25) color:color border: #red rotate: heading + 90;
+		draw triangle(25) color:color border:color rotate: heading + 90;
 
 	}
 	
@@ -409,22 +411,22 @@ species bike control: fsm skills: [moving] {
 	
 	//----------------BATTERY-----------------
 	
-	//Determines when to move into the low_battery state
-	bool setLowBattery {
-		/*Old- Naroa: I considered this to be redundant
-		if batteryLife <= numberOfStepsReserved*distancePerCycle { return true; } //leave 3 simulation-steps worth of movement*/
+	
+	bool setLowBattery { //Determines when to move into the low_battery state
+		
+		/*Old- It was redundant
+		if batteryLife <= numberOfStepsReserved*distancePerCycle { return true; } //leave 3 simulation-steps worth of movement
+		return batteryLife < distanceSafetyFactor*lastDistanceToChargingStation;
+		Old- Include if the bikes cosume battery during the ride and we assume that users imput destinayion*/
 		
 		if batteryLife < minSafeBattery { return true; } 
 		else {
 			return false;
 		}
-		
-		//Old: Include if the bikes cosume battery during the ride and we assume that users imput destinayion
-		//return batteryLife < distanceSafetyFactor*lastDistanceToChargingStation;
-		//TODO: add battery consumption during ride
+
 	}
-	float energyCost(float distance) { //TODO: This function will let us alter the efficiency of our bikes, if we decide to look into that
-		//if state = "in_use" { return 0; } //user will pedal
+	float energyCost(float distance) {
+		//if state = "in_use" { return 0; } //if use phase does not consmue battery
 		return distance;
 	}
 	action reduceBattery(float distance) {
@@ -444,7 +446,7 @@ species bike control: fsm skills: [moving] {
 	float batteryLife min: 0.0 max: maxBatteryLife; //Number of meters we can travel on current battery
 	float distancePerCycle;
 	
-	int lastDistanceToChargingStation;
+	// Old-  int lastDistanceToChargingStation;
 	path travelledPath; //preallocation. Only used within the moveTowardTarget reflex
 	
 	list<tagRFID> lastIntersections;
@@ -464,11 +466,18 @@ species bike control: fsm skills: [moving] {
 	}
 	path wander {
 		//construct a plan, so we don't waste time: Where will we turn from the next intersection? If we have time left in the cycle, where will we turn from there? And from the intersection after that?
+		 
+	 	/***NOTE:*** This part is a fix to have a good performance with large time steps during testing but for the final experiments we will use a small time step
+		Technically, the bike would pause at each intersection to read the direction to the nearest charging station
+		This wastes a lot of time in simulation, so we are cheating
+		The path the bike follows is identical.*/
+			
 		list<point> plan <- [location, nextTag.location];
 		float distancePlan <- host.distanceInGraph(location, nextTag.location);
 		
 		loop while: distancePlan < distancePerCycle {
-			tagRFID newTag <- chooseWanderTarget(nextTag, lastTag);
+			tagRFID newTag <- chooseWanderTarget(nextTag, lastTag); 
+			//TODO: This call updates the nextTag
 			
 			lastTag <- nextTag;
 			nextTag <- newTag;
@@ -476,22 +485,25 @@ species bike control: fsm skills: [moving] {
 			distancePlan <- host.distanceInGraph(location, newTag.location);
 		}
 		
-		//using follow can result in some drift when the road is curved (follow will use straight lines, and not respect topology). I have not found a solution to this
+		// TODO: using follow can result in some drift when the road is curved (follow will use straight lines, and not respect topology)
 		return follow(path:path(plan), return_path: true);
 	}
 	
 	reflex move when: canMove() {
+		
 		lastTagOI <- lastTag;
-		//do goto (or follow in the case of wandering, where we've prepared a probably-suboptimal route)
+		
 		travelledPath <- (state = "wander") ? wander() : moveTowardTarget();
-		//float distanceTraveled <- pathLength(travelledPath); // Old way of doing it with Perimeter
+		//do goto or, in the case of wandering, follow the predicted path for the full step (see path wander)
+		
 		float distanceTraveled <- host.distanceInGraph(travelledPath.source,travelledPath.target);
+		
 		do reduceBattery(distanceTraveled);
 			
 		if !empty(travelledPath) {
 			/* update pheromones exactly once, when we cross a new intersection
-			 * we could (should) have crossed multiple intersections over the last move. The location of each intersection
-			 * will show up in `vertices`, as they are the boundaries between new edges
+			 * we could have crossed multiple intersections over the last move, depending on the time step. 
+			 * The location of each intersection will show up in `vertices`, as they are the boundaries between new edges
 			 * simply casting the points to intersections is incorrect though, as we may get intersections that are close to
 			 * the points in question, but not actually on the path. We may also get duplicates. The filter removes both of these.
 			 */
@@ -500,33 +512,36 @@ species bike control: fsm skills: [moving] {
 			list<tagRFID> newIntersections <- travelledPath.vertices where (tagRFID(each).location = each);
 			int num <- length(newIntersections);			
 			
-			//update lastTag, nextTag. If we landed on nextTag, remove it from the list
+			//update lastTag, nextTag. 
 			if (!empty(newIntersections)) {
 				tagRFID mostRecentTag <- last(newIntersections);
 				tagRFID penultimateTag <- num = 1 ? last(lastIntersections) : newIntersections[num - 2];
 				
-				if location = mostRecentTag.location {
-					//we have stopped at an intersection
-					nextTag <- mostRecentTag;
+				if location = mostRecentTag.location { //we have stopped at an intersection
+				
 					//If stucked on an intersection, both lastTag and nextTag are the same.
+					nextTag <- mostRecentTag;
 					lastTag <- penultimateTag = nil? nextTag:penultimateTag;
+						
 					newIntersections <- copy_between( newIntersections, 0, num-1); 
-					//pop the last intersection off the end, we'll process it next iteration
+					//Since we landed on nextTag, remove it from the list we'll process it next iteration
 					//(We should always read the data _before_ we overwrite it. We have not yet read this tag, so we push writing over it to the future)
 					//Also prevents overlap between new and last intersection lists
-				} else {
-					//we have stopped in the middle of a road
+					
+				} else { //we have stopped in the middle of a road
+				
+					//current edge will have two points on it, one is lastTag, the other is nextTag
 					lastTag <- mostRecentTag;
-					//current edge will have two points on it, one is lastTag, the otherr is nextTag
 					nextTag <- tagRFID( (current_edge.points where (each != lastTag.location))[0] );
 				}
 			}
 			
 			//remember read pheromones without looking at what we have added to them
 			do rememberPheromones(newIntersections);
+			
 			//add pheromones
 			loop tag over: newIntersections {
-				do depositPheromones(tag, lastTagOI);
+				do depositPheromones(tag, lastTagOI); 
 				lastTagOI <- tag;
 			}
 			
@@ -543,27 +558,27 @@ species bike control: fsm skills: [moving] {
 			}
 		}
 		
-		
-		
-		lastDistanceToChargingStation <- lastTag.distanceToChargingStation;
+		//Old: lastDistanceToChargingStation <- lastTag.distanceToChargingStation;
 	}
 	
-	//Low-pass filter average!
-	
-	//Naroa: The idea is that if there's low pheromone levels it means that it's a low demand period
+	//Low-pass filter average!//TODO: we need to review this 
+	//The idea is that if there's low pheromone levels it means that it's a low demand period
 	//so some vehicles could go for a charge even if they don't need it to get charged and be ready for the period of higher demand
-	//TODO: we need to review this 
 	
-	float readPheromones <- 2*chargingPheromoneThreshold; //init above the threshold so we don't imediately go to charge
-	float alpha <- 0.2; //tune this so our average updates at desired speed. may need a factor of `step`
-	action rememberPheromones(list<tagRFID> tags) {
+	float readPheromones <- 0.0; // 2*chargingPheromoneThreshold; //init above the threshold so we don't imediately go to charge
+	// NOTE: Changed to 0 -> Probably not needed anymore because we have a pLowPheromoneCharge which is a probability of going for a charge when reading low pheromone levels
+	
+	float alpha <- 0.2; //TODO: tune this so our average updates at desired speed. may need a factor of `step`
+	
+	action rememberPheromones(list<tagRFID> tags) { //For low -pass filter average
 		loop tag over: tags {
-			readPheromones <- (1-alpha)*readPheromones + alpha*mean(tag.pheromoneMap);
+			readPheromones <- (1-alpha)*readPheromones + alpha*mean(tag.pheromoneMap); 
 		}
 	}
 	
 	
-	tagRFID chooseWanderTarget(tagRFID fromTag, tagRFID previousTag) {
+	tagRFID chooseWanderTarget(tagRFID fromTag, tagRFID previousTag) { 
+		
 		do updatePheromones(fromTag);
 		
 		//c.f. rnd_choice alters probability based on values, may be useful
@@ -581,7 +596,7 @@ species bike control: fsm skills: [moving] {
 		
 		if pmap[previousTag] = max(pmap) and not flip(exploitationRate) {
 			pmap[previousTag] <- 0.0; //alters local copy only :) 
-									//TODO: Is this an issue? it means it won't go back with a certain probability
+			//Note: This likely not an issue, it means it won't go back with a certain probability
 		}
 		
 		//head toward (possibly new) strongest pheromone, or choose randomly
@@ -593,18 +608,18 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	//----------------PHEROMONES-----------------
-	float pheromoneToDiffuse; //represents a store of pheremone (a bike can't expend more than this amount). Pheremone is restored by ___
-	//Naroa: I'd say it's the amount of pheromone that the bike has, but not some kind of maximum
-	float pheromoneMark <- singlePheromoneMark; 
-	//TODO: This took in account the amount of waste found. myself.pheromoneMark <- (singlePheromoneMark * int(self.trash/carriableTrashAmount));	
+	float pheromoneToDiffuse;  //This is the amount pheromone that the vehicle difuses to the next RFID tag (in all directions)
+	
+	float pheromoneMark <- singlePheromoneMark; // This is the amout of pheromone that the vehicle leaves to mark a trail (in the direction where it's coming from)
+	//NOTE: This took in account the amount of waste found. myself.pheromoneMark <- (singlePheromoneMark * int(self.trash/carriableTrashAmount));	
 	//Since the vehicle always picks up just one person we don't adjust it anymore
 
-	action updatePheromones(tagRFID tag) {
+	action updatePheromones(tagRFID tag) { 
 		loop k over: tag.pheromoneMap.keys {
+			
 			//evaporation
-
 			tag.pheromoneMap[k] <- tag.pheromoneMap[k] - (singlePheromoneMark * evaporation * step*(cycle - tag.lastUpdate)); 
-			//TODO: review, Quinn added *step* here so that it's proportional to time, not only the num cycles
+			//TODO: review, we have added *step* here so that it's proportional to time, not only the num cycles but this could affect absolute values
 
 			//saturation
 			if (tag.pheromoneMap[k]<minPheromoneLevel){
@@ -612,33 +627,29 @@ species bike control: fsm skills: [moving] {
 			}
 			if (tag.pheromoneMap[k]>maxPheromoneLevel){
 				tag.pheromoneMap[k] <- maxPheromoneLevel;
-			}
-			
-			
+			}	
 
 		}
 		
-		tag.lastUpdate <- cycle;
+		tag.lastUpdate <- cycle; //we save when it was last updated because the evaporation will be proportional to the time that passed
 	}
 	
 	action depositPheromones(tagRFID tag, tagRFID previousTag) {
+		do updatePheromones(tag);  // Saturation, Evaporation
+		//TODO: Moved from the end of this function, I think we should update before marking, otherwise we might be evaporating the mark 
+		
 		bool depositPheromone <- state = "picking_up" or state = "in_use";
+		
 		loop k over: tag.pheromoneMap.keys {
 			tag.pheromoneMap[k] <- tag.pheromoneMap[k] + pheromoneToDiffuse; // We diffuse to all of them
 			if k = previousTag and depositPheromone {
 				tag.pheromoneMap[k] <- tag.pheromoneMap[k] + pheromoneMark; // We mark the direction that we come from, add _all_ of my pheremone 
-				//write tag.pheromoneMap[k];
 			}
 		}
 		
-		// Saturation, Evaporation
-		do updatePheromones(tag);  //Set my pheremone levels to whatever the tag has diffused to me
-		
 		pheromoneToDiffuse <- max(tag.pheromoneMap)*diffusion; // This is what we will diffuse in the next RFID
-		//we need to use tag instead of self. because the vehicle is doing this action
+		//NOTE: we need to use tag. instead of self. because the vehicle is doing this action
 		
-		//TODO: when do we update the PheromoneMark ? is it the same during the whole trip? When does it reset?
-		// maybe it should be SinglePheromone mark since the call to the drop-off
 	}
 	
 	
@@ -658,6 +669,8 @@ species bike control: fsm skills: [moving] {
 			}
 		}
 		transition to: low_battery when: setLowBattery() or (readPheromones < chargingPheromoneThreshold and flip(pLowPheromoneCharge) and batteryLife < 0.75*maxBatteryLife) {
+			//The low-pass filter also considers that the battery shouldn't be more than a 75% full and with a certain (low) probability so that
+			// in low pheromone stages there's only a few bikes going for a charge at each time
 			bool lowPass <- false;
 			if readPheromones < chargingPheromoneThreshold {
 				lowPass <- true;
@@ -675,10 +688,6 @@ species bike control: fsm skills: [moving] {
 		//seek either a charging station or another vehicle
 		enter{
 			ask eventLogger { do logEnterState(myself.state); }
-			/***NOTE:*** This part is a fix to have a good performance with large time steps during testing but for the final experiments we will use a small time step
-			Technically, the bike would pause at each intersection to read the direction to the nearest charging station
-			This wastes a lot of time in simulation, so we are cheating
-			The path the bike follows is identical.*/
 			target <- lastTag.nearestChargingStation.location;
 		}
 		transition to: getting_charge when: self.location = target {}
@@ -760,7 +769,7 @@ species bike control: fsm skills: [moving] {
 	state picking_up {
 		//go to rider's location, pick them up
 		enter {
-			self.pheromoneMark <- singlePheromoneMark; //TODO: REVIEW if this should be here and if it works
+			self.pheromoneMark <- singlePheromoneMark; 
 			ask eventLogger { do logEnterState("Picking up " + myself.rider); }
 			target <- rider.closestIntersection; //Go to the rider's closest intersection
 		}
@@ -782,7 +791,7 @@ species bike control: fsm skills: [moving] {
 			rider <- nil;
 		}
 		exit {
-			self.pheromoneMark <- 0; // TODO: REVIEW is this should be here and if it works
+			self.pheromoneMark <- 0; 
 			ask eventLogger { do logExitState("Used" + myself.rider); }
 		}
 	}

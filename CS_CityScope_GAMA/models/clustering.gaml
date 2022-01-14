@@ -103,19 +103,7 @@ global {
 			nextTag <- tagRFID( location );
 			lastTag <- nextTag;
 			pheromoneToDiffuse <- 0.0;
-			pheromoneMark <- 300/step*singlePheromoneMark; //Pheromone mark to remain 5 minutes TODO: WHY?
-			/*/They do if (self.trash > carriableTrashAmount){
-			//self.trash <- self.trash - carriableTrashAmount;	
-						//self.decreaseTrashAmount<-true;
-						//myself.pheromoneMark <- (singlePheromoneMark * int(self.trash/carriableTrashAmount));		
-						//myself.carrying <- true;
-						
-			//ask deposit closest_to(self){
-							if(myself.carrying){
-								self.trash <- self.trash + carriableTrashAmount;
-								myself.carrying <- false;
-								myself.pheromoneMark <- 0.0;
-							}*/
+			pheromoneMark <- 0.0; //300/step*singlePheromoneMark; //Pheromone mark to remain 5 minutes TODO: WHY?
 
 			//write "cycle: " + cycle + ", " + string(self) + " created with batteryLife " + self.batteryLife;
 		}
@@ -147,9 +135,7 @@ global {
 				target_lat::float(get("target_lat")),
 				target_lon::float(get("target_lon"))
 			]{
-				
-			//location  <- to_GAMA_CRS({start_lon,start_lat},"EPSG:4326").location; // (lon, lat) var0 equals a geometry corresponding to the agent geometry transformed into the GAMA CRS
-	        
+	
 	        speed <- peopleSpeed;
 	        start_point  <- to_GAMA_CRS({start_lon,start_lat},"EPSG:4326").location; // (lon, lat) var0 equals a geometry corresponding to the agent geometry transformed into the GAMA CRS
 			target_point <- to_GAMA_CRS({target_lon,target_lat},"EPSG:4326").location;

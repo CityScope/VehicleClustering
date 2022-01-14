@@ -46,6 +46,10 @@ global {
 	float maxPheromoneLevel <- 50*singlePheromoneMark; //satutration
 	float minPheromoneLevel <- 0.0;
 	
+	float chargingPheromoneThreshold <- 0.02*singlePheromoneMark; //Enables charge-seeking when low pheromone
+	float pLowPheromoneCharge <- 0.01; // probability of going for a charge when reading low pheromone levels
+	
+	
 	//----------------------Bike Parameters------------------------
 	int numBikes <- 50 				min: 0 max: 500 parameter: "Num Bikes:" category: "Initial";
 	float maxBatteryLife <- 30000.0 #m	min: 10000#m max: 300000#m parameter: "Battery Capacity (m):" category: "Bike"; //battery capacity in m
@@ -58,9 +62,7 @@ global {
 	
 	float followDistance <- 0.1#m; //distance at which we consider bikes to be clustered and able to share battery
 	float V2VChargingRate <- maxBatteryLife/(1*60*60) #m/#s; //assuming 1h fast charge
-	
-	float chargingPheromoneThreshold <- 0.02*singlePheromoneMark; //Disables charge-seeking when low pheromone
-	float pLowPheromoneCharge <- 0.01; // probability of going for a charge when reading low pheromone levels
+
 	
 	float minSafeBattery <- 0.25*maxBatteryLife #m; //Amount of battery at which we seek battery and that is always reserved when charging another bike
 	
