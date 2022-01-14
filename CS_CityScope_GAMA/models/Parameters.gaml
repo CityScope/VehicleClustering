@@ -39,7 +39,7 @@ global {
 	bool tangibleLogs <- false; //Output for tangible swarm-bots
 	
 	//----------------------Pheromone Parameters------------------------
-    float singlePheromoneMark <- 1.0;
+    float singlePheromoneMark <- 0.5; //1.0 in ours, 0.01 as a param in original code, set to 0.5 for SwarmBot
 	float evaporation <- 0.15; //0.05%, *0.15%,* and 0.3% in the paper but we changed evaporation to be proportional to time instead of just cycles
 	float exploitationRate <- 0.6; // Paper values: *0.6*, 0.75, and 0.9. Note: 0.8 means 0.2 of randomness 
 	float diffusion <- (1-exploitationRate) * 0.5;  // the more they explore randomly, they are less 'trustable' so they have to diffuse less for system convergence
@@ -66,11 +66,9 @@ global {
 	
 	//Old - other parameters to decide if a bike should go for a charge 
 	//int numberOfStepsReserved <- 3; //number of simulation steps worth of movement to reserve before seeking charge
-	//int distanceSafetyFactor <- 10; //factor of distancetochargingstaiton at which we seek charge
-	
-	//Inactive- If bikes are going to consume battery when the user is riding and we assume users provide their desired destination in advances we could implement this again
-	//float tripSafetyFactor <- 1.15;
-	//TODO: make users consume battery while riding 
+	//int distanceSafetyFactor <- 10; //factor of distancetochargingstaiton at which we seek charge	
+	//float tripSafetyFactor <- 1.15; //If bikes are going to consume battery when the user is riding and we assume users provide their desired destination in advanced
+
 	
 	//----------------------numChargingStationsion Parameters------------------------
 	int numChargingStations <- 2 	min: 1 max: 10 parameter: "Num Charging Stations:" category: "Initial";
@@ -94,10 +92,13 @@ global {
     
     string cityDemandFolder <- "./../includes/Demand";
     csv_file demand_csv <- csv_file (cityDemandFolder+ "/user_trips_new.csv",true);
-     
+    //csv_file f <- csv_file("file.csv", ";",int,true, {5, 100});//TODO: Set a limit equivalent to numPeople¿
+    
+    //For many demand files:
+    
     //csv_file demand_csv <- csv_file (cityDemandFolder+ "/user_trips_"+ demand_i +".csv",true);
     //int demand_i <- 0 min: 0 max: 5 parameter: "Demand File:" category "Pepole";
-     //csv_file f <- csv_file("file.csv", ";",int,true, {5, 100});//TODO: review -2474 1 day
+    
      
      
     //----------------------Map Parameters------------------------
@@ -107,6 +108,7 @@ global {
 	string residence <- "R";
 	string office <- "O";
 	string usage <- "Usage";
+	
 	//Case 2 - Cambridge Map
 	/*string cityScopeCity <- "Cambridge";
 	string residence <- "Residential";

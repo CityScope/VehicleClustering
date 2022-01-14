@@ -104,6 +104,18 @@ global {
 			lastTag <- nextTag;
 			pheromoneToDiffuse <- 0.0;
 			pheromoneMark <- 300/step*singlePheromoneMark; //Pheromone mark to remain 5 minutes TODO: WHY?
+			/*/They do if (self.trash > carriableTrashAmount){
+			//self.trash <- self.trash - carriableTrashAmount;	
+						//self.decreaseTrashAmount<-true;
+						//myself.pheromoneMark <- (singlePheromoneMark * int(self.trash/carriableTrashAmount));		
+						//myself.carrying <- true;
+						
+			//ask deposit closest_to(self){
+							if(myself.carrying){
+								self.trash <- self.trash + carriableTrashAmount;
+								myself.carrying <- false;
+								myself.pheromoneMark <- 0.0;
+							}*/
 
 			//write "cycle: " + cycle + ", " + string(self) + " created with batteryLife " + self.batteryLife;
 		}

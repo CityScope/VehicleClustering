@@ -595,9 +595,10 @@ species bike control: fsm skills: [moving] {
 	//----------------PHEROMONES-----------------
 	float pheromoneToDiffuse; //represents a store of pheremone (a bike can't expend more than this amount). Pheremone is restored by ___
 	//Naroa: I'd say it's the amount of pheromone that the bike has, but not some kind of maximum
-	float pheromoneMark <- 100*singlePheromoneMark; //TODO: This took in account the amount of waste found. Let's see how we adapt it
+	float pheromoneMark <- singlePheromoneMark; 
+	//TODO: This took in account the amount of waste found. myself.pheromoneMark <- (singlePheromoneMark * int(self.trash/carriableTrashAmount));	
+	//Since the vehicle always picks up just one person we don't adjust it anymore
 
-	
 	action updatePheromones(tagRFID tag) {
 		loop k over: tag.pheromoneMap.keys {
 			//evaporation
@@ -621,21 +622,23 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	action depositPheromones(tagRFID tag, tagRFID previousTag) {
-		// TODO: add _all_ of my pheremone to nearest tag. If I am picking someone up, add 0 to pheremone tag (???). Set my pheremone levels to whatever the tag has diffused to me
 		bool depositPheromone <- state = "picking_up" or state = "in_use";
 		loop k over: tag.pheromoneMap.keys {
-			tag.pheromoneMap[k] <- tag.pheromoneMap[k] + pheromoneToDiffuse; // TODO: Why do we add pheromone to all of them?
+			tag.pheromoneMap[k] <- tag.pheromoneMap[k] + pheromoneToDiffuse; // We diffuse to all of them
 			if k = previousTag and depositPheromone {
-				tag.pheromoneMap[k] <- tag.pheromoneMap[k] + pheromoneMark;
+				tag.pheromoneMap[k] <- tag.pheromoneMap[k] + pheromoneMark; // We mark the direction that we come from, add _all_ of my pheremone 
 				//write tag.pheromoneMap[k];
 			}
 		}
 		
 		// Saturation, Evaporation
-		do updatePheromones(tag);
+		do updatePheromones(tag);  //Set my pheremone levels to whatever the tag has diffused to me
 		
-		pheromoneToDiffuse <- max(tag.pheromoneMap)*diffusion; //TODO: review in their code myself.pheromoneToDiffuse <- max(self.pheromones)*diffusion;
-		//write(pheromoneToDiffuse);
+		pheromoneToDiffuse <- max(tag.pheromoneMap)*diffusion; // This is what we will diffuse in the next RFID
+		//we need to use tag instead of self. because the vehicle is doing this action
+		
+		//TODO: when do we update the PheromoneMark ? is it the same during the whole trip? When does it reset?
+		// maybe it should be SinglePheromone mark since the call to the drop-off
 	}
 	
 	
@@ -672,10 +675,10 @@ species bike control: fsm skills: [moving] {
 		//seek either a charging station or another vehicle
 		enter{
 			ask eventLogger { do logEnterState(myself.state); }
-			 //NOTE: This part is a fix to have a good performance with high time steps but for the final experiments we will use a small time step
-			//Technically, the bike would pause at each intersection to read the direction to the nearest charging station
-			//This wastes a lot of time in simulation, so we are cheating
-			//The path the bike follows is identical.
+			/***NOTE:*** This part is a fix to have a good performance with large time steps during testing but for the final experiments we will use a small time step
+			Technically, the bike would pause at each intersection to read the direction to the nearest charging station
+			This wastes a lot of time in simulation, so we are cheating
+			The path the bike follows is identical.*/
 			target <- lastTag.nearestChargingStation.location;
 		}
 		transition to: getting_charge when: self.location = target {}
@@ -757,6 +760,7 @@ species bike control: fsm skills: [moving] {
 	state picking_up {
 		//go to rider's location, pick them up
 		enter {
+			self.pheromoneMark <- singlePheromoneMark; //TODO: REVIEW if this should be here and if it works
 			ask eventLogger { do logEnterState("Picking up " + myself.rider); }
 			target <- rider.closestIntersection; //Go to the rider's closest intersection
 		}
@@ -778,6 +782,7 @@ species bike control: fsm skills: [moving] {
 			rider <- nil;
 		}
 		exit {
+			self.pheromoneMark <- 0; // TODO: REVIEW is this should be here and if it works
 			ask eventLogger { do logExitState("Used" + myself.rider); }
 		}
 	}
