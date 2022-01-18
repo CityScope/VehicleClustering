@@ -48,7 +48,7 @@ global {
 	
 	float chargingPheromoneThreshold <- 0.02*singlePheromoneMark; //Enables charge-seeking when low pheromone
 	float pLowPheromoneCharge <- 0.01; // probability of going for a charge when reading low pheromone levels
-	
+	float readUpdateRate <- 0.5 ; //TODO: tune this so our average updates at desired speed. may need a factor of `step`
 	
 	//----------------------Bike Parameters------------------------
 	int numBikes <- 50 				min: 0 max: 500 parameter: "Num Bikes:" category: "Initial";

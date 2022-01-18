@@ -280,7 +280,7 @@ species peopleLogger parent: Logger mirrors: people {
 	}
 }
 
-species bikeLogger_chargeEvents parent: Logger mirrors: bike {
+species bikeLogger_chargeEvents parent: Logger mirrors: bike { //Station Charging
 	string filename <- 'bike_chargeevents';
 	list<string> columns <- [
 		"Station",
@@ -300,12 +300,12 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike {
 		loggingAgent <- biketarget;
 	}
 	
-	action logCharge(chargingStation station, int startTime, int endTime, int chargeDuration, int startBattery, int endBattery, int batteryGain) {
-		do log(1, [station, startTime, endTime, chargeDuration, startBattery, endBattery, batteryGain]);
+	action logCharge(chargingStation station, int startTime, int endTime, int chargeDuration, int startBattery, int endBattery, int batteryGain, string lowPass) {
+		do log(1, [station, startTime, endTime, chargeDuration, startBattery, endBattery, batteryGain, lowPass]);
 	}
 }
 
-species bikeLogger_ReceiveChargeEvents parent: Logger mirrors: bike {
+species bikeLogger_ReceiveChargeEvents parent: Logger mirrors: bike { // Cluster charging
 	string filename <- 'bike_receiveChargeEvents';
 	list<string> columns <- [
 		"Start Time (min)",
@@ -423,7 +423,8 @@ species bikeLogger_event parent: Logger mirrors: bike {
 		"Duration (estimated)",
 		"Start Battery %",
 		"End Battery %",
-		"Battery Gain %"
+		"Battery Gain %",
+		"Low Pheromone Levels"
 	];
 	
 	
@@ -446,6 +447,8 @@ species bikeLogger_event parent: Logger mirrors: bike {
 	float distanceStartActivity;
 	float batteryStartActivity;
 	string currentState;
+	
+	string lowPass;
 	
 	action logEnterState { do logEnterState(""); }
 	action logEnterState(string logmessage) {
@@ -471,8 +474,8 @@ species bikeLogger_event parent: Logger mirrors: bike {
 			int(d/WanderingSpeed), //TODO: Change this, as wandering speed does not apply for every state
 			int(batteryStartActivity/maxBatteryLife*100),
 			int(biketarget.batteryLife/maxBatteryLife*100),
-			int((biketarget.batteryLife-batteryStartActivity)/maxBatteryLife*100)
-		
+			int((biketarget.batteryLife-batteryStartActivity)/maxBatteryLife*100),
+			biketarget.lowPass
 		]);
 		
 		
@@ -487,7 +490,8 @@ species bikeLogger_event parent: Logger mirrors: bike {
 					int((cycle*step - myself.cycleStartActivity*step)/(60)),
 					int(myself.batteryStartActivity/maxBatteryLife*100),
 					int(biketarget.batteryLife/maxBatteryLife*100),
-					int((biketarget.batteryLife-myself.batteryStartActivity)/maxBatteryLife*100)
+					int((biketarget.batteryLife-myself.batteryStartActivity)/maxBatteryLife*100),
+					myself.lowPass
 				);
 			}
 		}

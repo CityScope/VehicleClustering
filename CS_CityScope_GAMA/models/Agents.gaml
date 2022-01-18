@@ -342,6 +342,7 @@ species bike control: fsm skills: [moving] {
 	people rider;
 	
 	list<string> rideStates <- ["wander", "following"];
+	bool lowPass <- false;
 
 	bool availableForRide {
 		return (state in rideStates) and !setLowBattery() and rider = nil;
@@ -568,11 +569,9 @@ species bike control: fsm skills: [moving] {
 	float readPheromones <- 0.0; // 2*chargingPheromoneThreshold; //init above the threshold so we don't imediately go to charge
 	// NOTE: Changed to 0 -> Probably not needed anymore because we have a pLowPheromoneCharge which is a probability of going for a charge when reading low pheromone levels
 	
-	float alpha <- 0.2; //TODO: tune this so our average updates at desired speed. may need a factor of `step`
-	
 	action rememberPheromones(list<tagRFID> tags) { //For low -pass filter average
 		loop tag over: tags {
-			readPheromones <- (1-alpha)*readPheromones + alpha*mean(tag.pheromoneMap); 
+			readPheromones <- (1-readUpdateRate)*readPheromones + readUpdateRate*mean(tag.pheromoneMap); 
 		}
 	}
 	
@@ -671,9 +670,12 @@ species bike control: fsm skills: [moving] {
 		transition to: low_battery when: setLowBattery() or (readPheromones < chargingPheromoneThreshold and flip(pLowPheromoneCharge) and batteryLife < 0.75*maxBatteryLife) {
 			//The low-pass filter also considers that the battery shouldn't be more than a 75% full and with a certain (low) probability so that
 			// in low pheromone stages there's only a few bikes going for a charge at each time
-			bool lowPass <- false;
+			
 			if readPheromones < chargingPheromoneThreshold {
 				lowPass <- true;
+			}
+			else{
+				lowPass <- false;
 			}
 		 //write "cycle: " + cycle + ","+ current_date.hour +':' + current_date.minute + ' agent ' +string(self) + ", battery life " + self.batteryLife + ' low-pass: '+ lowPass ;
 		}
