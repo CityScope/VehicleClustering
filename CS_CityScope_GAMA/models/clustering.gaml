@@ -226,7 +226,7 @@ experiment clustering_headless {
 }
 
 
-experiment one_person type: gui {
+/*experiment one_person type: gui {
 	parameter var: numBikes init: 0;
 	//parameter var: numPeople init: 1;
 	
@@ -318,4 +318,4 @@ experiment one_each_headless {
 experiment one_bike_headless {
 	parameter var: numBikes init: 1;
 	//parameter var: numPeople init: 0;
-}
+}*/

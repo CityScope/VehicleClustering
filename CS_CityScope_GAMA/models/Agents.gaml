@@ -97,15 +97,16 @@ species tagRFID {
 	
 	chargingStation nearestChargingStation;
 	int distanceToChargingStation;
+	rgb color;
 	
 	//easy access to neighbors
 	list<tagRFID> neighbors { return pheromoneMap.keys;	}
 	
 	// Start (?) *Larry* Pheromone colors
 	float average {
-		float sum <- 0;
-		float length <- 0;
-		loop k over: neighbors{
+		float sum <- 0.0;
+		float length <- 0.0;
+		loop k over: neighbors(){
 			sum <- sum + pheromoneMap[k];
 			length <- length + 1;
 			
@@ -115,34 +116,38 @@ species tagRFID {
 	}
 	
 	aspect base {
-		rgb color;
 		
-		float avg <- average;
+		float avg <- average();
 		
-		float quartile1 <- minPheromoneLevel + (maxPheromoneLevel-minPheromoneLevel)/4;
+		/*float quartile1 <- minPheromoneLevel + (maxPheromoneLevel-minPheromoneLevel)/4;
 		float quartile2 <- minPheromoneLevel + 2*(maxPheromoneLevel-minPheromoneLevel)/4;
-		float quartile3 <- minPheromoneLevel + 3*(maxPheromoneLevel-minPheromoneLevel)/4;
+		float quartile3 <- minPheromoneLevel + 3*(maxPheromoneLevel-minPheromoneLevel)/4;*/
+		
+		float quartile1 <- minPheromoneLevel+singlePheromoneMark/5;
+		float quartile2 <- singlePheromoneMark/2;
+		float quartile3 <- singlePheromoneMark;
+		
 		
 		if avg < quartile1 {
-			color <- #red;
+			color <- #indigo;
 		}
 		else if avg < quartile2 {
 			color <- #purple;
 		}
 		else if avg < quartile3 {
-			color <- #blue;
+			color <- #pink;
 		}
 		else {
-			color <- #turquoise;
+			color <- #red;
 		}
 
-			
+	
 		draw circle(10) color:color;
 	}
 	
-	aspect realistic {
+	/*aspect realistic {
 		draw circle(1+5*max(pheromoneMap)) color:rgb(107,171,158);
-	}
+	}*/
 	// end *Larry* Pheromone colors
 }
 
