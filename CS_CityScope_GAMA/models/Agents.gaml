@@ -236,7 +236,7 @@ species people control: fsm skills: [moving] {
     		target <- nil;
     	}
     	transition to: requesting_bike when: timeToTravel() {
-    		//write "cycle: " + cycle + ", current time "+ current_date.hour +':' + current_date.minute + 'agent' +string(self) + " time " + self.start_work_hour + ":"+self.start_work_minute;
+    		write "cycle: " + cycle + ", current time "+ current_date.hour +':' + current_date.minute + 'agent' +string(self) + " time " + self.start_h + ":"+self.start_min;
     		final_destination <- target_point;
     	}
     	exit {
