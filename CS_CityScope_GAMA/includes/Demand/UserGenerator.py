@@ -39,8 +39,8 @@ df_buildings["cy"] = df_buildings.geometry.apply(lambda p: p.centroid.y)
 df_trips = pd.read_csv("./201910-bluebikes-tripdata.csv")
 
 # DATE FILTER
-start_date = "2019-10-07 00:00:00"
-end_date = "2019-10-14 00:00:00"
+start_date = "2019-10-08 00:00:00"
+end_date = "2019-10-09 00:00:00"
 df_trips = df_trips[df_trips["starttime"].between(start_date, end_date)]
 
 # ROUNDTRIP FILTER
