@@ -13,7 +13,7 @@ global {
 		return bike where (each.availableForRide() and (each distance_to person) <= maxDistance);
 	}
 
-	
+
 	bool requestBike(people person, point destination) { //returns true if there is any bike available
 
 		list<bike> candidates <- availableBikes(person);
@@ -78,7 +78,7 @@ species tagRFID {
 	
 	chargingStation nearestChargingStation;
 	int distanceToChargingStation;
-	rgb color;
+	rgb tag_color;
 	
 	//easy access to neighbors
 	list<tagRFID> neighbors { return pheromoneMap.keys;	}
@@ -96,34 +96,34 @@ species tagRFID {
 		return avg;
 	}
 	
+	//list<string> var0 <- list<string> palettes <- brewer_palettes(3);
 	aspect base {
 		
 		float avg <- average();
 		
-		/*float quartile1 <- minPheromoneLevel + (maxPheromoneLevel-minPheromoneLevel)/4;
-		float quartile2 <- minPheromoneLevel + 2*(maxPheromoneLevel-minPheromoneLevel)/4;
-		float quartile3 <- minPheromoneLevel + 3*(maxPheromoneLevel-minPheromoneLevel)/4;*/
 		
-		float quartile1 <- minPheromoneLevel+singlePheromoneMark/5;
-		float quartile2 <- singlePheromoneMark/2;
-		float quartile3 <- singlePheromoneMark;
+		rgb color_1 <- rgb(254,235,226); 
+		rgb color_2 <- rgb(252,197,192);
+		rgb color_3 <- rgb(250,159,181);
+		rgb color_4 <- rgb(247,104,161);
+		rgb color_5 <- rgb(197,27,138); 
+		rgb color_6 <- rgb(122,1,119);
 		
 		
-		if avg < quartile1 {
-			color <- #indigo;
-		}
-		else if avg < quartile2 {
-			color <- #purple;
-		}
-		else if avg < quartile3 {
-			color <- #pink;
-		}
-		else {
-			color <- #red;
-		}
-
+		float q1<- minPheromoneLevel+singlePheromoneMark/5;
+		float q2<- minPheromoneLevel+2*singlePheromoneMark/5;
+		float q3<- minPheromoneLevel+3*singlePheromoneMark/5;
+		float q4<- minPheromoneLevel+4*singlePheromoneMark/5;
+		float q5<- minPheromoneLevel+5*singlePheromoneMark/5;
+		
+		if avg < q1 {tag_color <- color_1;}
+		else if avg < q2 {tag_color <-  color_2;}
+		else if avg < q3 {tag_color <- color_3;}
+		else if avg < q4 {tag_color <-  color_4;}
+		else if avg < q5 {tag_color <-  color_5;}
+		else {tag_color <-  color_6;}
 	
-		draw circle(10) color:color;
+		draw circle(10) color:tag_color;
 	}
 	
 }
@@ -139,7 +139,7 @@ species people control: fsm skills: [moving] {
 		"awaiting_bike":: #springgreen,
 		"riding":: #gamagreen,
 		"walking":: #magenta
-		
+
 	];
 	
 	//loggers
@@ -262,7 +262,7 @@ species bike control: fsm skills: [moving] {
 	rgb color;
 	
 	map<string, rgb> color_map <- [
-		"wander"::#lavender,
+		"wander"::#purple,
 		
 		"low_battery":: #red,
 		"getting_charge":: #pink,
@@ -277,11 +277,10 @@ species bike control: fsm skills: [moving] {
 	
 	aspect realistic {
 		color <- color_map[state];
-    
-		draw triangle(25) color:color border:color rotate: heading + 90;
+		draw triangle(25) color:color border:color rotate: heading + 90 ;
 
-	}
-	
+	} 
+
 	
 	//loggers
 	bikeLogger_roadsTraveled travelLogger;
@@ -541,15 +540,15 @@ species bike control: fsm skills: [moving] {
 
 		
 		//if the strongest pheromone is behind us, keep pheromone level with p=exploitation rate 
-		if pmap[previousTag] = max(pmap) and not flip(exploitationRate) {
+		if pmap[previousTag] = max(pmap) and not flip(exploitationRate) { //if max is behind and we dont exploit because of probability
 			pmap[previousTag] <- 0.0; //alters local copy only :) it means it won't go back with a certain probability
 		}
 		
 		//head toward (possibly new) strongest pheromone, or choose randomly
-		if flip(exploitationRate) {
+		if flip(exploitationRate) { //p=expoliation rate of choosing max
 			return pmap index_of max(pmap);
 		} else {
-			return one_of( pmap.keys );
+			return one_of( pmap.keys ); //otherwise random
 		}
 	}
 	
@@ -565,8 +564,7 @@ species bike control: fsm skills: [moving] {
 			
 			//evaporation
 			tag.pheromoneMap[k] <- tag.pheromoneMap[k] - (singlePheromoneMark * evaporation * step*(cycle - tag.lastUpdate)); 
-			//TODO: review, we have added *step* here so that it's proportional to time, not only the num cycles but this could affect absolute values
-
+			
 			//saturation
 			if (tag.pheromoneMap[k]<minPheromoneLevel){
 				tag.pheromoneMap[k] <- minPheromoneLevel;

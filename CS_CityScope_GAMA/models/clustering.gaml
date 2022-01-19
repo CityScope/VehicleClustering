@@ -157,12 +157,12 @@ experiment clustering type: gui {
 	//parameter var: numPeople init: 250;
     output {
 		display city_display type:opengl background: #black draw_env: false{	
-			species tagRFID aspect: base trace: 10; //TODO: change this TRACE
+			species tagRFID aspect: base; 
 			species building aspect: type ;
 			species road aspect: base ;
 			species people aspect: base ;
 			species chargingStation aspect: base ;
-			species bike aspect: realistic ;
+			species bike aspect: realistic trace: 10 ; //TODO: make proportional to pheromone
 			graphics "text" {
 				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
 				{world.shape.width * 0.8, world.shape.height * 0.975};

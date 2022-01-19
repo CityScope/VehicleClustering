@@ -9,14 +9,14 @@ global {
 	float step <- 35 #sec; //For tangible we need about 0.1s
 	
 	//Simulation starting date
-	date starting_date <- date("2021-10-12 06:00:00"); // <- #now; TODO: Change to now 
+	date starting_date <- date("2021-10-12 00:00:00"); // <- #now; TODO: Change to now 
 	
 	//Date for log files
 	date logDate <- #now;
 	
 	//Duration of the simulation
 	int numberOfDays <- 1; //WARNING: If >1 set numberOfHours to 24h
-	int numberOfHours <- 14; //WARNING: If one day, we can also specify the number of hours, otherwise set 24h
+	int numberOfHours <- 24; //WARNING: If one day, we can also specify the number of hours, otherwise set 24h
 	
 	//----------------------Logging Parameters------------------------
 	int loggingLevel <- 10		min: 0 max: 10 parameter: "Logging Level" category: "Logs"; // Question posted as issue on GitHUb
@@ -32,9 +32,10 @@ global {
 	
 	//----------------------Pheromone Parameters------------------------
     float singlePheromoneMark <- 0.5; //1.0 in ours, 0.01 as a param in original code, set to 0.5 for SwarmBot
-	float evaporation <- 0.15; //0.05%, *0.15%,* and 0.3% in the paper but we changed evaporation to be proportional to time instead of just cycles
+	float evaporation <- 0.05; //0.05%, *0.15%,* and 0.3% in the paper but we changed evaporation to be proportional to time instead of just cycles
 	float exploitationRate <- 0.6; // Paper values: *0.6*, 0.75, and 0.9. Note: 0.8 means 0.2 of randomness  (exploration)
-	float diffusion <- (1-exploitationRate) * 0.5;  // the more they explore randomly, they are less 'trustable' so they have to diffuse less for system convergence
+	//float diffusion <- (1-exploitationRate) * 0.5;  // the more they explore randomly, they are less 'trustable' so they have to diffuse less for system convergence
+	float diffusion <- exploitationRate*0.5 ; // the more exploit vs expore the more trustable
 	float maxPheromoneLevel <- 50*singlePheromoneMark; //satutration
 	float minPheromoneLevel <- 0.0;
 	
@@ -58,10 +59,6 @@ global {
 	
 	float minSafeBattery <- 0.25*maxBatteryLife #m; //Amount of battery at which we seek battery and that is always reserved when charging another bike
 	
-	//Old - other parameters to decide if a bike should go for a charge 
-	//int numberOfStepsReserved <- 3; //number of simulation steps worth of movement to reserve before seeking charge
-	//int distanceSafetyFactor <- 10; //factor of distancetochargingstaiton at which we seek charge	
-	//float tripSafetyFactor <- 1.15; //If bikes are going to consume battery when the user is riding and we assume users provide their desired destination in advanced
 
 	
 	//----------------------numChargingStationsion Parameters------------------------
@@ -73,13 +70,8 @@ global {
 	//int numPeople <- 250 				min: 0 max: 1000 parameter: "Num People:" category: "Initial";
 	float maxWaitTime <- 20#mn		min: 3#mn max: 60#mn parameter: "Max Wait Time:" category: "People";
 	float maxDistance <- maxWaitTime*60*PickUpSpeed #m; //The maxWaitTime is translated into a max radius taking into account the speed of the bikes
-    /* OLD 
-    int workStartMin <- 6			min: 4 max: 12 parameter: "Min Work Start Time:" category: "People";
-    int workStartMax <- 10			min: 4 max: 12 parameter: "Max Work Start Time:" category: "People";
-    int workEndMin <- 16			min: 14 max: 24 parameter: "Min Work End Time:" category: "People";
-    int workEndMax <- 20			min: 14 max: 24 parameter: "Max Work End Time:" category: "People";*/
     float peopleSpeed <- 5/3.6 #m/#s	min: 1/3.6 #m/#s max: 10/3.6 #m/#s parameter: "People Speed (m/s):" category: "People";
-    
+  
     float bikeCostBatteryCoef <- 200.0; //(see global.bikeCost)relative importance of batterylife when selecting bikes to ride
     
     //NEW demand 
