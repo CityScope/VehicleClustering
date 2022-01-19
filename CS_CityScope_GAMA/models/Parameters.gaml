@@ -1,11 +1,3 @@
-/**
-* Name: Parameters
-* Based on the internal empty template. 
-* Author: Juan
-* Tags: 
-*/
-
-
 model Parameters
 
 import "./clustering.gaml"

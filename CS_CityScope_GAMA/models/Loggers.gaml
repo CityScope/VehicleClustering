@@ -1,11 +1,3 @@
-/**
-* Name: Loggers
-* Based on the internal empty template. 
-* Author: qbowe
-* Tags: 
-*/
-
-
 model Loggers
 import "./clustering.gaml"
 
@@ -21,16 +13,13 @@ global {
 	action log(string filename, int level, list data, list<string> columns) {
 		if not(filename in filenames.keys) {
 			do registerLogFile(filename);
-			//save ["Cycle","Time (real)", "Time (simulation)","Agent"] + columns to: filenames[filename] type: "csv" rewrite: false header: false;
 			save ["Cycle", "Time","Agent"] + columns to: filenames[filename] type: "csv" rewrite: false header: false;
 		}
 		
 		if level <= loggingLevel {
-			//save [cycle, string(#now), int(time)] + data to: filenames[filename] type: "csv" rewrite: false header: false;
-		save [cycle, date(current_date)] + data to: filenames[filename] type: "csv" rewrite: false header: false;
+			save [cycle, date(current_date)] + data to: filenames[filename] type: "csv" rewrite: false header: false;
 		}
 		if level <= printLevel {
-			//write [cycle,int(time)] + data;
 			write [cycle, date(current_date)] + data;
 		}
 	}
@@ -75,8 +64,6 @@ global {
 		"V2V Charging Rate [m/s]: "+string(V2VChargingRate),
 		"Charging Pheromone Threshold (disables charge-seeking when low pheromone): "+string(chargingPheromoneThreshold),
 		"MinSafeBattery (amount of battery always reserved when charging another bike, also at which we seek battery) [m]: "+string(minSafeBattery),
-		//"numberOfStepsReserved (number of simulation steps worth of movement to reserve before seeking charge): "+string(numberOfStepsReserved),
-		//"distanceSafetyFactor (factor of distanceToChargingStation at which we seek charge): "+string(distanceSafetyFactor),
 		"maxDistance [m]: "+string(maxDistance),
 		"------------------------------STATION PARAMETERS------------------------------",
 		"numChargingStations: "+string(numChargingStations),
@@ -85,9 +72,6 @@ global {
 		"------------------------------PEOPLE PARAMETERS------------------------------",
 		//"numPeople: "+string(numPeople),
 		"maxWaitTime: "+string(maxWaitTime),
-		//"workStartMax: "+string(workStartMax),
-		//"workEndMin: "+string(workEndMin),
-		//"workEndMax: "+string(workEndMax),
 		"peopleSpeed: "+string(peopleSpeed),
 		"bikeCostBatteryCoef: "+string(bikeCostBatteryCoef),
 		"------------------------------MAP PARAMETERS------------------------------",
@@ -195,23 +179,6 @@ species peopleLogger parent: Logger mirrors: people {
 		persontarget.logger <- self;
 		loggingAgent <- persontarget;
 	}
-	
-	
-	// Variables for people's CSVs
-//    float morning_wait_time; //Morning wait time [s]
-//    float evening_wait_time; //Evening wait time [s]
-//    float morning_ride_duration; //Morning ride duration [s]
-//    float evening_ride_duration; //Evening ride duration [s]
-//    float morning_ride_distance; //Morning ride distance [m]
-//    float evening_ride_distance; //Evening ride distance [m]
-//    float morning_total_trip_duration; //Morning total trip duration [s]
-//    float evening_total_trip_duration; //Evening total trip duration [s]
-//    float home_departure_time; //Home departure time [s]
-//    float work_departure_time; //Work departure time [s]
-//    bool morning_trip_served;
-//    bool evening_trip_served;
-//    
-//    point location_start_ride;
 	
 	float tripdistance <- 0.0;
 	
@@ -435,8 +402,6 @@ species bikeLogger_event parent: Logger mirrors: bike {
 		biketarget.eventLogger <- self;
 		loggingAgent <- biketarget;
 	}
-	
-	
 	
 	chargingStation stationCharging; //Station where being charged [id]
 	float chargingStartTime; //Charge start time [s]

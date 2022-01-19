@@ -1,17 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Oct  5 17:13:02 2020
-
-@author: imartinez
-
-Modified for VehicleClustering
-on: Wed Aug 25 15:00 2021 
-by: NaroaCS
-"""
-# %%
-
-
 
 ## REMEMBER to cd in the terminal to the folder where UserGenerator.py is stored
 import numpy as np
