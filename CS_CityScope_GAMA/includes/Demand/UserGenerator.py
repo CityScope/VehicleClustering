@@ -1,15 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Oct  5 17:13:02 2020
 
-@author: imartinez
-
-Modified for VehicleClustering
-on: Wed Aug 25 15:00 2021 
-by: NaroaCS
-"""
-# %%
+## REMEMBER to cd in the terminal to the folder where UserGenerator.py is stored
 import numpy as np
 import pandas as pd
 import os
@@ -35,8 +27,8 @@ df_buildings["cy"] = df_buildings.geometry.apply(lambda p: p.centroid.y)
 df_trips = pd.read_csv("./201910-bluebikes-tripdata.csv")
 
 # DATE FILTER
-start_date = "2019-10-07 00:00:00"
-end_date = "2019-10-14 00:00:00"
+start_date = "2019-10-08 00:00:00"
+end_date = "2019-10-09 00:00:00"
 df_trips = df_trips[df_trips["starttime"].between(start_date, end_date)]
 
 # ROUNDTRIP FILTER
@@ -44,20 +36,21 @@ df_trips = df_trips[df_trips["start station id"] != df_trips["end station id"]]
 
 # LOCATION FILTER
 
-lat_min = 42.355013
-lat_max = 42.369192
-lon_min= -71.117067
-lon_max = -71.075183
+lat_min = 42.356444 
+lat_max = 42.372361
+lon_min= -71.093386 #71.100729 // 
+lon_max = -71.073392 #71.069872
 
 df_trips = df_trips[
     df_trips["start station longitude"].between(lon_min, lon_max) & 
-    df_trips["start station latitude"].between(lat_min, lat_max)]
+    df_trips["start station latitude"].between(lat_min, lat_max) & 
+    df_trips["end station longitude"].between(lon_min, lon_max) & 
+    df_trips["end station latitude"].between(lat_min, lat_max)]
 
 print(len(df_trips))
 
 # %%
-
-for i in range(5):
+for i in range(1):
     from sklearn.neighbors import BallTree
 
     tree = BallTree(np.deg2rad(df_buildings[["cy", "cx"]].values), leaf_size=50, metric="haversine")
@@ -134,8 +127,8 @@ for i in range(5):
     df_trips["target_time"] = (pd.to_datetime(df_trips["stoptime"]) - start_time).astype("timedelta64[s]")
 
     # df_trips.drop(columns = [])
-    # df_trips.to_csv("../data/user_trips.csv", index=False)
-    df_trips.to_csv("./user_trips_" + str(i) + ".csv", index=False)
+    df_trips.to_csv("user_trips_new.csv", index=False)
+    #df_trips.to_csv("./user_trips_" + str(i) + ".csv", index=False)
 
 # %% PLOT DATA
 
@@ -147,7 +140,8 @@ if plot:
     pp = Proj("+proj=utm +zone=19 +north +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
 
     df_stations = df_trips[["start station longitude", "start station latitude"]].drop_duplicates()
-    df_trips_sample = df_trips.sample(10000)
+    #df_trips_sample = df_trips.sample(10000)
+    df_trips_sample = df_trips
 
     xx, yy = pp(df_trips_sample["start_lon"].values, df_trips_sample["start_lat"].values)
     df_trips_sample["X"] = xx

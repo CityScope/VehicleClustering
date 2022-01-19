@@ -1,11 +1,3 @@
-/**
-* Name: clustering
-* Based on the internal empty template. 
-* Author: Juan Múgica
-* Tags: 
-*/
-
-
 model clustering
 
 import "./Agents.gaml"
@@ -103,28 +95,36 @@ global {
 			nextTag <- tagRFID( location );
 			lastTag <- nextTag;
 			pheromoneToDiffuse <- 0.0;
-			pheromoneMark <- 300/step*singlePheromoneMark; //Pheromone mark to remain 5 minutes TODO: WHY?
+			pheromoneMark <- 0.0; //300/step*singlePheromoneMark; //Pheromone mark to remain 5 minutes TODO: WHY?
 
 			//write "cycle: " + cycle + ", " + string(self) + " created with batteryLife " + self.batteryLife;
 		}
 	    
 		// -------------------------------------------The People -----------------------------------------
-	    create people number: numPeople {
-	    	
-	        start_work_hour <- rnd (workStartMin, workStartMax-1); // we need to -1 because otherwise we will create agents until workStartMax:59 (eg. 8.59 with 8 as max)
-	        start_work_minute <- rnd(0,59);
-	        
-	        end_work_hour <- rnd(workEndMin, workEndMax-1);
-	        end_work_minute <- rnd(0,59);
-	        
-	        living_place <- one_of(residentialBuildings) ;
-	        working_place <- one_of(officeBuildings) ;
-	        location <- any_location_in(living_place);
-	        
+	    
+	    create people from: demand_csv with:
+			[start_hour::date(get("starttime")),  //'yyyy-MM-dd hh:mm:s'
+				start_lat::float(get("start_lat")),
+				start_lon::float(get("start_lon")),
+				target_lat::float(get("target_lat")),
+				target_lon::float(get("target_lon"))
+			]{
+	
 	        speed <- peopleSpeed;
-	        
-	        //write "cycle: " + cycle + ", " + string(self) + " created at " + self.start_work_hour + ":"+self.start_work_minute;
-	    }
+	        start_point  <- to_GAMA_CRS({start_lon,start_lat},"EPSG:4326").location; // (lon, lat) var0 equals a geometry corresponding to the agent geometry transformed into the GAMA CRS
+			target_point <- to_GAMA_CRS({target_lon,target_lat},"EPSG:4326").location;
+			location <- start_point;
+			
+			string start_h_str <- string(start_hour,'kk');
+			start_h <- int(start_h_str);
+			string start_min_str <- string(start_hour,'mm');
+			start_min <- int(start_min_str);
+			
+			
+			write "cycle: " + cycle + ", time "+ self.start_h + ":" + self.start_min + ", "+ string(self) + " will travel from " + self.start_point + " to "+ self.target_point;
+			
+			}
+						
 	 	// ----------------------------------The RFIDs tag on each road intersection------------------------
 		
 		ask tagRFID {
@@ -144,6 +144,38 @@ reflex stop_simulation when: cycle >= numberOfDays * numberOfHours * 3600 / step
 	do pause ;
 }
 
+}
+
+experiment batch_experiments_headless type: batch until: (cycle = 300) {
+	parameter var: evaporation among: [0.05, 0.15, 0.3];
+	parameter var: exploitationRate among: [0.6, 0.75, 0.9];
+	parameter var: numBikes among: [40, 50, 60];
+}
+
+experiment clustering type: gui {
+	parameter var: numBikes init: 50;
+	//parameter var: numPeople init: 250;
+    output {
+		display city_display type:opengl background: #black draw_env: false{	
+			species tagRFID aspect: base trace: 10; //TODO: change this TRACE
+			species building aspect: type ;
+			species road aspect: base ;
+			species people aspect: base ;
+			species chargingStation aspect: base ;
+			species bike aspect: realistic ;
+			graphics "text" {
+				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
+				{world.shape.width * 0.8, world.shape.height * 0.975};
+				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
+			}
+		}
+	
+    }
+}
+
+experiment clustering_headless {
+	parameter var: numBikes init: 50;
+	//parameter var: numPeople init: 250;
 }
 
 /*//TODO: fill this out with tests to verify that all functions work properly
@@ -167,129 +199,3 @@ experiment benchmarks {
 
 
 
-experiment batch_experiments_headless type: batch until: (cycle = 300) {
-	parameter var: evaporation among: [0.05, 0.15, 0.3];
-	parameter var: exploitationRate among: [0.6, 0.75, 0.9];
-	parameter var: numBikes among: [40, 50, 60];
-}
-
-experiment clustering type: gui {
-	parameter var: numBikes init: 50;
-	parameter var: numPeople init: 250;
-    output {
-		display city_display type:opengl background: #black draw_env: false{	
-			species tagRFID aspect: base trace: 10;
-			species building aspect: type ;
-			species road aspect: base ;
-			species people aspect: base ;
-			species chargingStation aspect: base ;
-			species bike aspect: realistic ;
-			graphics "text" {
-				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
-				{world.shape.width * 0.8, world.shape.height * 0.975};
-				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
-			}
-		}
-	
-    }
-}
-
-experiment clustering_headless {
-	parameter var: numBikes init: 50;
-	parameter var: numPeople init: 250;
-}
-
-
-experiment one_person type: gui {
-	parameter var: numBikes init: 0;
-	parameter var: numPeople init: 1;
-	
-    output {
-		display city_display type:opengl background: #black draw_env: false{	
-			species tagRFID aspect: base ;
-			species building aspect: type ;
-			species road aspect: base ;
-			species people aspect: base ;
-			species chargingStation aspect: base ;
-			species bike aspect: realistic ;
-			graphics "text" {
-				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
-				{world.shape.width * 0.8, world.shape.height * 0.975};
-				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
-			}
-		}
-    }
-}
-
-experiment one_each type: gui {
-	parameter var: numBikes init: 1;
-	parameter var: numPeople init: 1;
-    output {
-		display city_display type:opengl background: #white draw_env: false{	
-			species tagRFID aspect: base ;
-			species building aspect: type ;
-			species road aspect: base ;
-			species people aspect: base ;
-			species chargingStation aspect: base ;
-			species bike aspect: realistic ;
-			graphics "text" {
-				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
-				{world.shape.width * 0.8, world.shape.height * 0.975};
-				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
-			}
-		}
-    }
-}
-
-experiment one_bike type: gui {
-	
-	parameter var: numBikes init: 1;
-	parameter var: numPeople init: 0;
-	
-    output {
-		display city_display type:opengl background: #black draw_env: false{	
-			species tagRFID aspect: base ;
-			species building aspect: type ;
-			species road aspect: base ;
-			species people aspect: base ;
-			species chargingStation aspect: base ;
-			species bike aspect: realistic ;
-			
-			graphics "text" {
-				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
-				{world.shape.width * 0.8, world.shape.height * 0.975};
-				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
-			}
-		}
-    }
-}
-
-experiment just_a_lot_of_bikes type: gui {
-	parameter var: numBikes init: 20;
-	parameter var: numPeople init: 0;
-	
-    output {
-		display city_display type:opengl background: #black draw_env: false{	
-//			species tagRFID aspect: base;
-			species building aspect: type;
-			species road aspect: base;
-			species people aspect: base;
-			species chargingStation aspect: base;
-			species bike aspect: realistic;
-			
-			graphics "text" {
-				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
-				{world.shape.width * 0.8, world.shape.height * 0.975};
-				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
-			}
-		}
-    }
-}
-experiment one_each_headless {
-	parameter var: numBikes init: 1;
-	parameter var: numPeople init: 1;
-}
-experiment one_bike_headless {
-	parameter var: numBikes init: 1;
-	parameter var: numPeople init: 0;
-}
