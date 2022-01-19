@@ -149,11 +149,11 @@ reflex stop_simulation when: cycle >= numberOfDays * numberOfHours * 3600 / step
 experiment batch_experiments_headless type: batch until: (cycle = 300) {
 	parameter var: evaporation among: [0.05, 0.15, 0.3];
 	parameter var: exploitationRate among: [0.6, 0.75, 0.9];
-	parameter var: numBikes among: [40, 50, 60];
+	parameter var: numBikes among: [25, 50, 75];
 }
 
 experiment clustering type: gui {
-	parameter var: numBikes init: 50;
+	parameter var: numBikes init: numBikes;
 	//parameter var: numPeople init: 250;
     output {
 		display city_display type:opengl background: #black draw_env: false{	
@@ -174,7 +174,7 @@ experiment clustering type: gui {
 }
 
 experiment clustering_headless {
-	parameter var: numBikes init: 50;
+	parameter var: numBikes init: numBikes;
 	//parameter var: numPeople init: 250;
 }
 

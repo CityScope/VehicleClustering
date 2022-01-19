@@ -302,9 +302,17 @@ species bike control: fsm skills: [moving] {
 	bool availableForRide {
 		return (state in rideStates) and !setLowBattery() and rider = nil;
 	}
+	
 	list<string> platoonStates <- ["wander"]; 
+	
 	bool availableForPlatoon {
-		return (state in platoonStates) and follower = nil and !setLowBattery(); //this would be different with 'megaclusters'
+		if clusteringEnabled { //TODO: I think we can remove this from here, it is redundant
+		
+			return (state in platoonStates) and follower = nil and !setLowBattery(); //this would be different with 'megaclusters'
+		} else{
+			return false;
+		}
+		
 	}
 	
 	action pickUp(people person) { 
@@ -605,8 +613,8 @@ species bike control: fsm skills: [moving] {
 			target <- nil;
 		}
 		transition to: picking_up when: rider != nil {}
-		transition to: awaiting_follower when: follower != nil and follower.state = "seeking_leader" {}
-		transition to: seeking_leader when: follower = nil and evaluateclusters() {
+		transition to: awaiting_follower when: clusteringEnabled and follower != nil and follower.state = "seeking_leader"  {}
+		transition to: seeking_leader when: clusteringEnabled and follower = nil and evaluateclusters() {
 			//Don't form cluster if you're already a leader
 			ask leader {
 				do waitFor(myself);
@@ -716,7 +724,8 @@ species bike control: fsm skills: [moving] {
 	state picking_up {
 		//go to rider's location, pick them up
 		enter {
-			self.pheromoneMark <- singlePheromoneMark;  //Here we start leaving a pheromone trail
+			if pheromonesEnabled {self.pheromoneMark <- singlePheromoneMark;} //Here we start leaving a pheromone trail}
+
 			ask eventLogger { do logEnterState("Picking up " + myself.rider); }
 			target <- rider.closestIntersection; //Go to the rider's closest intersection
 		}

@@ -31,6 +31,8 @@ global {
 	bool tangibleLogs <- false; //Output for tangible swarm-bots
 	
 	//----------------------Pheromone Parameters------------------------
+	bool pheromonesEnabled <- true ; // If false the PheromoneMark will always be zero and the bikes will just wander
+	bool wanderingEnabled <- true; // TODO: Maybe they shouldn't wander if pheromones are not enabled
     float singlePheromoneMark <- 0.5; //1.0 in ours, 0.01 as a param in original code, set to 0.5 for SwarmBot
 	float evaporation <- 0.05; //0.05%, *0.15%,* and 0.3% in the paper but we changed evaporation to be proportional to time instead of just cycles
 	float exploitationRate <- 0.6; // Paper values: *0.6*, 0.75, and 0.9. Note: 0.8 means 0.2 of randomness  (exploration)
@@ -39,26 +41,27 @@ global {
 	float maxPheromoneLevel <- 50*singlePheromoneMark; //satutration
 	float minPheromoneLevel <- 0.0;
 	
+	//------------------- Task Switch Pheromone Levels----------------------
 	float chargingPheromoneThreshold <- 0.02*singlePheromoneMark; //Enables charge-seeking when low pheromone
 	float pLowPheromoneCharge <- 0.01; // probability of going for a charge when reading low pheromone levels
 	float readUpdateRate <- 0.5 ; //TODO: tune this so our average updates at desired speed. may need a factor of `step`
 	
 	//----------------------Bike Parameters------------------------
-	int numBikes <- 50 				min: 0 max: 500 parameter: "Num Bikes:" category: "Initial";
+	int numBikes <- 25 				min: 0 max: 500 parameter: "Num Bikes:" category: "Initial";
 	float maxBatteryLife <- 30000.0 #m	min: 10000#m max: 300000#m parameter: "Battery Capacity (m):" category: "Bike"; //battery capacity in m
 	float WanderingSpeed <- 3/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Bike Wandering  Speed (m/s):" category:  "Bike";
 	float PickUpSpeed <-  8/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Bike Pick-up Speed (m/s):" category:  "Bike";
 	float RidingSpeed <-  10.2/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Riding Speed (m/s):" category:  "Bike";
+	float minSafeBattery <- 0.25*maxBatteryLife #m; //Amount of battery at which we seek battery and that is always reserved when charging another bike
+	
+	
+	// -------------------- Clustering------------------------------
+	bool clusteringEnabled <-false; // Toggle for enabling and disabling clustering
 	
 	float clusterDistance <- 300#m; //Radius in which we look for bikes to cluster with
 	float clusterThreshold <- 0.05*maxBatteryLife; //(see bike.clusterCost) the charge a follower must be able to give the leader in order to cluster
-	
 	float followDistance <- 0.1#m; //distance at which we consider bikes to be clustered and able to share battery
 	float V2VChargingRate <- maxBatteryLife/(1*60*60) #m/#s; //assuming 1h fast charge
-
-	
-	float minSafeBattery <- 0.25*maxBatteryLife #m; //Amount of battery at which we seek battery and that is always reserved when charging another bike
-	
 
 	
 	//----------------------numChargingStationsion Parameters------------------------
@@ -68,14 +71,12 @@ global {
 	
 	//----------------------People Parameters------------------------
 	//int numPeople <- 250 				min: 0 max: 1000 parameter: "Num People:" category: "Initial";
-	float maxWaitTime <- 20#mn		min: 3#mn max: 60#mn parameter: "Max Wait Time:" category: "People";
+	float maxWaitTime <- 15#mn		min: 3#mn max: 60#mn parameter: "Max Wait Time:" category: "People";
 	float maxDistance <- maxWaitTime*60*PickUpSpeed #m; //The maxWaitTime is translated into a max radius taking into account the speed of the bikes
     float peopleSpeed <- 5/3.6 #m/#s	min: 1/3.6 #m/#s max: 10/3.6 #m/#s parameter: "People Speed (m/s):" category: "People";
-  
     float bikeCostBatteryCoef <- 200.0; //(see global.bikeCost)relative importance of batterylife when selecting bikes to ride
-    
-    //NEW demand 
-    
+   
+    //Demand 
     string cityDemandFolder <- "./../includes/Demand";
     csv_file demand_csv <- csv_file (cityDemandFolder+ "/user_trips_new.csv",true);
     //csv_file f <- csv_file("file.csv", ";",int,true, {5, 100});//TODO: Set a limit equivalent to numPeople¿
