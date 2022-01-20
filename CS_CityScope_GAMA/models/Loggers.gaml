@@ -29,12 +29,63 @@ global {
 			save (param) to: './../data/' + string(logDate, 'yyyy-MM-dd hh.mm.ss','en') + '/' + 'setUp' + '.txt' type: "text" rewrite: false header: false;}
 	}
 	
-	action logSetUp { //TODO: To complete with the rest of parameters
+	action logSetUp { 
 		list<string> parameters <- [
 		"------------------------------SIMULATION PARAMETERS------------------------------",
 		"Step: "+string(step),
 		"Starting Date: "+string(starting_date),
 		"Number of Days of Simulation: "+string(numberOfDays),
+		"Number ot Hours of Simulation (if less than one day): "+string(numberOfHours),
+
+		"------------------------------BIKE PARAMETERS------------------------------",
+		"Number of Bikes: "+string(numBikes),
+		"Max Battery Life of Bikes [km]: "+string(maxBatteryLife/1000 with_precision 2),
+		"Wandering speed [km/h]: "+string(WanderingSpeed*3.6),
+		"Pick-up speed [km/h]: "+string(PickUpSpeed*3.6),
+		"Minimum Battery [%]: "+string(minSafeBattery/maxBatteryLife*100),
+		
+		"------------------------------PEOPLE PARAMETERS------------------------------",
+		//"numPeople: "+string(numPeople),
+		"Maximum Wait Time [min]: "+string(maxWaitTime),
+		"Walking Speed [km/h]: "+string(peopleSpeed*3.6),
+		"Riding speed [km/h]: "+string(RidingSpeed*3.6),
+		"Bike Selection Cost Coefficient: "+string(bikeCostBatteryCoef),
+		
+		"------------------------------PHEROMONE PARAMETERS------------------------------",
+		"Pheromones Enabled: "+string(pheromonesEnabled),
+		"Wandering Enabled: "+string(wanderingEnabled),
+		"Single Pheromone Mark: "+string(singlePheromoneMark),
+		"Exploitation Rate: "+string(exploitationRate),
+		"Diffusion Rate: "+string(diffusion),
+		"Max Pheromone Level: "+string(maxPheromoneLevel),
+		"Min Pheromone Level: "+string(minPheromoneLevel),
+		
+		
+		"------------------------------CLUSTERING PARAMETERS------------------------------",
+		"Clustering Enabled: "+string(clusteringEnabled),
+		"Max Radius form Cluster [m]: "+string(clusterDistance),
+		"Cluster Threshold Min Battery[m]: "+string(clusterThreshold),
+		"Follow Distance [m]: "+string(followDistance),
+		"V2V Charging Rate [m/s]: "+string(V2VChargingRate with_precision 2),
+		
+		"------------------------------STATION PARAMETERS------------------------------",
+		"Number of Charging Stations: "+string(numChargingStations),
+		"V2I Charging Rate: "+string(V2IChargingRate  with_precision 2),
+		"Charging Station Capacity: "+string(chargingStationCapacity),
+		
+		
+		"------------------------------TASK SWITCH PARAMETERS------------------------------",
+		"Low-Pheromone Threshold to Switch to Charging: "+string(chargingPheromoneThreshold),
+		"Probabiliy of Switching if Low Pheromones: "+string(pLowPheromoneCharge),
+		"Reading Update Rate: "+string(readUpdateRate),
+
+		"------------------------------MAP PARAMETERS------------------------------",
+		"City Map Name: "+string(cityScopeCity),
+		"Redisence: "+string(residence),
+		"Office: "+string(office),
+		"Usage: "+string(usage),
+		"Color Map: "+string(color_map),
+		
 		"------------------------------LOGGING PARAMETERS------------------------------",
 		"Logging Level: "+string(loggingLevel),
 		"Print Level: "+string(printLevel),
@@ -44,42 +95,7 @@ global {
 		"Station Logs: "+string(stationLogs),
 		"Station File: "+string(stationFile),
 		"Pheromone Logs: "+string(pheromoneLogs),
-		"------------------------------PHEROMONE PARAMETERS------------------------------",
-		"Single Pheromone Mark: "+string(singlePheromoneMark),
-		"Exploitation Rate: "+string(exploitationRate),
-		"Diffusion Rate: "+string(diffusion),
-		"Max Pheromone Level: "+string(maxPheromoneLevel),
-		"Min Pheromone Level: "+string(minPheromoneLevel),
-		"Pheromone Threshold Index:"+string(chargingPheromoneThreshold/singlePheromoneMark),
-		"Probability Low Pheromone Charge"+string(pLowPheromoneCharge),
-		"------------------------------BIKE PARAMETERS------------------------------",
-		"Number of Bikes to Generate: "+string(numBikes),
-		"Max Battery Life of Bikes [m]: "+string(maxBatteryLife),
-		"Wandering speed [m/s]: "+string(WanderingSpeed),
-		"Pick-up speed [m/s]: "+string(PickUpSpeed),
-		"Riding speed [m/s]: "+string(RidingSpeed),
-		"Cluster Distance (Radius in which we look for bikes to cluster with) [m]: "+string(clusterDistance),
-		"Cluster Threshold (the charge a follower must be able to give the leader in order to cluster) [m]: "+string(clusterThreshold),
-		"Follow Distance [m]: "+string(followDistance),
-		"V2V Charging Rate [m/s]: "+string(V2VChargingRate),
-		"Charging Pheromone Threshold (disables charge-seeking when low pheromone): "+string(chargingPheromoneThreshold),
-		"MinSafeBattery (amount of battery always reserved when charging another bike, also at which we seek battery) [m]: "+string(minSafeBattery),
-		"maxDistance [m]: "+string(maxDistance),
-		"------------------------------STATION PARAMETERS------------------------------",
-		"numChargingStations: "+string(numChargingStations),
-		"V2IChargingRate: "+string(V2IChargingRate),
-		"chargingStationCapacity: "+string(chargingStationCapacity),
-		"------------------------------PEOPLE PARAMETERS------------------------------",
-		//"numPeople: "+string(numPeople),
-		"maxWaitTime: "+string(maxWaitTime),
-		"peopleSpeed: "+string(peopleSpeed),
-		"bikeCostBatteryCoef: "+string(bikeCostBatteryCoef),
-		"------------------------------MAP PARAMETERS------------------------------",
-		"cityScopeCity: "+string(cityScopeCity),
-		"Redisence: "+string(residence),
-		"Office: "+string(office),
-		"Usage: "+string(usage),
-		"Color Map: "+string(color_map)
+		"Tangible Logs: "+string(tangibleLogs)
 		];
 		do logForSetUp(parameters);
 		}
@@ -134,7 +150,7 @@ species peopleLogger_trip parent: Logger mirrors: people {
 	string filename <- "people_trips";
 	list<string> columns <- [
 		"Trip Served",
-		"Trip Type",
+		//"Trip Type",
 		"Wait Time (min)",
 		"Departure Time (min)",
 		"Duration (min)",
@@ -155,8 +171,8 @@ species peopleLogger_trip parent: Logger mirrors: people {
 		loggingAgent <- persontarget;
 	}
 	
-	action logTrip(bool served, string type, int waitTime, int departure, int tripduration, point home, point work, float distance) {
-		do log(1, [served, type, waitTime/60, departure/60, tripduration/60, int(home.x), int(home.y), int(work.x), int(work.y), distance, string(int(distance/WanderingSpeed))]);
+	action logTrip(bool served, int waitTime, int departure, int tripduration, point home, point work, float distance) {
+		do log(1, [served, waitTime/60, departure/60, tripduration/60, int(home.x), int(home.y), int(work.x), int(work.y), distance, string(int(distance/WanderingSpeed))]);
 	}
 	
 }
@@ -222,7 +238,7 @@ species peopleLogger parent: Logger mirrors: people {
 					ask persontarget.tripLogger {
 						do logTrip(
 							myself.served,
-							current_date.hour > 12 ? "Evening":"Morning",
+							//current_date.hour > 12 ? "Evening":"Morning",
 							int(myself.waitTime),
 							int(myself.departureTime),
 							int(time - myself.departureTime),
