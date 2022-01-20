@@ -31,8 +31,10 @@ global {
 	bool tangibleLogs <- false; //Output for tangible swarm-bots
 	
 	//----------------------Pheromone Parameters------------------------
-	bool pheromonesEnabled <- true ; // If false the PheromoneMark will always be zero and the bikes will just wander
-	bool wanderingEnabled <- true; // TODO: Maybe they shouldn't wander if pheromones are not enabled
+	bool pheromonesEnabled <- false ; // If false the PheromoneMark will always be zero and the bikes will just wander
+	bool wanderingEnabled <- false;
+	// Sets WanderingSpeed to zero if pheromonesEnabled and clusteringEnabled are false
+	
     float singlePheromoneMark <- 0.5; //1.0 in ours, 0.01 as a param in original code, set to 0.5 for SwarmBot
 	float evaporation <- 0.05; //0.05%, *0.15%,* and 0.3% in the paper but we changed evaporation to be proportional to time instead of just cycles
 	float exploitationRate <- 0.6; // Paper values: *0.6*, 0.75, and 0.9. Note: 0.8 means 0.2 of randomness  (exploration)

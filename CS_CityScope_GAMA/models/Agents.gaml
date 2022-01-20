@@ -4,9 +4,10 @@ import "./clustering.gaml"
 
 
 global {
+
 	float distanceInGraph (point origin, point destination) {
-		using topology(roadNetwork) {
-			return (origin distance_to destination);
+			using topology(roadNetwork) {
+			return origin distance_to destination;
 		}
 	}
 	list<bike> availableBikes(people person) {
@@ -404,6 +405,7 @@ species bike control: fsm skills: [moving] {
 	//----------------MOVEMENT-----------------
 	point target;
 	
+	
 	float batteryLife min: 0.0 max: maxBatteryLife; //Number of meters we can travel on current battery
 	float distancePerCycle;
 	
@@ -452,8 +454,12 @@ species bike control: fsm skills: [moving] {
 	reflex move when: canMove() {
 		
 		lastTagOI <- lastTag;
+		if wanderingEnabled {
+			travelledPath <- (state = "wander") ? wander() : moveTowardTarget();
+		} else {
+			travelledPath <- moveTowardTarget();
+		}
 		
-		travelledPath <- (state = "wander") ? wander() : moveTowardTarget();
 		//do goto or, in the case of wandering, follow the predicted path for the full step (see path wander)
 		
 		float distanceTraveled <- host.distanceInGraph(travelledPath.source,travelledPath.target);

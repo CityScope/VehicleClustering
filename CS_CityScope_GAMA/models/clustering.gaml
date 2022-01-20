@@ -89,7 +89,10 @@ global {
 			location <- point(one_of(roadNetwork.vertices));
 			
 			batteryLife <- rnd(minSafeBattery,maxBatteryLife); 	//Battery life random bewteen max and min
-			speed <- WanderingSpeed;
+	
+			if wanderingEnabled{speed <- WanderingSpeed;}
+			else{speed <- 0.0;}
+			
 			distancePerCycle <- step * speed; //Used to check pheromones in advance
 			
 			nextTag <- tagRFID( location );
