@@ -256,7 +256,8 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike { //Station Chargin
 		"Duration (min)",
 		"Start Battery %",
 		"End Battery %",
-		"Battery Gain %"
+		"Battery Gain %",
+		"Low Pheromone"
 	];
 	bool logPredicate { return bikeLogs; }
 	bike biketarget;
