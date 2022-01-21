@@ -17,10 +17,10 @@ global {
 		}
 		
 		if level <= loggingLevel {
-			save [cycle, date(current_date)] + data to: filenames[filename] type: "csv" rewrite: false header: false;
+			save [cycle, string(current_date, "HH:mm:ss")] + data to: filenames[filename] type: "csv" rewrite: false header: false;
 		}
 		if level <= printLevel {
-			write [cycle, date(current_date)] + data;
+			write [cycle, string(current_date,"HH:mm:ss")] + data;
 		}
 	}
 	
@@ -46,7 +46,7 @@ global {
 		
 		"------------------------------PEOPLE PARAMETERS------------------------------",
 		//"numPeople: "+string(numPeople),
-		"Maximum Wait Time [min]: "+string(maxWaitTime),
+		"Maximum Wait Time [min]: "+string(maxWaitTime/60),
 		"Walking Speed [km/h]: "+string(peopleSpeed*3.6),
 		"Riding speed [km/h]: "+string(RidingSpeed*3.6),
 		"Bike Selection Cost Coefficient: "+string(bikeCostBatteryCoef),
@@ -158,8 +158,7 @@ species peopleLogger_trip parent: Logger mirrors: people {
 		"Home [lon]",
 		"Work [lat]",
 		"Work [lon]",
-		"Distance (m)",
-		"Duration (estimated)"
+		"Distance (m)"
 	];
 	
 	bool logPredicate { return peopleLogs; }
@@ -172,7 +171,7 @@ species peopleLogger_trip parent: Logger mirrors: people {
 	}
 	
 	action logTrip(bool served, int waitTime, int departure, int tripduration, point home, point work, float distance) {
-		do log(1, [served, waitTime/60, departure/60, tripduration/60, int(home.x), int(home.y), int(work.x), int(work.y), distance, string(int(distance/WanderingSpeed))]);
+		do log(1, [served, waitTime/60, departure/60, tripduration/60, int(home.x), int(home.y), int(work.x), int(work.y), distance]);
 	}
 	
 }
@@ -292,8 +291,8 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike { //Station Chargin
 species bikeLogger_ReceiveChargeEvents parent: Logger mirrors: bike { // Cluster charging
 	string filename <- 'bike_receiveChargeEvents';
 	list<string> columns <- [
-		"Start Time (min)",
-		"End Time (min)",
+		"Start Time Elapsed (min)",
+		"End Time Elapsed (min)",
 		"Duration (min)",
 		"Start Battery %",
 		"End Battery %",
@@ -350,9 +349,12 @@ species bikeLogger_fullState parent: Logger mirrors: bike {
 			biketarget.target != nil,
 			biketarget.lastTag,
 			biketarget.nextTag,
-			int(100*biketarget.readPheromones),
-			int(100*biketarget.pheromoneToDiffuse),
-			int(100*biketarget.pheromoneMark)
+			//int(100*biketarget.readPheromones),
+			//int(100*biketarget.pheromoneToDiffuse),
+			//int(100*biketarget.pheromoneMark)
+			biketarget.readPheromones,
+			biketarget.pheromoneToDiffuse,
+			biketarget.pheromoneMark
 		]);
 	}
 }
@@ -400,11 +402,10 @@ species bikeLogger_event parent: Logger mirrors: bike {
 	list<string> columns <- [
 		"Event",
 		"Message",
-		"Start Time (min)",
-		"End Time (min)",
+		"Start Time Elapsed (min)",
+		"End Time Elapsed (min)",
 		"Duration (min)",
 		"Distance Traveled",
-		"Duration (estimated)",
 		"Start Battery %",
 		"End Battery %",
 		"Battery Gain %",
@@ -453,7 +454,6 @@ species bikeLogger_event parent: Logger mirrors: bike {
 			int(cycle*step/(60)),
 			int((cycle*step - cycleStartActivity*step)/(60)),
 			int(d),
-			int(d/WanderingSpeed), //TODO: Change this, as wandering speed does not apply for every state
 			int(batteryStartActivity/maxBatteryLife*100),
 			int(biketarget.batteryLife/maxBatteryLife*100),
 			int((biketarget.batteryLife-batteryStartActivity)/maxBatteryLife*100),
@@ -468,7 +468,6 @@ species bikeLogger_event parent: Logger mirrors: bike {
 					chargingStation closest_to biketarget,
 					int(myself.cycleStartActivity*step/(60)),
 					int(cycle*step/(60)),
-					//TODO: make charge time dependent on initial battery and charging rate
 					int((cycle*step - myself.cycleStartActivity*step)/(60)),
 					int(myself.batteryStartActivity/maxBatteryLife*100),
 					int(biketarget.batteryLife/maxBatteryLife*100),
