@@ -21,7 +21,7 @@ global {
 		}
 		if level <= printLevel {
 			write [cycle, string(current_date,"HH:mm:ss")] + data;
-		}
+		} 
 	}
 	
 	action logForSetUp (list<string> parameters) {
@@ -115,14 +115,14 @@ species Logger {
 		if logPredicate() {
 			ask host {
 				do log(myself.filename, level, [string(myself.loggingAgent.name)] + data, myself.columns);
-			} //TODO: fix the string so that it doesn't say bike(3) but only 3 
+			} 
 		}
 	}
 	
 }
 
 
-species pheromoneLogger parent: Logger mirrors: tagRFID {
+/*species pheromoneLogger parent: Logger mirrors: tagRFID {
 	string filename <- "pheromones";
 	list<string> columns <- [
 		"Tag [lat]",
@@ -144,7 +144,7 @@ species pheromoneLogger parent: Logger mirrors: tagRFID {
 		do log(1, [tagtarget_WGS84.x,tagtarget_WGS84.y,average/length(tagtarget.pheromoneMap.pairs)]); //TODO rev: removed 100*
 	}
 	
-}
+}*/
 
 
 species peopleLogger_trip parent: Logger mirrors: people {
@@ -153,7 +153,8 @@ species peopleLogger_trip parent: Logger mirrors: people {
 		"Trip Served",
 		//"Trip Type",
 		"Wait Time (min)",
-		"Departure Time (min)",
+		"Departure Time",
+		"Arrival Time",
 		"Duration (min)",
 		"Home [lat]",
 		"Home [lon]",
@@ -171,13 +172,19 @@ species peopleLogger_trip parent: Logger mirrors: people {
 		loggingAgent <- persontarget;
 	}
 	
-	action logTrip(bool served, int waitTime, int departure, int tripduration, point origin, point destination, float distance) {
+	action logTrip(bool served, float waitTime, date departure, date arrival, float tripduration, point origin, point destination, float distance) {
 		
 		point origin_WGS84 <- CRS_transform(origin, "EPSG:4326").location; //project the point to WGS84 CRS
 		point destination_WGS84 <- CRS_transform(destination, "EPSG:4326").location; //project the point to WGS84 CRS
+		string dep;
+		string des;
 		
-		do log(1, [served, waitTime/60, departure/60, tripduration/60, origin_WGS84.x, origin_WGS84.y, destination_WGS84.x, destination_WGS84.y, distance]);
-	}
+		if departure= nil {dep <- nil;}else{dep <- string(departure,"HH:mm:ss");}
+		
+		if arrival = nil {des <- nil;} else {des <- string(arrival,"HH:mm:ss");}
+		
+		do log(1, [served, waitTime,dep ,des, tripduration, origin_WGS84.x, origin_WGS84.y, destination_WGS84.x, destination_WGS84.y, distance]);
+	} 
 	
 }
 species peopleLogger parent: Logger mirrors: people {
@@ -185,8 +192,8 @@ species peopleLogger parent: Logger mirrors: people {
 	list<string> columns <- [
 		"Event",
 		"Message",
-		"Start Time (min)",
-		"End Time (min)",
+		"Start Time",
+		"End Time",
 		"Duration (min)",
 		"Distance (m)"
 	];
@@ -202,19 +209,23 @@ species peopleLogger parent: Logger mirrors: people {
 	
 	float tripdistance <- 0.0;
 	
-	float departureTime;
-    float timeBikeRequested;
+	date departureTime;
+	int departureCycle;
+    int cycleBikeRequested;
     float waitTime;
-    
-    
     int cycleStartActivity;
+    date timeStartActivity;
     point locationStartActivity;
     string currentState;
     bool served;
+    
+    string timeStartstr;
+    string currentstr;
 	
 	action logEnterState { do logEnterState(""); }
 	action logEnterState(string logmessage) {
 		cycleStartActivity <- cycle;
+		timeStartActivity <- current_date;
 		locationStartActivity <- persontarget.location;
 		currentState <- persontarget.state;
 		do log(1, ['START: ' + currentState] + [logmessage]);
@@ -223,13 +234,14 @@ species peopleLogger parent: Logger mirrors: people {
 		switch currentState {
 			match "requesting_bike" {
 				//trip starts
-				timeBikeRequested <- time;
+				cycleBikeRequested <- cycle;
 				served <- false;
 			}
 			match "riding" {
 				//trip is served
-				waitTime <- time - timeBikeRequested;
-				departureTime <- time;
+				waitTime <- (cycle*step- cycleBikeRequested*step)/60;
+				departureTime <- current_date;
+				departureCycle <- cycle;
 				served <- true;
 			}
 			match "wander" {
@@ -242,10 +254,10 @@ species peopleLogger parent: Logger mirrors: people {
 					ask persontarget.tripLogger {
 						do logTrip(
 							myself.served,
-							//current_date.hour > 12 ? "Evening":"Morning",
-							int(myself.waitTime),
-							int(myself.departureTime),
-							int(time - myself.departureTime),
+							myself.waitTime,
+							myself.departureTime,
+							current_date,
+							(cycle*step - myself.departureCycle*step)/60,
 							persontarget.start_point.location,
 							persontarget.target_point.location,
 							myself.tripdistance
@@ -260,7 +272,11 @@ species peopleLogger parent: Logger mirrors: people {
 		do logExitState("");
 	}
 	action logExitState(string logmessage) {
-		do log(1, ['END: ' + currentState, logmessage, cycleStartActivity*step/60, cycle*step/60, (cycle*step - cycleStartActivity*step)/60, locationStartActivity distance_to persontarget.location]);
+		
+		if timeStartActivity= nil {timeStartstr <- nil;}else{timeStartstr <- string(timeStartActivity,"HH:mm:ss");}
+		if current_date = nil {currentstr <- nil;} else {currentstr <- string(current_date,"HH:mm:ss");}
+		
+		do log(1, ['END: ' + currentState, logmessage, timeStartstr, currentstr, (cycle*step - cycleStartActivity*step)/60, locationStartActivity distance_to persontarget.location]);
 	}
 	action logEvent(string event) {
 		do log(1, [event]);
@@ -271,8 +287,8 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike { //Station Chargin
 	string filename <- 'bike_chargeevents';
 	list<string> columns <- [
 		"Station",
-		"Start Time Elapsed (min)",
-		"End Time Elapsed (min)",
+		"Start Time",
+		"End Time",
 		"Duration (min)",
 		"Start Battery %",
 		"End Battery %",
@@ -281,6 +297,8 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike { //Station Chargin
 	];
 	bool logPredicate { return bikeLogs; }
 	bike biketarget;
+	string startstr;
+	string endstr;
 	
 	init {
 		biketarget <- bike(target);
@@ -288,16 +306,23 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike { //Station Chargin
 		loggingAgent <- biketarget;
 	}
 	
-	action logCharge(chargingStation station, int startTime, int endTime, int chargeDuration, int startBattery, int endBattery, int batteryGain, bool lowPass) {
-		do log(1, [station, startTime, endTime, chargeDuration, startBattery, endBattery, batteryGain, lowPass]);
+	action logCharge(chargingStation station, date startTime, date endTime, float chargeDuration, float startBattery, float endBattery, float batteryGain, bool lowPass) {
+				
+		if startTime= nil {startstr <- nil;}else{startstr <- string(startTime,"HH:mm:ss");}
+		if endTime = nil {endstr <- nil;} else {endstr <- string(endTime,"HH:mm:ss");}
+		
+		
+		
+		do log(1, [station, startstr, endstr, chargeDuration, startBattery, endBattery, batteryGain, lowPass]);
 	}
 }
 
 species bikeLogger_ReceiveChargeEvents parent: Logger mirrors: bike { // Cluster charging
 	string filename <- 'bike_receiveChargeEvents';
 	list<string> columns <- [
-		"Start Time Elapsed (min)",
-		"End Time Elapsed (min)",
+		"Other Agent",
+		"Start Time",
+		"End Time",
 		"Duration (min)",
 		"Start Battery %",
 		"End Battery %",
@@ -306,6 +331,8 @@ species bikeLogger_ReceiveChargeEvents parent: Logger mirrors: bike { // Cluster
 	bool logPredicate { return bikeLogs; }
 	bike biketarget;
 	float batteryStartReceiving;
+	string startstr;
+	string endstr;
 	
 	init {
 		biketarget <- bike(target);
@@ -313,8 +340,14 @@ species bikeLogger_ReceiveChargeEvents parent: Logger mirrors: bike { // Cluster
 		loggingAgent <- biketarget;
 	}
 	
-	action logReceivedCharge(agent leader, int startTime, int endTime, int chargeDuration, int startBattery, int endBattery, int batteryGain) {
-		do log(1, [leader, startTime, endTime, chargeDuration, startBattery, endBattery, batteryGain]);
+	action logReceivedCharge(agent leader, date startTime, date endTime, float chargeDuration, float startBattery, float endBattery, float batteryGain) {
+		
+		
+		if startTime= nil {startstr <- nil;}else{startstr <- string(startTime,"HH:mm:ss");}
+		if endTime = nil {endstr <- nil;} else {endstr <- string(endTime,"HH:mm:ss");}
+		
+		
+		do log(1, [leader.name, startstr, endstr, chargeDuration, startBattery, endBattery, batteryGain]);
 	}
 }
 
@@ -325,7 +358,7 @@ species bikeLogger_fullState parent: Logger mirrors: bike {
 		"Rider",
 		"Follower",
 		"Leader",
-		"Battery Life %",
+		"Battery Level %",
 		//"Max Battery Life",
 		"Has Target",
 		"Last Tag",
@@ -349,7 +382,7 @@ species bikeLogger_fullState parent: Logger mirrors: bike {
 			biketarget.rider,
 			biketarget.follower,
 			biketarget.leader,
-			int(biketarget.batteryLife/maxBatteryLife*100),
+			(biketarget.batteryLife/maxBatteryLife*100),
 			//int(maxBatteryLife),
 			biketarget.target != nil,
 			biketarget.lastTag,
@@ -407,8 +440,8 @@ species bikeLogger_event parent: Logger mirrors: bike {
 	list<string> columns <- [
 		"Event",
 		"Message",
-		"Start Time Elapsed (min)",
-		"End Time Elapsed (min)",
+		"Start Time",
+		"End Time",
 		"Duration (min)",
 		"Distance Traveled",
 		"Start Battery %",
@@ -431,6 +464,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 	float batteryLifeBeginningCharge; //Battery when beginning charge [%]
 	
 	int cycleStartActivity;
+	date timeStartActivity;
 	point locationStartActivity;
 	float distanceStartActivity;
 	float batteryStartActivity;
@@ -441,6 +475,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 	action logEnterState { do logEnterState(""); }
 	action logEnterState(string logmessage) {
 		cycleStartActivity <- cycle;
+		timeStartActivity <- current_date;
 		batteryStartActivity <- biketarget.batteryLife;
 		locationStartActivity <- biketarget.location;
 		
@@ -452,16 +487,23 @@ species bikeLogger_event parent: Logger mirrors: bike {
 	action logExitState { do logExitState(""); }
 	action logExitState(string logmessage) {
 		float d <- biketarget.travelLogger.totalDistance - distanceStartActivity;
+		string timeStartstr;
+		string currentstr;
+		
+		if timeStartActivity= nil {timeStartstr <- nil;}else{timeStartstr <- string(timeStartActivity,"HH:mm:ss");}
+		if current_date = nil {currentstr <- nil;} else {currentstr <- string(current_date,"HH:mm:ss");}
+		
+		
 		do log(1, [
 			'END: ' + currentState,
 			logmessage,
-			int(cycleStartActivity*step/(60)),
-			int(cycle*step/(60)),
-			int((cycle*step - cycleStartActivity*step)/(60)),
-			int(d),
-			int(batteryStartActivity/maxBatteryLife*100),
-			int(biketarget.batteryLife/maxBatteryLife*100),
-			int((biketarget.batteryLife-batteryStartActivity)/maxBatteryLife*100),
+			timeStartstr,
+			currentstr,
+			(cycle*step - cycleStartActivity*step)/(60),
+			d,
+			batteryStartActivity/maxBatteryLife*100,
+			biketarget.batteryLife/maxBatteryLife*100,
+			(biketarget.batteryLife-batteryStartActivity)/maxBatteryLife*100,
 			biketarget.lowPass
 		]);
 		
@@ -471,12 +513,12 @@ species bikeLogger_event parent: Logger mirrors: bike {
 			ask biketarget.chargeLogger {
 				do logCharge(
 					chargingStation closest_to biketarget,
-					int(myself.cycleStartActivity*step/(60)),
-					int(cycle*step/(60)),
-					int((cycle*step - myself.cycleStartActivity*step)/(60)),
-					int(myself.batteryStartActivity/maxBatteryLife*100),
-					int(biketarget.batteryLife/maxBatteryLife*100),
-					int((biketarget.batteryLife-myself.batteryStartActivity)/maxBatteryLife*100),
+					myself.timeStartActivity,
+					current_date,
+					(cycle*step - myself.cycleStartActivity*step)/(60),
+					myself.batteryStartActivity/maxBatteryLife*100,
+					biketarget.batteryLife/maxBatteryLife*100,
+					(biketarget.batteryLife-myself.batteryStartActivity)/maxBatteryLife*100,
 					biketarget.lowPass
 				);
 			}
@@ -487,12 +529,12 @@ species bikeLogger_event parent: Logger mirrors: bike {
 			ask biketarget.receiveChargeLogger {
 				do logReceivedCharge(
 					biketarget.leader,
-					int(myself.cycleStartActivity*step/(60)),
-					int(cycle*step/(60)),
-					int((cycle*step - myself.cycleStartActivity*step)/(60)),
-					int(batteryStartReceiving/maxBatteryLife*100),
-					int(biketarget.leader.batteryLife/maxBatteryLife*100),
-					int((biketarget.leader.batteryLife-batteryStartReceiving)/maxBatteryLife*100)
+					myself.timeStartActivity,
+					current_date,
+					(cycle*step - myself.cycleStartActivity*step)/(60),
+					batteryStartReceiving/maxBatteryLife*100,
+					(biketarget.leader.batteryLife/maxBatteryLife*100),
+					((biketarget.leader.batteryLife-batteryStartReceiving)/maxBatteryLife*100)
 				);
 			}
 		}

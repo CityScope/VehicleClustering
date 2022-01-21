@@ -58,7 +58,7 @@ global {
 	
 	
 	// -------------------- Clustering------------------------------
-	bool clusteringEnabled <-false; // Toggle for enabling and disabling clustering
+	bool clusteringEnabled <-true; // Toggle for enabling and disabling clustering
 	
 	float clusterDistance <- 300#m; //Radius in which we look for bikes to cluster with
 	float clusterThreshold <- 0.05*maxBatteryLife; //(see bike.clusterCost) the charge a follower must be able to give the leader in order to cluster
