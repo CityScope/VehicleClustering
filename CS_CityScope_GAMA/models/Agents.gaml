@@ -11,19 +11,31 @@ global {
 		}
 	}
 	list<bike> availableBikes(people person) {
-		return bike where (each.availableForRide() and (each distance_to person) <= maxDistance);
+		return bike where (each.availableForRide());
 	}
 
 
 	bool requestBike(people person, point destination) { //returns true if there is any bike available
 
-		list<bike> candidates <- availableBikes(person);
-		if empty(candidates) {
+		list<bike> available <- availableBikes(person);
+		if empty(available) {
 			return false;
 		}
-		map<bike, float> costs <- map( candidates collect(each::bikeCost(person, each)));
+		/*list<bike> candidates <- available where (each::bikeClose(person, each));
+		if empty(candidates) {
+			return false;
+		}*/
+		
+		bike b <- available closest_to(person);
+		
+		if !bikeClose(person,b){
+			return false;
+		}
+		//list<bike> candidates <- available closest_to(person,5);
+		
+		/*map<bike, float> costs <- map( candidates collect(each::bikeCost(person, each)));
 		float minCost <- min(costs.values);
-		bike b <- costs.keys[ costs.values index_of minCost ];
+		bike b <- costs.keys[ costs.values index_of minCost ];*/
 		
 		//Ask for pickup
 		ask b {
@@ -36,9 +48,17 @@ global {
 		return true;
 	}
 	
-	float bikeCost(people person, bike b) {
-		//We like the bike less if its far, more if it has power + it's BatteryLife normalized to make this system agnostic to maxBatteryLife
+	/*float bikeCost(people person, bike b) {
 		return (person distance_to b) - bikeCostBatteryCoef*(b.batteryLife / maxBatteryLife);
+	}*/ //TODO: Temporarily deactivated
+	bool bikeClose(people person, bike b){
+		float d <- distanceInGraph(b.location,person.location);
+		if d*1.1<maxDistance { //TODO: review
+			return true;
+		}else{
+			return false ;
+		}
+			
 	}
 }
 
