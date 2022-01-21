@@ -140,7 +140,8 @@ species pheromoneLogger parent: Logger mirrors: tagRFID {
 	
 	reflex saveState {
 		float average <- tagtarget.pheromoneMap.pairs sum_of (each.value);
-		do log(1, [int(tagtarget.location.x),int(tagtarget.location.y),int(100*average/length(tagtarget.pheromoneMap.pairs))]);
+		point tagtarget_WGS84 <- CRS_transform(tagtarget.location,"EPSG:4326").location;
+		do log(1, [tagtarget_WGS84.x,tagtarget_WGS84.y,average/length(tagtarget.pheromoneMap.pairs)]); //TODO rev: removed 100*
 	}
 	
 }
@@ -170,8 +171,12 @@ species peopleLogger_trip parent: Logger mirrors: people {
 		loggingAgent <- persontarget;
 	}
 	
-	action logTrip(bool served, int waitTime, int departure, int tripduration, point home, point work, float distance) {
-		do log(1, [served, waitTime/60, departure/60, tripduration/60, int(home.x), int(home.y), int(work.x), int(work.y), distance]);
+	action logTrip(bool served, int waitTime, int departure, int tripduration, point origin, point destination, float distance) {
+		
+		point origin_WGS84 <- CRS_transform(origin, "EPSG:4326").location; //project the point to WGS84 CRS
+		point destination_WGS84 <- CRS_transform(destination, "EPSG:4326").location; //project the point to WGS84 CRS
+		
+		do log(1, [served, waitTime/60, departure/60, tripduration/60, origin_WGS84.x, origin_WGS84.y, destination_WGS84.x, destination_WGS84.y, distance]);
 	}
 	
 }
@@ -266,8 +271,8 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike { //Station Chargin
 	string filename <- 'bike_chargeevents';
 	list<string> columns <- [
 		"Station",
-		"Start Time (min)",
-		"End Time (min)",
+		"Start Time Elapsed (min)",
+		"End Time Elapsed (min)",
 		"Duration (min)",
 		"Start Battery %",
 		"End Battery %",
@@ -283,7 +288,7 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike { //Station Chargin
 		loggingAgent <- biketarget;
 	}
 	
-	action logCharge(chargingStation station, int startTime, int endTime, int chargeDuration, int startBattery, int endBattery, int batteryGain, string lowPass) {
+	action logCharge(chargingStation station, int startTime, int endTime, int chargeDuration, int startBattery, int endBattery, int batteryGain, bool lowPass) {
 		do log(1, [station, startTime, endTime, chargeDuration, startBattery, endBattery, batteryGain, lowPass]);
 	}
 }
@@ -409,7 +414,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 		"Start Battery %",
 		"End Battery %",
 		"Battery Gain %",
-		"Low Pheromone Levels"
+		"Low Pheromone"
 	];
 	
 	
@@ -431,7 +436,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 	float batteryStartActivity;
 	string currentState;
 	
-	string lowPass;
+	//string lowPass;
 	
 	action logEnterState { do logEnterState(""); }
 	action logEnterState(string logmessage) {
@@ -472,7 +477,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 					int(myself.batteryStartActivity/maxBatteryLife*100),
 					int(biketarget.batteryLife/maxBatteryLife*100),
 					int((biketarget.batteryLife-myself.batteryStartActivity)/maxBatteryLife*100),
-					myself.lowPass
+					biketarget.lowPass
 				);
 			}
 		}

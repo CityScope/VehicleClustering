@@ -31,8 +31,8 @@ global {
 	bool tangibleLogs <- false; //Output for tangible swarm-bots
 	
 	//----------------------Pheromone Parameters------------------------
-	bool pheromonesEnabled <- false ; // If false the PheromoneMark will always be zero and the bikes will just wander
-	bool wanderingEnabled <- false;
+	bool pheromonesEnabled <- true ; // If false the PheromoneMark will always be zero and the bikes will just wander
+	bool wanderingEnabled <- true;
 	// Sets WanderingSpeed to zero if pheromonesEnabled and clusteringEnabled are false
 	
     float singlePheromoneMark <- 0.5; //1.0 in ours, 0.01 as a param in original code, set to 0.5 for SwarmBot
