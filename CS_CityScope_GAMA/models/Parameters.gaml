@@ -6,10 +6,10 @@ global {
 	//----------------------Simulation Parameters------------------------
 	
 	//Simulation time step
-	float step <- 5 #sec; //For tangible we need about 0.1s
+	float step <- 1 #sec; //For tangible we need about 0.1s
 	
 	//Simulation starting date
-	date starting_date <- date("2021-10-12 00:06:00"); // TODO: set to 0:00
+	date starting_date <- date("2021-10-12 00:00:00"); // TODO: set to 0:00
 	
 	//Date for log files
 	date logDate <- #now;
@@ -68,7 +68,7 @@ global {
 	
 	
 	// -------------------- Clustering------------------------------
-	bool clusteringEnabled <-true; // Toggle for enabling and disabling clustering
+	bool clusteringEnabled <-false; // Toggle for enabling and disabling clustering
 	
 	float clusterDistance <- 300#m; //Radius in which we look for bikes to cluster with
 	float clusterThreshold <- 0.05*maxBatteryLife; //(see bike.clusterCost) the charge a follower must be able to give the leader in order to cluster
