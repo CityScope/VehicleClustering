@@ -6,10 +6,10 @@ global {
 	//----------------------Simulation Parameters------------------------
 	
 	//Simulation time step
-	float step <- 35 #sec; //For tangible we need about 0.1s
+	float step <- 5 #sec; //For tangible we need about 0.1s
 	
 	//Simulation starting date
-	date starting_date <- date("2021-10-12 00:00:00"); // <- #now; TODO: Change to now 
+	date starting_date <- date("2021-10-12 00:06:00"); // <- #now; TODO: Change to now 
 	
 	//Date for log files
 	date logDate <- #now;
@@ -73,8 +73,8 @@ global {
 	
 	//----------------------People Parameters------------------------
 	//int numPeople <- 250 				min: 0 max: 1000 parameter: "Num People:" category: "Initial";
-	float maxWaitTime <- 15#mn		min: 3#mn max: 60#mn parameter: "Max Wait Time:" category: "People";
-	float maxDistance <- maxWaitTime*60*PickUpSpeed #m; //The maxWaitTime is translated into a max radius taking into account the speed of the bikes
+	float maxWaitTime <- 5#mn		min: 3#mn max: 60#mn parameter: "Max Wait Time:" category: "People";
+	float maxDistance <- maxWaitTime*PickUpSpeed #m; //The maxWaitTime is translated into a max radius taking into account the speed of the bikes
     float peopleSpeed <- 5/3.6 #m/#s	min: 1/3.6 #m/#s max: 10/3.6 #m/#s parameter: "People Speed (m/s):" category: "People";
     float bikeCostBatteryCoef <- 200.0; //(see global.bikeCost)relative importance of batterylife when selecting bikes to ride
    

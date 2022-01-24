@@ -139,6 +139,8 @@ global {
 			distanceToChargingStation <- int( self distance_to nearestChargingStation );
 		}
 		
+		//write "Maximum Wait Time: " +maxWaitTime;
+		//write "Max trip distance"+maxDistance;
 		
 		write "FINISH INITIALIZATION";
     }

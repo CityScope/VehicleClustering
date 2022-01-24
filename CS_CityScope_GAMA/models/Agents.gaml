@@ -51,9 +51,11 @@ global {
 	/*float bikeCost(people person, bike b) {
 		return (person distance_to b) - bikeCostBatteryCoef*(b.batteryLife / maxBatteryLife);
 	}*/ //TODO: Temporarily deactivated
+	
 	bool bikeClose(people person, bike b){
 		float d <- distanceInGraph(b.location,person.location);
-		if d*1.1<maxDistance { //TODO: review
+		write "Time "+ current_date +"bike "+ b.name+ " distance to "+ person.name + ": "+d+ " < "+ maxDistance;
+		if d<maxDistance { 
 			return true;
 		}else{
 			return false ;
