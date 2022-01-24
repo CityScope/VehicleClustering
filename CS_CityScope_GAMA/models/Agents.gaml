@@ -208,21 +208,21 @@ species people control: fsm skills: [moving] {
     state wander initial: true {
     	//Watch netflix at home (and/or work)
     	enter {
-    		ask logger { do logEnterState; }
+    		if peopleEventLog or peopleTripLog {ask logger { do logEnterState; }} // trips are logged by the eventlogger
     		target <- nil;
     	}
     	transition to: requesting_bike when: timeToTravel() {
-    		write "cycle: " + cycle + ", current time "+ current_date.hour +':' + current_date.minute + 'agent' +string(self) + " time " + self.start_h + ":"+self.start_min;
+    		//write "cycle: " + cycle + ", current time "+ current_date.hour +':' + current_date.minute + 'agent' +string(self) + " time " + self.start_h + ":"+self.start_min;
     		final_destination <- target_point;
     	}
     	exit {
-			ask logger { do logExitState; }
+			if peopleEventLog {ask logger { do logExitState; }}
 		}
     }
 	state requesting_bike {
 		//Ask the system for a bike, teleport (use another transportation mode) if wait is too long
 		enter {
-			ask logger { do logEnterState; }
+			if peopleEventLog or peopleTripLog {ask logger { do logEnterState; }}
 			closestIntersection <- (tagRFID closest_to(self)).location;
 		}
 		
@@ -230,34 +230,34 @@ species people control: fsm skills: [moving] {
 			target <- closestIntersection;
 		}
 		transition to: wander {
-			ask logger { do logEvent( "Used another mode, wait too long" ); }
+			if peopleEventLog {ask logger { do logEvent( "Used another mode, wait too long" ); }}
 			location <- final_destination;
 		}
 		exit {
-			ask logger { do logExitState("Requested Bike " + myself.bikeToRide); }
+			if peopleEventLog {ask logger { do logExitState("Requested Bike " + myself.bikeToRide); }}
 		}
 	}
 	state awaiting_bike {
 		//Sit at the intersection and wait for your bike
 		enter {
-			ask logger { do logEnterState( "awaiting " + string(myself.bikeToRide) ); }
+			if peopleEventLog or peopleTripLog {ask logger { do logEnterState( "awaiting " + string(myself.bikeToRide) ); }}
 			target <- nil;
 		}
 		transition to: riding when: bikeToRide.state = "in_use" {}
 		exit {
-			ask logger { do logExitState; }
+			if peopleEventLog {ask logger { do logExitState; }}
 		}
 	}
 	state riding {
 		//Follow the bike around (i.e., ride it) until it drops you off 
 		enter {
-			ask logger { do logEnterState( "riding " + string(myself.bikeToRide) ); }
+			if peopleEventLog or peopleTripLog {ask logger { do logEnterState( "riding " + string(myself.bikeToRide) ); }}
 		}
 		transition to: walking when: bikeToRide.state != "in_use" {
 			target <- final_destination;
 		}
 		exit {
-			ask logger { do logExitState; }
+			if peopleEventLog {ask logger { do logExitState; }}
 			bikeToRide <- nil;
 		}
 
@@ -266,12 +266,12 @@ species people control: fsm skills: [moving] {
 	state walking {
 		//go to your destination or nearest intersection, then wait
 		enter {
-			ask logger { do logEnterState; }
+			if peopleEventLog or peopleTripLog {ask logger { do logEnterState; }}
 		}
 		transition to: wander when: location = final_destination {}
 		transition to: awaiting_bike when: location = target {}
 		exit {
-			ask logger { do logExitState; }
+			if peopleEventLog {ask logger { do logExitState; }}
 		}
 		
 		
@@ -536,11 +536,13 @@ species bike control: fsm skills: [moving] {
 			//the future is now old man (overwrite old saved data)
 			lastIntersections <- newIntersections;
 			
-			ask travelLogger { do logRoads(distanceTraveled, num); }
-			if (follower != nil) {
-				ask follower {
-					ask travelLogger {
-						do logRoads(distanceTraveled, num);
+			if roadsTraveledLog{
+				ask travelLogger { do logRoads(distanceTraveled, num); }
+				if (follower != nil) {
+					ask follower {
+						ask travelLogger {
+							do logRoads(distanceTraveled, num);
+						}
 					}
 				}
 			}
@@ -616,7 +618,7 @@ species bike control: fsm skills: [moving] {
 	
 	action depositPheromones(tagRFID tag, tagRFID previousTag) {
 		do updatePheromones(tag);  // Saturation, Evaporation
-		//TODO: Moved from the end of this function, I think we should update before marking, otherwise we might be evaporating the mark 
+		//NOTE: Moved from the end of this function, I think we should update before marking, otherwise we might be evaporating the mark 
 		
 		bool depositPheromone <- state = "picking_up" or state = "in_use";
 		
@@ -685,7 +687,7 @@ species bike control: fsm skills: [moving] {
 		//sit at a charging station until charged
 		enter {
 			target <- nil;
-			ask eventLogger { do logEnterState("Charging at " + (chargingStation closest_to myself)); }			
+			if stationChargeLogs{ask eventLogger { do logEnterState("Charging at " + (chargingStation closest_to myself)); }}		
 			
 			ask chargingStation closest_to(self) {
 				bikesToCharge <- bikesToCharge + myself;
@@ -693,7 +695,7 @@ species bike control: fsm skills: [moving] {
 		}
 		transition to: wander when: batteryLife >= maxBatteryLife {}
 		exit {
-			ask eventLogger { do logExitState("Charged at " + (chargingStation closest_to myself)); }
+			if stationChargeLogs{ask eventLogger { do logExitState("Charged at " + (chargingStation closest_to myself)); }}
 			ask chargingStation closest_to(self) {
 				bikesToCharge <- bikesToCharge - myself;
 			}
@@ -705,11 +707,11 @@ species bike control: fsm skills: [moving] {
 	state awaiting_follower {
 		//sit at an intersection until a follower joins the cluster
 		enter {
-			ask eventLogger { do logEnterState("Awaiting Follower " + myself.follower); }
+			if bikeEventLog {ask eventLogger { do logEnterState("Awaiting Follower " + myself.follower); }}
 		}
 		transition to: wander when: follower.state = "following" {}
 		exit {
-			ask eventLogger { do logExitState("Awaited Follower " + myself.follower); }
+			if bikeEventLog {ask eventLogger { do logExitState("Awaited Follower " + myself.follower); }}
 		}
 		
 		//Move reflex does not fire when in this state (see canMove)
@@ -717,11 +719,11 @@ species bike control: fsm skills: [moving] {
 	state seeking_leader {
 		//when two bikes form a cluster, one will await_follower, the other will seek_leader
 		enter {
-			ask eventLogger { do logEnterState("Seeking Leader " + myself.leader); }
+			if bikeEventLog {ask eventLogger { do logEnterState("Seeking Leader " + myself.leader); }}
 		}
 		transition to: following when: (self distance_to leader) <= followDistance {receiveChargeLogger.batteryStartReceiving <- leader.batteryLife;}
 		exit {
-			ask eventLogger { do logExitState("Sought Leader " + myself.leader); }
+			if bikeEventLog {ask eventLogger { do logExitState("Sought Leader " + myself.leader); }}
 			target <- nil;
 		}
 		
@@ -736,7 +738,7 @@ species bike control: fsm skills: [moving] {
 		transition to: wander when: shouldDecluster(leader) {}
 		transition to: picking_up when: rider != nil {}
 		exit {
-			ask eventLogger { do logExitState("Followed " + myself.leader); }
+			if bikeEventLog {ask eventLogger { do logExitState("Followed " + myself.leader); }}
 			ask leader {
 				follower <- nil;
 			}
@@ -754,7 +756,7 @@ species bike control: fsm skills: [moving] {
 		enter {
 			if pheromonesEnabled {self.pheromoneMark <- singlePheromoneMark;} //Here we start leaving a pheromone trail}
 
-			ask eventLogger { do logEnterState("Picking up " + myself.rider); }
+			if bikeEventLog {ask eventLogger { do logEnterState("Picking up " + myself.rider); }}
 			target <- rider.closestIntersection; //Go to the rider's closest intersection
 		}
 		
@@ -767,7 +769,7 @@ species bike control: fsm skills: [moving] {
 	state in_use {
 		//go to rider's destination, In Use will use it
 		enter {
-			ask eventLogger { do logEnterState("In Use " + myself.rider); }
+			if bikeEventLog {ask eventLogger { do logEnterState("In Use " + myself.rider); }}
 			target <- (tagRFID closest_to rider.final_destination).location;
 		}
 		
@@ -776,7 +778,7 @@ species bike control: fsm skills: [moving] {
 		}
 		exit {
 			self.pheromoneMark <- 0.0; // Here we stop leaving a pheromone trail
-			ask eventLogger { do logExitState("Used" + myself.rider); }
+			if bikeEventLog {ask eventLogger { do logExitState("Used" + myself.rider); }}
 		}
 	}
 }

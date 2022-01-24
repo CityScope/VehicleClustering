@@ -62,7 +62,6 @@ global {
 		"Max Pheromone Level: "+string(maxPheromoneLevel),
 		"Min Pheromone Level: "+string(minPheromoneLevel),
 		
-		
 		"------------------------------CLUSTERING PARAMETERS------------------------------",
 		"Clustering Enabled: "+string(clusteringEnabled),
 		"Max Radius form Cluster [m]: "+string(clusterDistance),
@@ -89,10 +88,15 @@ global {
 		"Color Map: "+string(color_map),
 		
 		"------------------------------LOGGING PARAMETERS------------------------------",
-		//"Logging Level: "+string(loggingLevel),
 		"Print Enabled: "+string(printsEnabled),
-
+		"Bike Event/Trip Log" +string(bikeEventLog),
+		"Bike Full State Log" + string(bikeStateLog),
+		"People Trip Log" + string(peopleTripLog),
+		"People Event Log" + string(peopleEventLog),
+		"Station Charge Log"+ string(stationChargeLogs),
+		"Clustering Charge Log"+string(clusteringLogs),
 		"Pheromone Logs: "+string(pheromoneLogs),
+		"Roads Traveled Log" + string(roadsTraveledLog),
 		"Tangible Logs: "+string(tangibleLogs)
 		];
 		do logForSetUp(parameters);
@@ -121,7 +125,7 @@ species Logger {
 }
 
 
-/*species pheromoneLogger parent: Logger mirrors: tagRFID {
+species pheromoneLogger parent: Logger mirrors: tagRFID {
 	string filename <- "pheromones";
 	list<string> columns <- [
 		"Tag [lat]",
@@ -137,13 +141,13 @@ species Logger {
 		loggingAgent <- tagtarget;
 	}
 	
-	reflex saveState {
+	reflex saveState when: pheromoneLogs {
 		float average <- tagtarget.pheromoneMap.pairs sum_of (each.value);
 		point tagtarget_WGS84 <- CRS_transform(tagtarget.location,"EPSG:4326").location;
-		do log(1, [tagtarget_WGS84.x,tagtarget_WGS84.y,average/length(tagtarget.pheromoneMap.pairs)]); //TODO rev: removed 100*
+		do log([tagtarget_WGS84.x,tagtarget_WGS84.y,average/length(tagtarget.pheromoneMap.pairs)]); //TODO rev: removed 100*
 	}
 	
-}*/
+}
 
 
 species peopleLogger_trip parent: Logger mirrors: people {
@@ -227,9 +231,9 @@ species peopleLogger parent: Logger mirrors: people {
 		timeStartActivity <- current_date;
 		locationStartActivity <- persontarget.location;
 		currentState <- persontarget.state;
-		do log(['START: ' + currentState] + [logmessage]);
+		if peopleEventLog {do log(['START: ' + currentState] + [logmessage]);}
 		
-		
+		if peopleTripLog{ //because trips are logged by the eventLogger
 		switch currentState {
 			match "requesting_bike" {
 				//trip starts
@@ -264,7 +268,7 @@ species peopleLogger parent: Logger mirrors: people {
 					}
 				}
 			}
-		}
+		}}
 		
 	}
 	action logExitState {
@@ -283,7 +287,7 @@ species peopleLogger parent: Logger mirrors: people {
 }
 
 species bikeLogger_chargeEvents parent: Logger mirrors: bike { //Station Charging
-	string filename <- 'bike_chargeevents';
+	string filename <- 'bike_station_charge';
 	list<string> columns <- [
 		"Station",
 		"Start Time",
@@ -317,7 +321,7 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike { //Station Chargin
 }
 
 species bikeLogger_ReceiveChargeEvents parent: Logger mirrors: bike { // Cluster charging
-	string filename <- 'bike_receiveChargeEvents';
+	string filename <- 'bike_clustering_charge';
 	list<string> columns <- [
 		"Other Agent",
 		"Start Time",
@@ -351,7 +355,7 @@ species bikeLogger_ReceiveChargeEvents parent: Logger mirrors: bike { // Cluster
 }
 
 species bikeLogger_fullState parent: Logger mirrors: bike {
-	string filename <- 'bike_fullState';
+	string filename <- 'bike_full_state';
 	list<string> columns <- [
 		"State",
 		"Rider",
@@ -375,7 +379,7 @@ species bikeLogger_fullState parent: Logger mirrors: bike {
 		loggingAgent <- biketarget;
 	}
 	
-	reflex logFullState {
+	reflex logFullState when: bikeStateLog {
 		do log([
 			biketarget.state,
 			biketarget.rider,
@@ -435,7 +439,7 @@ species bikeLogger_roadsTraveled parent: Logger mirrors: bike {
 
 species bikeLogger_event parent: Logger mirrors: bike {
 	//`target` is the bike we mirror
-	string filename <- 'bike_event';
+	string filename <- 'bike_trip_event';
 	list<string> columns <- [
 		"Event",
 		"Message",
@@ -563,7 +567,7 @@ species bikeLogger_tangible parent: Logger mirrors: bike{
 	}
 
 	
-	reflex saveState {
+	reflex saveState when: tangibleLogs {
 	
 		do log([biketarget.state,biketarget.location.x,biketarget.location.y,biketarget.heading,biketarget.batteryLife/maxBatteryLife*100]);
 
@@ -591,7 +595,7 @@ species peopleLogger_tangible parent: Logger mirrors: people {
 	}
 	
 	
-	reflex saveState {
+	reflex saveState when: tangibleLogs {
 	
 		do log([persontarget.state,persontarget.location.x,persontarget.location.y,persontarget.heading]);
 

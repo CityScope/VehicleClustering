@@ -23,17 +23,18 @@ global {
 	bool loggingEnabled <- true parameter: "Logging" category: "Logs";
 	bool printsEnabled <- false parameter: "Printing" category: "Logs";
 	
-	bool stationChargeLogs <- true parameter: "Station Charge Log" category: "Logs";
-	bool clusteringLogs <- true parameter: "Clustering Charge Log" category: "Logs";
-	bool roadsTraveledLog <- true parameter: "Roads Traveled Log" category: "Logs";
-	
-	bool bikeStateLog <-true parameter: "Bike State Log" category: "Logs";
-	bool bikeEventLog <-true parameter: "Bike Event Log" category: "Logs";
+	bool bikeEventLog <-true parameter: "Bike Event/Trip Log" category: "Logs";
+	bool bikeStateLog <-true parameter: "Bike Full State Log" category: "Logs";
 	
 	bool peopleTripLog <-true parameter: "People Trip Log" category: "Logs";
 	bool peopleEventLog <-true parameter: "People Event Log" category: "Logs";
 	
+	bool stationChargeLogs <- true parameter: "Station Charge Log" category: "Logs";
+	
 	bool pheromoneLogs <- true  parameter: "Pheromone Log" category: "Logs";
+	bool clusteringLogs <- true parameter: "Clustering Charge Log" category: "Logs";
+	
+	bool roadsTraveledLog <- false parameter: "Roads Traveled Log" category: "Logs";
 	bool tangibleLogs <- false parameter: "Tangible Log" category: "Logs"; //Output for tangible swarm-bots
 	
 	// bikeLogs <- true		parameter: "Bike Logs" category: "Logs";
