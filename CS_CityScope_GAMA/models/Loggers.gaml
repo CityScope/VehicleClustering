@@ -90,14 +90,14 @@ global {
 		
 		"------------------------------LOGGING PARAMETERS------------------------------",
 		"Print Enabled: "+string(printsEnabled),
-		"Bike Event/Trip Log" +string(bikeEventLog),
-		"Bike Full State Log" + string(bikeStateLog),
-		"People Trip Log" + string(peopleTripLog),
-		"People Event Log" + string(peopleEventLog),
-		"Station Charge Log"+ string(stationChargeLogs),
-		"Clustering Charge Log"+string(clusteringLogs),
+		"Bike Event/Trip Log: " +string(bikeEventLog),
+		"Bike Full State Log: " + string(bikeStateLog),
+		"People Trip Log: " + string(peopleTripLog),
+		"People Event Log: " + string(peopleEventLog),
+		"Station Charge Log: "+ string(stationChargeLogs),
+		"Clustering Charge Log: "+string(clusteringLogs),
 		"Pheromone Logs: "+string(pheromoneLogs),
-		"Roads Traveled Log" + string(roadsTraveledLog),
+		"Roads Traveled Log: " + string(roadsTraveledLog),
 		"Tangible Logs: "+string(tangibleLogs)
 		];
 		do logForSetUp(parameters);

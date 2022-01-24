@@ -54,7 +54,7 @@ global {
 	
 	bool bikeClose(people person, bike b){
 		float d <- distanceInGraph(b.location,person.location);
-		write "Time "+ current_date +"bike "+ b.name+ " distance to "+ person.name + ": "+d+ " < "+ maxDistance;
+		//write "Time "+ current_date +"bike "+ b.name+ " distance to "+ person.name + ": "+d+ " < "+ maxDistance;
 		if d<maxDistance { 
 			return true;
 		}else{

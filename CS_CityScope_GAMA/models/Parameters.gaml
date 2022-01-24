@@ -31,7 +31,7 @@ global {
 	
 	bool stationChargeLogs <- true parameter: "Station Charge Log" category: "Logs";
 	
-	bool pheromoneLogs <- true  parameter: "Pheromone Log" category: "Logs";
+	bool pheromoneLogs <- false  parameter: "Pheromone Log" category: "Logs";
 	bool clusteringLogs <- true parameter: "Clustering Charge Log" category: "Logs";
 	
 	bool roadsTraveledLog <- false parameter: "Roads Traveled Log" category: "Logs";
