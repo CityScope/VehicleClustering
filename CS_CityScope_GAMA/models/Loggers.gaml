@@ -76,6 +76,7 @@ global {
 		
 		
 		"------------------------------TASK SWITCH PARAMETERS------------------------------",
+		"Task Switch Enabled: "+ string(taskSwitchEnabled),
 		"Low-Pheromone Threshold to Switch to Charging: "+string(chargingPheromoneThreshold),
 		"Probabiliy of Switching if Low Pheromones: "+string(pLowPheromoneCharge),
 		"Reading Update Rate: "+string(readUpdateRate),

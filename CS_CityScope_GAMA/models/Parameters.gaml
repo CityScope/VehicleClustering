@@ -24,10 +24,10 @@ global {
 	bool printsEnabled <- false parameter: "Printing" category: "Logs";
 	
 	bool bikeEventLog <-true parameter: "Bike Event/Trip Log" category: "Logs";
-	bool bikeStateLog <-true parameter: "Bike Full State Log" category: "Logs";
+	bool bikeStateLog <-false parameter: "Bike Full State Log" category: "Logs";
 	
 	bool peopleTripLog <-true parameter: "People Trip Log" category: "Logs";
-	bool peopleEventLog <-true parameter: "People Event Log" category: "Logs";
+	bool peopleEventLog <-false parameter: "People Event Log" category: "Logs";
 	
 	bool stationChargeLogs <- true parameter: "Station Charge Log" category: "Logs";
 	
@@ -59,6 +59,7 @@ global {
 	float minPheromoneLevel <- 0.0;
 	
 	//------------------- Task Switch Pheromone Levels----------------------
+	bool taskSwitchEnabled <- true;
 	float chargingPheromoneThreshold <- 0.02*singlePheromoneMark; //Enables charge-seeking when low pheromone
 	float pLowPheromoneCharge <- 0.01; // probability of going for a charge when reading low pheromone levels
 	float readUpdateRate <- 0.5 ; //TODO: tune this so our average updates at desired speed. may need a factor of `step`

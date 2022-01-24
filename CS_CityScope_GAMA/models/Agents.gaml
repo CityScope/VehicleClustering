@@ -650,7 +650,7 @@ species bike control: fsm skills: [moving] {
 				do waitFor(myself);
 			}
 		}
-		transition to: low_battery when: setLowBattery() or (pheromonesEnabled and readPheromones < chargingPheromoneThreshold and flip(pLowPheromoneCharge) and batteryLife < 0.75*maxBatteryLife) {
+		transition to: low_battery when: setLowBattery() or (pheromonesEnabled and taskSwitchEnabled and readPheromones < chargingPheromoneThreshold and flip(pLowPheromoneCharge) and batteryLife < 0.75*maxBatteryLife) {
 			//The low-pass filter also considers that the battery shouldn't be more than a 75% full and with a certain (low) probability so that
 			// in low pheromone stages there's only a few bikes going for a charge at each time
 			
