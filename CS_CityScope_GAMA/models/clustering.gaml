@@ -161,6 +161,8 @@ experiment batch_experiments_headless type: batch repeat: 3 until: (cycle >= num
 	parameter var: maxWaitTime among: [5#mn,10#mn,15#mn];
 }
 
+//If we do 3^5=243 experiments each 3 times = 749 sims * 12.3 min that's 6 days with step 1s and 3 days with step 2s
+
 experiment clustering type: gui {
 	parameter var: numBikes init: numBikes;
 	//parameter var: numPeople init: 250;
