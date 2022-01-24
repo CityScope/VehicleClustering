@@ -9,7 +9,7 @@ global {
 	float step <- 5 #sec; //For tangible we need about 0.1s
 	
 	//Simulation starting date
-	date starting_date <- date("2021-10-12 00:06:00"); // <- #now; TODO: Change to now 
+	date starting_date <- date("2021-10-12 00:06:00"); // TODO: set to 0:00
 	
 	//Date for log files
 	date logDate <- #now;
@@ -19,25 +19,39 @@ global {
 	int numberOfHours <- 24; //WARNING: If one day, we can also specify the number of hours, otherwise set 24h
 	
 	//----------------------Logging Parameters------------------------
-	int loggingLevel <- 10		min: 0 max: 10 parameter: "Logging Level" category: "Logs"; // Question posted as issue on GitHUb
-	int printLevel <- 0		min: 0 max: 10 parameter: "Printing Level" category: "Logs";
-	bool bikeLogs <- true		parameter: "Bike Logs" category: "Logs";
-	string bikeFile <- "bikes"	parameter: "Bike Logfile" category: "Logs";
-	bool peopleLogs <- true		parameter: "People Logs" category: "Logs";
-	string peopleFile <- "people"	parameter: "Person Logfile" category: "Logs";
-	bool stationLogs <- true		parameter: "Charging Station Logs" category: "Logs";
-	string stationFile <- "stations"	parameter: "Charging Station Logfile" category: "Logs";
-	bool pheromoneLogs <- true;
-	bool tangibleLogs <- false; //Output for tangible swarm-bots
+	//int loggingLevel <- 10		min: 0 max: 10 parameter: "Logging Level" category: "Logs"; // Question posted as issue on GitHUb
+	bool loggingEnabled <- true parameter: "Logging" category: "Logs";
+	bool printsEnabled <- false parameter: "Printing" category: "Logs";
+	
+	bool stationChargeLogs <- true parameter: "Station Charge Log" category: "Logs";
+	bool clusteringLogs <- true parameter: "Clustering Charge Log" category: "Logs";
+	bool roadsTraveledLog <- true parameter: "Roads Traveled Log" category: "Logs";
+	
+	bool bikeStateLog <-true parameter: "Bike State Log" category: "Logs";
+	bool bikeEventLog <-true parameter: "Bike Event Log" category: "Logs";
+	
+	bool peopleTripLog <-true parameter: "People Trip Log" category: "Logs";
+	bool peopleEventLog <-true parameter: "People Event Log" category: "Logs";
+	
+	bool pheromoneLogs <- true  parameter: "Pheromone Log" category: "Logs";
+	bool tangibleLogs <- false parameter: "Tangible Log" category: "Logs"; //Output for tangible swarm-bots
+	
+	// bikeLogs <- true		parameter: "Bike Logs" category: "Logs";
+	//string bikeFile <- "bikes"	parameter: "Bike Logfile" category: "Logs";
+	//bool peopleLogs <- true		parameter: "People Logs" category: "Logs";
+	//string peopleFile <- "people"	parameter: "Person Logfile" category: "Logs";
+	//bool stationLogs <- true		parameter: "Charging Station Logs" category: "Logs";
+	//string stationFile <- "stations"	parameter: "Charging Station Logfile" category: "Logs";
+
 	
 	//----------------------Pheromone Parameters------------------------
 	bool pheromonesEnabled <- true ; // If false the PheromoneMark will always be zero and the bikes will just wander
-	bool wanderingEnabled <- true;
-	// Sets WanderingSpeed to zero if pheromonesEnabled and clusteringEnabled are false
+	bool wanderingEnabled <- true; // Sets WanderingSpeed to zero
 	
     float singlePheromoneMark <- 0.5; //1.0 in ours, 0.01 as a param in original code, set to 0.5 for SwarmBot
 	float evaporation <- 0.05; //0.05%, *0.15%,* and 0.3% in the paper but we changed evaporation to be proportional to time instead of just cycles
 	float exploitationRate <- 0.6; // Paper values: *0.6*, 0.75, and 0.9. Note: 0.8 means 0.2 of randomness  (exploration)
+	
 	//float diffusion <- (1-exploitationRate) * 0.5;  // the more they explore randomly, they are less 'trustable' so they have to diffuse less for system convergence
 	float diffusion <- exploitationRate*0.5 ; // the more exploit vs expore the more trustable
 	float maxPheromoneLevel <- 50*singlePheromoneMark; //satutration

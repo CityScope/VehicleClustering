@@ -10,16 +10,18 @@ global {
 		filenames[filename] <- './../data/' + string(logDate, 'yyyy-MM-dd hh.mm.ss','en') + '/' + filename + '.csv';
 	}
 	
-	action log(string filename, int level, list data, list<string> columns) {
+	//action log(string filename, int level, list data, list<string> columns) {
+	action log(string filename, list data, list<string> columns) {
 		if not(filename in filenames.keys) {
 			do registerLogFile(filename);
 			save ["Cycle", "Time","Agent"] + columns to: filenames[filename] type: "csv" rewrite: false header: false;
 		}
 		
-		if level <= loggingLevel {
+		//if level <= loggingLevel {
+		if loggingEnabled {
 			save [cycle, string(current_date, "HH:mm:ss")] + data to: filenames[filename] type: "csv" rewrite: false header: false;
 		}
-		if level <= printLevel {
+		if  printsEnabled {
 			write [cycle, string(current_date,"HH:mm:ss")] + data;
 		} 
 	}
@@ -87,13 +89,9 @@ global {
 		"Color Map: "+string(color_map),
 		
 		"------------------------------LOGGING PARAMETERS------------------------------",
-		"Logging Level: "+string(loggingLevel),
-		"Print Level: "+string(printLevel),
-		"Bike Logs: "+string(bikeLogs),
-		"People Logs: "+string(peopleLogs),
-		"People File: "+string(peopleFile),
-		"Station Logs: "+string(stationLogs),
-		"Station File: "+string(stationFile),
+		//"Logging Level: "+string(loggingLevel),
+		"Print Enabled: "+string(printsEnabled),
+
 		"Pheromone Logs: "+string(pheromoneLogs),
 		"Tangible Logs: "+string(tangibleLogs)
 		];
@@ -111,10 +109,11 @@ species Logger {
 	
 	agent loggingAgent;
 	
-	action log(int level, list data) {
+	//action log(int level, list data) {
+	action log(list data) {
 		if logPredicate() {
 			ask host {
-				do log(myself.filename, level, [string(myself.loggingAgent.name)] + data, myself.columns);
+				do log(myself.filename, [string(myself.loggingAgent.name)] + data, myself.columns);
 			} 
 		}
 	}
@@ -163,7 +162,7 @@ species peopleLogger_trip parent: Logger mirrors: people {
 		"Distance (m)"
 	];
 	
-	bool logPredicate { return peopleLogs; }
+	bool logPredicate { return peopleTripLog; }
 	people persontarget;
 	
 	init {
@@ -183,7 +182,7 @@ species peopleLogger_trip parent: Logger mirrors: people {
 		
 		if arrival = nil {des <- nil;} else {des <- string(arrival,"HH:mm:ss");}
 		
-		do log(1, [served, waitTime,dep ,des, tripduration, origin_WGS84.x, origin_WGS84.y, destination_WGS84.x, destination_WGS84.y, distance]);
+		do log([served, waitTime,dep ,des, tripduration, origin_WGS84.x, origin_WGS84.y, destination_WGS84.x, destination_WGS84.y, distance]);
 	} 
 	
 }
@@ -198,7 +197,7 @@ species peopleLogger parent: Logger mirrors: people {
 		"Distance (m)"
 	];
 	
-	bool logPredicate { return peopleLogs; }
+	bool logPredicate { return peopleEventLog; }
 	people persontarget;
 	
 	init {
@@ -228,7 +227,7 @@ species peopleLogger parent: Logger mirrors: people {
 		timeStartActivity <- current_date;
 		locationStartActivity <- persontarget.location;
 		currentState <- persontarget.state;
-		do log(1, ['START: ' + currentState] + [logmessage]);
+		do log(['START: ' + currentState] + [logmessage]);
 		
 		
 		switch currentState {
@@ -276,10 +275,10 @@ species peopleLogger parent: Logger mirrors: people {
 		if timeStartActivity= nil {timeStartstr <- nil;}else{timeStartstr <- string(timeStartActivity,"HH:mm:ss");}
 		if current_date = nil {currentstr <- nil;} else {currentstr <- string(current_date,"HH:mm:ss");}
 		
-		do log(1, ['END: ' + currentState, logmessage, timeStartstr, currentstr, (cycle*step - cycleStartActivity*step)/60, locationStartActivity distance_to persontarget.location]);
+		do log(['END: ' + currentState, logmessage, timeStartstr, currentstr, (cycle*step - cycleStartActivity*step)/60, locationStartActivity distance_to persontarget.location]);
 	}
 	action logEvent(string event) {
-		do log(1, [event]);
+		do log([event]);
 	}
 }
 
@@ -295,7 +294,7 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike { //Station Chargin
 		"Battery Gain %",
 		"Low Pheromone"
 	];
-	bool logPredicate { return bikeLogs; }
+	bool logPredicate { return stationChargeLogs; }
 	bike biketarget;
 	string startstr;
 	string endstr;
@@ -313,7 +312,7 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike { //Station Chargin
 		
 		
 		
-		do log(1, [station, startstr, endstr, chargeDuration, startBattery, endBattery, batteryGain, lowPass]);
+		do log([station, startstr, endstr, chargeDuration, startBattery, endBattery, batteryGain, lowPass]);
 	}
 }
 
@@ -328,7 +327,7 @@ species bikeLogger_ReceiveChargeEvents parent: Logger mirrors: bike { // Cluster
 		"End Battery %",
 		"Battery Gain %"
 	];
-	bool logPredicate { return bikeLogs; }
+	bool logPredicate { return clusteringLogs; }
 	bike biketarget;
 	float batteryStartReceiving;
 	string startstr;
@@ -347,7 +346,7 @@ species bikeLogger_ReceiveChargeEvents parent: Logger mirrors: bike { // Cluster
 		if endTime = nil {endstr <- nil;} else {endstr <- string(endTime,"HH:mm:ss");}
 		
 		
-		do log(1, [leader.name, startstr, endstr, chargeDuration, startBattery, endBattery, batteryGain]);
+		do log([leader.name, startstr, endstr, chargeDuration, startBattery, endBattery, batteryGain]);
 	}
 }
 
@@ -367,7 +366,7 @@ species bikeLogger_fullState parent: Logger mirrors: bike {
 		"Pheromone To Diffuse",
 		"Pheromone Mark"
 	];
-	bool logPredicate { return bikeLogs; }
+	bool logPredicate { return bikeStateLog; }
 	bike biketarget;
 	
 	
@@ -377,7 +376,7 @@ species bikeLogger_fullState parent: Logger mirrors: bike {
 	}
 	
 	reflex logFullState {
-		do log(2, [
+		do log([
 			biketarget.state,
 			biketarget.rider,
 			biketarget.follower,
@@ -404,7 +403,7 @@ species bikeLogger_roadsTraveled parent: Logger mirrors: bike {
 		"Distance Traveled",
 		"Num Intersections"
 	];
-	bool logPredicate { return bikeLogs; }
+	bool logPredicate { return roadsTraveledLog; }
 	bike biketarget;
 	
 	
@@ -423,7 +422,7 @@ species bikeLogger_roadsTraveled parent: Logger mirrors: bike {
 		totalDistance <- totalDistance + distanceTraveled;
 		totalIntersections <- totalIntersections + numIntersections;
 		
-		do log(2, [distanceTraveled, numIntersections]);
+		do log( [distanceTraveled, numIntersections]);
 	}
 	
 	float avgRoadLength {
@@ -451,7 +450,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 	];
 	
 	
-	bool logPredicate { return bikeLogs; }
+	bool logPredicate { return bikeEventLog; }
 	bike biketarget;
 	init {
 		biketarget <- bike(target);
@@ -482,7 +481,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 		distanceStartActivity <- biketarget.travelLogger.totalDistance;
 		
 		currentState <- biketarget.state;
-		do log(1, ['START: ' + biketarget.state] + [logmessage]);
+		do log( ['START: ' + biketarget.state] + [logmessage]);
 	}
 	action logExitState { do logExitState(""); }
 	action logExitState(string logmessage) {
@@ -494,7 +493,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 		if current_date = nil {currentstr <- nil;} else {currentstr <- string(current_date,"HH:mm:ss");}
 		
 		
-		do log(1, [
+		do log( [
 			'END: ' + currentState,
 			logmessage,
 			timeStartstr,
@@ -566,7 +565,7 @@ species bikeLogger_tangible parent: Logger mirrors: bike{
 	
 	reflex saveState {
 	
-		do log(1,[biketarget.state,biketarget.location.x,biketarget.location.y,biketarget.heading,biketarget.batteryLife/maxBatteryLife*100]);
+		do log([biketarget.state,biketarget.location.x,biketarget.location.y,biketarget.heading,biketarget.batteryLife/maxBatteryLife*100]);
 
 	}
 
@@ -594,7 +593,7 @@ species peopleLogger_tangible parent: Logger mirrors: people {
 	
 	reflex saveState {
 	
-		do log(1,[persontarget.state,persontarget.location.x,persontarget.location.y,persontarget.heading]);
+		do log([persontarget.state,persontarget.location.x,persontarget.location.y,persontarget.heading]);
 
 	}
 	
