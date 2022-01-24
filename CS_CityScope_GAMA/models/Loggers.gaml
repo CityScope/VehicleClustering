@@ -430,12 +430,12 @@ species bikeLogger_roadsTraveled parent: Logger mirrors: bike {
 		do log( [distanceTraveled, numIntersections]);
 	}
 	
-	float avgRoadLength {
+	/*float avgRoadLength {
 		float overallD <- bikeLogger_roadsTraveled sum_of (each.totalDistance);
 		int overallI <- bikeLogger_roadsTraveled sum_of (each.totalIntersections);
 		
 		return overallD / overallI;
-	}
+	}*/
 }
 
 species bikeLogger_event parent: Logger mirrors: bike {

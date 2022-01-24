@@ -36,13 +36,7 @@ global {
 	
 	bool roadsTraveledLog <- false parameter: "Roads Traveled Log" category: "Logs";
 	bool tangibleLogs <- false parameter: "Tangible Log" category: "Logs"; //Output for tangible swarm-bots
-	
-	// bikeLogs <- true		parameter: "Bike Logs" category: "Logs";
-	//string bikeFile <- "bikes"	parameter: "Bike Logfile" category: "Logs";
-	//bool peopleLogs <- true		parameter: "People Logs" category: "Logs";
-	//string peopleFile <- "people"	parameter: "Person Logfile" category: "Logs";
-	//bool stationLogs <- true		parameter: "Charging Station Logs" category: "Logs";
-	//string stationFile <- "stations"	parameter: "Charging Station Logfile" category: "Logs";
+
 
 	
 	//----------------------Pheromone Parameters------------------------

@@ -536,16 +536,16 @@ species bike control: fsm skills: [moving] {
 			//the future is now old man (overwrite old saved data)
 			lastIntersections <- newIntersections;
 			
-			if roadsTraveledLog{
-				ask travelLogger { do logRoads(distanceTraveled, num); }
-				if (follower != nil) {
-					ask follower {
-						ask travelLogger {
-							do logRoads(distanceTraveled, num);
-						}
+
+			ask travelLogger { do logRoads(distanceTraveled, num); }
+			if (follower != nil) {
+				ask follower {
+					ask travelLogger {
+						do logRoads(distanceTraveled, num);
 					}
 				}
 			}
+
 		}
 		
 	}
