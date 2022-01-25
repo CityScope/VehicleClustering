@@ -33,6 +33,11 @@ global {
 	
 	action logSetUp { 
 		list<string> parameters <- [
+		"Nbikes: "+string(numBikes),
+		"MaxWait: "+string(maxWaitTime/60),
+		"WanderSpeed: "+string(WanderingSpeed*3.6),
+		"Evap: "+string(evaporation),
+		"Expol: "+string(exploitationRate),
 		"------------------------------SIMULATION PARAMETERS------------------------------",
 		"Step: "+string(step),
 		"Starting Date: "+string(starting_date),
@@ -58,7 +63,7 @@ global {
 		"Wandering Enabled: "+string(wanderingEnabled),
 		"Single Pheromone Mark: "+string(singlePheromoneMark),
 		"Exploitation Rate: "+string(exploitationRate),
-		"Diffusion Rate: "+string(diffusion),
+		"Evaporation Rate: "+string(evaporation),
 		"Max Pheromone Level: "+string(maxPheromoneLevel),
 		"Min Pheromone Level: "+string(minPheromoneLevel),
 		

@@ -6,7 +6,7 @@ global {
 	//----------------------Simulation Parameters------------------------
 	
 	//Simulation time step
-	float step <- 1 #sec; //For tangible we need about 0.1s
+	float step <- 35 #sec; //For tangible we need about 0.1s
 	
 	//Simulation starting date
 	date starting_date <- date("2021-10-12 00:00:00"); // TODO: set to 0:00
