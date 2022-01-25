@@ -8,18 +8,19 @@ global {
 	
 	action registerLogFile(string filename) {
 		filenames[filename] <- './../data/' + string(logDate, 'yyyy-MM-dd hh.mm.ss','en') + '/' + filename + '.csv';
+		
 	}
 	
 	//action log(string filename, int level, list data, list<string> columns) {
 	action log(string filename, list data, list<string> columns) {
 		if not(filename in filenames.keys) {
 			do registerLogFile(filename);
-			save ["Cycle", "Time","Agent"] + columns to: filenames[filename] type: "csv" rewrite: false header: false;
+			save ["Cycle", "Time","Num Bikes","Wandering Speed","Max Wait","Evaporation","Exploitation","Low pheromone","Switch probability","Read update","Agent"] + columns to: filenames[filename] type: "csv" rewrite: false header: false;
 		}
 		
 		//if level <= loggingLevel {
 		if loggingEnabled {
-			save [cycle, string(current_date, "HH:mm:ss")] + data to: filenames[filename] type: "csv" rewrite: false header: false;
+			save [cycle, string(current_date, "HH:mm:ss"),numBikes, WanderingSpeed*3.6, maxWaitTime/60, evaporation, exploitationRate, chargingPheromoneThreshold, pLowPheromoneCharge, readUpdateRate] + data to: filenames[filename] type: "csv" rewrite: false header: false;
 		}
 		if  printsEnabled {
 			write [cycle, string(current_date,"HH:mm:ss")] + data;
@@ -132,7 +133,7 @@ species Logger {
 
 
 species pheromoneLogger parent: Logger mirrors: tagRFID {
-	string filename <- "pheromones";
+	string filename <- "pheromones"+string(nowDate.hour)+"_"+string(nowDate.minute)+"_"+string(nowDate.second);
 	list<string> columns <- [
 		"Tag [lat]",
 		"Tag [lon]",
@@ -157,7 +158,7 @@ species pheromoneLogger parent: Logger mirrors: tagRFID {
 
 
 species peopleLogger_trip parent: Logger mirrors: people {
-	string filename <- "people_trips";
+	string filename <- string("people_trips_"+string(nowDate.hour)+"_"+string(nowDate.minute)+"_"+string(nowDate.second));
 	list<string> columns <- [
 		"Trip Served",
 		//"Trip Type",
@@ -171,6 +172,8 @@ species peopleLogger_trip parent: Logger mirrors: people {
 		"Work [lon]",
 		"Distance (m)"
 	];
+
+
 	
 	bool logPredicate { return peopleTripLog; }
 	people persontarget;
@@ -181,8 +184,8 @@ species peopleLogger_trip parent: Logger mirrors: people {
 		loggingAgent <- persontarget;
 	}
 	
-	action logTrip(bool served, float waitTime, date departure, date arrival, float tripduration, point origin, point destination, float distance) {
-		
+	action logTrip( bool served, float waitTime, date departure, date arrival, float tripduration, point origin, point destination, float distance) {
+		//numBikes, WanderingSpeed, maxWaitTime, evaporation, exploitationRate, chargingPheromoneThreshold, pLowPheromoneCharge, readUpdateRate
 		point origin_WGS84 <- CRS_transform(origin, "EPSG:4326").location; //project the point to WGS84 CRS
 		point destination_WGS84 <- CRS_transform(destination, "EPSG:4326").location; //project the point to WGS84 CRS
 		string dep;
@@ -197,7 +200,7 @@ species peopleLogger_trip parent: Logger mirrors: people {
 	
 }
 species peopleLogger parent: Logger mirrors: people {
-	string filename <- "people_event";
+	string filename <- "people_event"+string(nowDate.hour)+"_"+string(nowDate.minute)+"_"+string(nowDate.second);
 	list<string> columns <- [
 		"Event",
 		"Message",
@@ -293,7 +296,7 @@ species peopleLogger parent: Logger mirrors: people {
 }
 
 species bikeLogger_chargeEvents parent: Logger mirrors: bike { //Station Charging
-	string filename <- 'bike_station_charge';
+	string filename <- 'bike_station_charge'+string(nowDate.hour)+"_"+string(nowDate.minute)+"_"+string(nowDate.second);
 	list<string> columns <- [
 		"Station",
 		"Start Time",
@@ -327,7 +330,7 @@ species bikeLogger_chargeEvents parent: Logger mirrors: bike { //Station Chargin
 }
 
 species bikeLogger_ReceiveChargeEvents parent: Logger mirrors: bike { // Cluster charging
-	string filename <- 'bike_clustering_charge';
+	string filename <- 'bike_clustering_charge'+string(nowDate.hour)+"_"+string(nowDate.minute)+"_"+string(nowDate.second);
 	list<string> columns <- [
 		"Other Agent",
 		"Start Time",
@@ -361,7 +364,7 @@ species bikeLogger_ReceiveChargeEvents parent: Logger mirrors: bike { // Cluster
 }
 
 species bikeLogger_fullState parent: Logger mirrors: bike {
-	string filename <- 'bike_full_state';
+	string filename <- 'bike_full_state'+string(nowDate.hour)+"_"+string(nowDate.minute)+"_"+string(nowDate.second);
 	list<string> columns <- [
 		"State",
 		"Rider",
@@ -408,7 +411,7 @@ species bikeLogger_fullState parent: Logger mirrors: bike {
 
 species bikeLogger_roadsTraveled parent: Logger mirrors: bike {
 	//`target` is the bike we mirror
-	string filename <- 'bike_roadstraveled';
+	string filename <- 'bike_roadstraveled'+string(nowDate.hour)+"_"+string(nowDate.minute)+"_"+string(nowDate.second);
 	list<string> columns <- [
 		"Distance Traveled",
 		"Num Intersections"
@@ -445,7 +448,7 @@ species bikeLogger_roadsTraveled parent: Logger mirrors: bike {
 
 species bikeLogger_event parent: Logger mirrors: bike {
 	//`target` is the bike we mirror
-	string filename <- 'bike_trip_event';
+	string filename <- 'bike_trip_event'+string(nowDate.hour)+"_"+string(nowDate.minute)+"_"+string(nowDate.second);
 	list<string> columns <- [
 		"Event",
 		"Message",
@@ -564,7 +567,7 @@ species bikeLogger_tangible parent: Logger mirrors: bike{
 	];
 
 	
-	string filename <- "bike_tangible";
+	string filename <- "bike_tangible"+string(nowDate.hour)+"_"+string(nowDate.minute)+"_"+string(nowDate.second);
 	bike biketarget;
 	init {
 		biketarget <- bike(target);
@@ -582,7 +585,7 @@ species bikeLogger_tangible parent: Logger mirrors: bike{
 }
 
 species peopleLogger_tangible parent: Logger mirrors: people {
-	string filename <- "people_tangible";
+	string filename <- "people_tangible"+string(nowDate.hour)+"_"+string(nowDate.minute)+"_"+string(nowDate.second);
 	list<string> columns <- [
 		"State",
 		"Lat",

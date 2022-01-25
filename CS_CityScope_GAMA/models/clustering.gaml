@@ -161,6 +161,13 @@ experiment batch_experiments_headless type: batch repeat: 3 until: (cycle >= num
 	parameter var: maxWaitTime among: [5#mn,10#mn,15#mn];
 }
 
+experiment batch_task_switch type: batch repeat: 3 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	parameter var: chargingPheromoneThreshold among:[0.0000001,0.000001,0.00001,0.01];
+	parameter var: pLowPheromoneCharge among: [0.001,0.01,0.02,0.05];
+	parameter var: readUpdateRate among: [0.1, 0.3, 0.5, 0.8];
+	
+}
+
 //If we do 3^5=243 experiments each 3 times = 749 sims * 12.3 min that's 6 days with step 1s and 3 days with step 2s
 
 experiment clustering type: gui {
