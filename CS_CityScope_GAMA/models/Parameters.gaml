@@ -13,7 +13,7 @@ global {
 	
 	//Date for log files
 	//date logDate <- #now;
-	date logDate <- date("2021-01-26 00:00:01");
+	date logDate <- date("2021-01-27 00:00:00");
 	date nowDate <- #now;
 	//Duration of the simulation
 	int numberOfDays <- 1; //WARNING: If >1 set numberOfHours to 24h
@@ -24,7 +24,7 @@ global {
 	bool loggingEnabled <- true parameter: "Logging" category: "Logs";
 	bool printsEnabled <- false parameter: "Printing" category: "Logs";
 	
-	bool bikeEventLog <-false parameter: "Bike Event/Trip Log" category: "Logs";
+	bool bikeEventLog <-true parameter: "Bike Event/Trip Log" category: "Logs";
 	bool bikeStateLog <-false parameter: "Bike Full State Log" category: "Logs";
 	
 	bool peopleTripLog <-true parameter: "People Trip Log" category: "Logs";
@@ -54,10 +54,10 @@ global {
 	float minPheromoneLevel <- 0.0;
 	
 	//------------------- Task Switch Pheromone Levels----------------------
-	bool taskSwitchEnabled <- true;
-	float chargingPheromoneThreshold <- 0.000002*singlePheromoneMark; //Enables charge-seeking when low pheromone
+	bool taskSwitchEnabled <- false;
+	float chargingPheromoneThreshold <- 0.00002*singlePheromoneMark; //Enables charge-seeking when low pheromone
 	float pLowPheromoneCharge <- 0.02; // probability of going for a charge when reading low pheromone levels
-	float readUpdateRate <- 0.3 ; //TODO: tune this so our average updates at desired speed. may need a factor of `step`
+	float readUpdateRate <- 0.5 ; //tune this so our average updates at desired speed
 	
 	//----------------------Bike Parameters------------------------
 	int numBikes <- 25 				min: 0 max: 500 parameter: "Num Bikes:" category: "Initial";

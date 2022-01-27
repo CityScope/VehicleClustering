@@ -9,7 +9,7 @@ import glob
 import matplotlib.pyplot as plt
 
 #Load all csv files in directory
-os.chdir("./2021-01-25 12.00.00/people_trips")
+os.chdir("./2021-01-26 12.00.01/people_trips")
 extension = 'csv'
 all_filenames = [i for i in glob.glob('*.{}'.format(extension))]
 
@@ -42,6 +42,8 @@ y_size=j_size*k_size
 wait_matrix=np.zeros((x_size,y_size))
 served_matrix=np.zeros((x_size,y_size))
 
+
+
 for i in range(i_size):
     l=0
     for j in range(j_size):
@@ -69,6 +71,21 @@ for i in range(i_size):
             l+=1
 
 
+#Combined matrix
+comb_matrix=np.zeros((x_size,y_size))
+
+max_wait=wait_matrix.max()
+min_wait=wait_matrix.min()
+
+served_max=served_matrix.max()
+served_min=served_matrix.min()
+
+for i in range(i_size):
+    for j in range(l):
+        comb_matrix[i,j]=((served_matrix[i,j]-served_min)/(served_max-served_min))-((wait_matrix[i,j]-min_wait)/(max_wait-min_wait))
+
+
+
 #Process the labels for the combined axis
 labels= []
 for j in range(j_size):
@@ -84,33 +101,48 @@ X, Y = np.meshgrid(xi, yi)
 
 #### FIGURE 1: WAIT TIMES
 
-plt.subplot(2,1,1)
+plt.subplot(3,1,1)
 plt.pcolormesh(X, Y, wait_matrix,cmap='coolwarm')
     #for i in range(x_size-1):
         #for j in range(y_size-1):
             #plt.text(j,i, wait_matrix[i,j], color="w")
 plt.colorbar()
 plt.xticks(xi[:-1]+0.5, labels, rotation=90)
-plt.xlabel("[Probability, Rate]")
+plt.xlabel("[Rate, Probability]")
 plt.yticks(yi[:-1]+0.5, low_pheromone_possible)
 plt.ylabel("Low pheromone threshold")
 plt.title('Wait times [min]')
 
 #### FIGURE 2: PERCENTAGE SERVED TRIPS
 
-plt.subplot(2,1,2)
+plt.subplot(3,1,2)
 plt.pcolormesh(X, Y, served_matrix,cmap='coolwarm_r')
     #for i in range(x_size-1):
         #for j in range(y_size-1):
             #plt.text(j,i, wait_matrix[i,j], color="w")
 plt.colorbar()
 plt.xticks(xi[:-1]+0.5, labels, rotation=90)
-plt.xlabel("[Probability, Rate]")
+plt.xlabel("[Rate, Probability]")
 plt.yticks(yi[:-1]+0.5, low_pheromone_possible)
 plt.ylabel("Low pheromone threshold")
 plt.title('Served trips [%]')
 
+#### FIGURE 3: COMBINED
+
+plt.subplot(3,1,3)
+plt.pcolormesh(X, Y, comb_matrix,cmap='coolwarm_r')
+    #for i in range(x_size-1):
+        #for j in range(y_size-1):
+            #plt.text(j,i, wait_matrix[i,j], color="w")
+plt.colorbar()
+plt.xticks(xi[:-1]+0.5, labels, rotation=90)
+plt.xlabel("[Rate, Probability]")
+plt.yticks(yi[:-1]+0.5, low_pheromone_possible)
+plt.ylabel("Low pheromone threshold")
+plt.title('Combined')
+
 plt.show()
+
 
 
 

@@ -155,10 +155,10 @@ reflex stop_simulation when: cycle >= numberOfDays * numberOfHours * 3600 / step
 experiment batch_experiments_headless type: batch repeat: 3 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
 	parameter var: evaporation among: [0.05, 0.15, 0.3];
 	parameter var: exploitationRate among: [0.6, 0.75, 0.9];
-	parameter var: numBikes among: [25, 50, 75];
+	parameter var: numBikes among: [25, 50, 75,100, 125, 150];
 	//parameter var: PickUpSpeed among: [4/3.6#m/#s,8/3.6#m/#s,12/3.6#m/#s];
-	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
-	parameter var: maxWaitTime among: [5#mn,10#mn,15#mn];
+	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s,8/3.6#m/#s];
+	//parameter var: maxWaitTime among: [5#mn,10#mn,15#mn];
 }
 
 experiment batch_task_switch type: batch repeat: 3 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
