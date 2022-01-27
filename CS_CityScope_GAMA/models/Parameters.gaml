@@ -13,7 +13,7 @@ global {
 	
 	//Date for log files
 	//date logDate <- #now;
-	date logDate <- date("2021-01-26 00:00:00");
+	date logDate <- date("2021-01-26 00:00:01");
 	date nowDate <- #now;
 	//Duration of the simulation
 	int numberOfDays <- 1; //WARNING: If >1 set numberOfHours to 24h
@@ -84,7 +84,7 @@ global {
 	
 	//----------------------People Parameters------------------------
 	//int numPeople <- 250 				min: 0 max: 1000 parameter: "Num People:" category: "Initial";
-	float maxWaitTime <- 15 #mn		min: 3#mn max: 60#mn parameter: "Max Wait Time:" category: "People";
+	float maxWaitTime <- 10 #mn		min: 3#mn max: 60#mn parameter: "Max Wait Time:" category: "People";
 	float maxDistance <- maxWaitTime*PickUpSpeed #m; //The maxWaitTime is translated into a max radius taking into account the speed of the bikes
     float peopleSpeed <- 5/3.6 #m/#s	min: 1/3.6 #m/#s max: 10/3.6 #m/#s parameter: "People Speed (m/s):" category: "People";
     float bikeCostBatteryCoef <- 200.0; //(see global.bikeCost)relative importance of batterylife when selecting bikes to ride
