@@ -6,14 +6,14 @@ global {
 	//----------------------Simulation Parameters------------------------
 	
 	//Simulation time step
-	float step <- 35 #sec; //For tangible we need about 0.1s
+	float step <- 2 #sec; //For tangible we need about 0.1s
 	
 	//Simulation starting date
 	date starting_date <- date("2021-10-12 00:00:00"); // TODO: set to 0:00
 	
 	//Date for log files
 	//date logDate <- #now;
-	date logDate <- date("2021-01-27 00:00:00");
+	date logDate <- date("2021-02-03 00:00:00");
 	date nowDate <- #now;
 	//Duration of the simulation
 	int numberOfDays <- 1; //WARNING: If >1 set numberOfHours to 24h
@@ -41,8 +41,8 @@ global {
 
 	
 	//----------------------Pheromone Parameters------------------------
-	bool pheromonesEnabled <- true ; // If false the PheromoneMark will always be zero and the bikes will just wander
-	bool wanderingEnabled <- true; // Sets WanderingSpeed to zero
+	bool pheromonesEnabled <- false ; // If false the PheromoneMark will always be zero and the bikes will just wander
+	bool wanderingEnabled <- false; // Sets WanderingSpeed to zero
 	
     float singlePheromoneMark <- 0.5; //1.0 in ours, 0.01 as a param in original code, set to 0.5 for SwarmBot
 	float evaporation <- 0.05; //0.05%, *0.15%,* and 0.3% in the paper but we changed evaporation to be proportional to time instead of just cycles
@@ -84,7 +84,7 @@ global {
 	
 	//----------------------People Parameters------------------------
 	//int numPeople <- 250 				min: 0 max: 1000 parameter: "Num People:" category: "Initial";
-	float maxWaitTime <- 10 #mn		min: 3#mn max: 60#mn parameter: "Max Wait Time:" category: "People";
+	float maxWaitTime <- 60 #mn		min: 3#mn max: 60#mn parameter: "Max Wait Time:" category: "People";
 	float maxDistance <- maxWaitTime*PickUpSpeed #m; //The maxWaitTime is translated into a max radius taking into account the speed of the bikes
     float peopleSpeed <- 5/3.6 #m/#s	min: 1/3.6 #m/#s max: 10/3.6 #m/#s parameter: "People Speed (m/s):" category: "People";
     float bikeCostBatteryCoef <- 200.0; //(see global.bikeCost)relative importance of batterylife when selecting bikes to ride
