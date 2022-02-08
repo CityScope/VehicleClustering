@@ -68,14 +68,12 @@ error_charge=[0,2,3,4,5,6,7,8,9,14,15,16,17]
 error_bike=[0,2,3,4,5,6,7,8,9,15,16,17,18,19]
 error_user=[0,2,3,4,5,6,7,8,9,12,15,16,17,18,19]
 for i in error_charge:
-    print(i)
     charge_df.iloc[:,i]=pd.to_numeric(charge_df.iloc[:,i])
 for i in error_bike:
-    print(i)
     bike_df.iloc[:,i]=pd.to_numeric(bike_df.iloc[:,i])
 for i in error_user:
-    print(i)
     user_df.iloc[:,i]=pd.to_numeric(user_df.iloc[:,i])
+user_df['Trip Served'] = user_df['Trip Served'].astype('bool')
 
 #Results without perhomones
 charge_df_n=pd.read_csv('./'+date2+'/charge_concat.csv')
@@ -83,28 +81,23 @@ bike_df_n=pd.read_csv('./'+date2+'/bike_concat.csv')
 user_df_n=pd.read_csv('./'+date2+'/user_concat.csv')
 
 #Get the parameter ranges
-user_df['Num Bikes'] = pd.to_numeric(user_df['Num Bikes'])
 n_bikes_possible=user_df['Num Bikes'].unique()
 n_bikes_possible.sort()
 print('Num Bikes: ',n_bikes_possible)
 
-user_df['Wandering Speed'] = pd.to_numeric(user_df['Wandering Speed'])
 wander_speed_possible=user_df['Wandering Speed'].unique()
 wander_speed_possible.sort()
 print('Wandering Speed: ',wander_speed_possible)
 
-user_df['Evaporation'] = pd.to_numeric(user_df['Evaporation'])
 evaporation_possible=user_df['Evaporation'].unique()
 evaporation_possible.sort()
 print('Evaporation: ',evaporation_possible)
 
-user_df['Exploitation'] = pd.to_numeric(user_df['Exploitation'])
 exploitation_possible=user_df['Exploitation'].unique()
 exploitation_possible.sort()
 print('Exploitation: ',exploitation_possible)
 
 
-user_df['Trip Served'] = user_df['Trip Served'].astype('bool')
 #Set matrix sizes
 i_size=n_bikes_possible.size
 j_size=wander_speed_possible.size
@@ -116,8 +109,16 @@ x_size= i_size*j_size
 y_size=k_size*l_size
 
 #Initialize matrices
+wait_matrix_n=np.zeros((x_size,y_size))
+served_matrix_n=np.zeros((x_size,y_size))
+
+wait_matrix_p=np.zeros((x_size,y_size))
+served_matrix_p=np.zeros((x_size,y_size))
+
 wait_matrix=np.zeros((x_size,y_size))
 served_matrix=np.zeros((x_size,y_size))
+
+combined_matrix=np.zeros((x_size,y_size))
 
 u=-1
 
@@ -142,12 +143,12 @@ for i in range(i_size):
                 #Compute aveage wait 
                 sum=temp['Wait Time (min)'].sum()
                 len=temp['Wait Time (min)'].size
-                average_wait=sum/len
+                average_wait_p=sum/len
 
                 #Compute average percentage of served trips
                 count_served=temp.loc[temp['Trip Served']==True].shape[0]
                 count_unserved=temp.loc[temp['Trip Served']==False].shape[0]
-                average_served=(count_served)/(count_served+count_unserved)*100
+                average_served_p=(count_served)/(count_served+count_unserved)*100
 
                 #NO PHEROMONES
                 temp_n=user_df_n.loc[(user_df_n['Num Bikes']==n_bikes)]
@@ -162,8 +163,20 @@ for i in range(i_size):
                 average_served_n=(count_served_n)/(count_served_n+count_unserved_n)*100
 
                 #SAVE DATA
-                wait_matrix[u,v]=average_wait - average_wait_n #
-                served_matrix[u,v]=average_served - average_served_n #
+                wait_matrix_p[u,v]=average_wait_p
+                served_matrix_p[u,v]=average_served_p
+
+                wait_matrix_n[u,v]=average_wait_n 
+                served_matrix_n[u,v]=average_served_n
+
+                wait_matrix[u,v]=average_wait_p - average_wait_n 
+                served_matrix[u,v]=average_served_p - average_served_n 
+
+                #If we suppose that 100 % of the demand must be served
+                if served_matrix_p[u,v] <100:
+                    combined_matrix[u,v]=np.NaN
+                else:
+                    combined_matrix[u,v]=average_wait_p - average_wait_n 
 
                 v+=1
 
@@ -246,11 +259,69 @@ served_max=served_matrix.max()
 served_min=served_matrix.min()
 
 m= 1-((served_max)/(served_max-served_min))
-orig_cmap = matplotlib.cm.coolwarm
+orig_cmap = matplotlib.cm.coolwarm_r
 shifted_cmap = shiftedColorMap(orig_cmap, midpoint=m, name='shifted')
 
+#### FIGURE 1: WAIT TIMES PHEROMONES
 
-#### FIGURE 1: WAIT TIMES
+plt.pcolormesh(X, Y, wait_matrix_p,cmap='coolwarm')
+for i in range(x_size):
+    for j in range(y_size):
+        plt.text(j,i, round(wait_matrix_p[i,j],2), color="w")
+plt.colorbar()
+plt.xticks(xi[:-1]+0.5, labels_2, rotation=90)
+plt.xlabel("[Evaporation, Exploitation]")
+plt.yticks(yi[:-1]+0.5, labels_1)
+plt.ylabel("[Num bikes, Wander Speed]")
+plt.title('Wait times [min]: Pheromones')
+
+plt.show()
+
+#### FIGURE 2: PERCENTAGE SERVED TRIPS PHEROMONES
+
+plt.pcolormesh(X, Y, served_matrix_p,cmap=shifted_cmap)
+for i in range(x_size-1):
+    for j in range(y_size-1):
+        plt.text(j,i, round(served_matrix_p[i,j],2), color="w")
+plt.colorbar()
+plt.xticks(xi[:-1]+0.5, labels_2, rotation=90)
+plt.xlabel("[Evaporation, Exploitation]")
+plt.yticks(yi[:-1]+0.5, labels_1)
+plt.ylabel("[Num bikes, Wander Speed]")
+plt.title('Served trips [%]: Pheromones')
+
+plt.show()
+
+#### FIGURE 3: WAIT TIMES NOMINAL
+
+plt.pcolormesh(X, Y, wait_matrix_n,cmap='coolwarm')
+for i in range(x_size):
+    for j in range(y_size):
+        plt.text(j,i, round(wait_matrix_n[i,j],2), color="w")
+plt.colorbar()
+plt.xticks(xi[:-1]+0.5, labels_2, rotation=90)
+plt.xlabel("[Evaporation, Exploitation]")
+plt.yticks(yi[:-1]+0.5, labels_1)
+plt.ylabel("[Num bikes, Wander Speed]")
+plt.title('Wait times [min]: Nominal')
+
+plt.show()
+
+#### FIGURE 4: PERCENTAGE SERVED TRIPS NOMINAL
+plt.pcolormesh(X, Y, served_matrix_n,cmap=shifted_cmap)
+for i in range(x_size-1):
+    for j in range(y_size-1):
+        plt.text(j,i, round(served_matrix_n[i,j],2), color="w")
+plt.colorbar()
+plt.xticks(xi[:-1]+0.5, labels_2, rotation=90)
+plt.xlabel("[Evaporation, Exploitation]")
+plt.yticks(yi[:-1]+0.5, labels_1)
+plt.ylabel("[Num bikes, Wander Speed]")
+plt.title('Served trips [%]: Nominal')
+
+plt.show()
+
+#### FIGURE 5: WAIT TIMES DIFFERENCE 
 
 plt.pcolormesh(X, Y, wait_matrix,cmap='coolwarm')
 for i in range(x_size):
@@ -265,7 +336,7 @@ plt.title('Wait times difference [min]: pheromones - nominal')
 
 plt.show()
 
-#### FIGURE 2: PERCENTAGE SERVED TRIPS
+#### FIGURE 6: PERCENTAGE SERVED TRIPS DIFFERENCE
 
 plt.pcolormesh(X, Y, served_matrix,cmap=shifted_cmap)
 for i in range(x_size-1):
@@ -276,27 +347,37 @@ plt.xticks(xi[:-1]+0.5, labels_2, rotation=90)
 plt.xlabel("[Evaporation, Exploitation]")
 plt.yticks(yi[:-1]+0.5, labels_1)
 plt.ylabel("[Num bikes, Wander Speed]")
-plt.title('Served trips [%]: pheromones - nominal')
+plt.title('Served trips difference [%]: pheromones - nominal')
 
 plt.show()
 
 
 #Combined matrix
-comb_matrix=np.zeros((x_size,y_size))
+#comb_matrix=np.zeros((x_size,y_size))
 
+#for i in range(x_size):
+#for j in range(y_size):
+#        comb_matrix[i,j]=((served_matrix[i,j]-served_min)/(served_max-served_min))-((wait_matrix[i,j]-min_wait)/(max_wait-min_wait))
+
+combined_max=np.nanmax(combined_matrix)
+print(combined_max)
+combined_min=np.nanmin(combined_matrix)
+print(combined_min)
+m2= 1-(combined_max/(combined_max+abs(combined_min))) #1 - vmax / (vmax + abs(vmin)
+print(m2)
+orig_cmap2 = matplotlib.cm.coolwarm
+shifted_cmap2 = shiftedColorMap(orig_cmap2, midpoint=m2, name='shifted')
+
+
+plt.pcolormesh(X, Y, combined_matrix,cmap=shifted_cmap2)
 for i in range(x_size):
     for j in range(y_size):
-        comb_matrix[i,j]=((served_matrix[i,j]-served_min)/(served_max-served_min))-((wait_matrix[i,j]-min_wait)/(max_wait-min_wait))
-
-plt.pcolormesh(X, Y, comb_matrix,cmap='coolwarm_r')
-    #for i in range(x_size-1):
-        #for j in range(y_size-1):
-            #plt.text(j,i, wait_matrix[i,j], color="w")
+        plt.text(j,i, round(combined_matrix[i,j],2), color="w")
 plt.colorbar()
 plt.xticks(xi[:-1]+0.5, labels_2, rotation=90)
 plt.xlabel("[Evaporation, Exploitation]")
 plt.yticks(yi[:-1]+0.5, labels_1)
 plt.ylabel("[Num bikes, Wander Speed]")
-plt.title('Combined')
+plt.title('Combined: If not 100 perc. served Nan, otherwise pheromone wait-nominal wait')
 
 plt.show()
