@@ -5,9 +5,9 @@ import glob
 import matplotlib.pyplot as plt
 
 #CHANGE folder  
-os.chdir("../data/2021-01-27 12.00.00")
+os.chdir("../data/2021-02-03 12.00.00")
 
-if False: #Load all csv files in directory and concat just once 
+if True: #Load all csv files in directory and concat just once 
     extension = 'csv'
 
     #Charging
@@ -123,9 +123,9 @@ X, Y = np.meshgrid(xi, yi)
 #### FIGURE 1: WAIT TIMES
 
 plt.pcolormesh(X, Y, wait_matrix,cmap='coolwarm')
-    #for i in range(x_size-1):
-        #for j in range(y_size-1):
-            #plt.text(j,i, wait_matrix[i,j], color="w")
+for i in range(x_size):
+    for j in range(y_size):
+        plt.text(j,i, wait_matrix[i,j], color="w")
 plt.colorbar()
 plt.xticks(xi[:-1]+0.5, labels_2, rotation=90)
 plt.xlabel("[Evaporation, Exploitation]")
@@ -138,9 +138,9 @@ plt.show()
 #### FIGURE 2: PERCENTAGE SERVED TRIPS
 
 plt.pcolormesh(X, Y, served_matrix,cmap='coolwarm_r')
-    #for i in range(x_size-1):
-        #for j in range(y_size-1):
-            #plt.text(j,i, wait_matrix[i,j], color="w")
+for i in range(x_size):
+    for j in range(y_size):
+        plt.text(j,i, served_matrix[i,j], color="w")
 plt.colorbar()
 plt.xticks(xi[:-1]+0.5, labels_2, rotation=90)
 plt.xlabel("[Evaporation, Exploitation]")
