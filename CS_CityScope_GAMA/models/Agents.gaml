@@ -205,7 +205,7 @@ species people control: fsm skills: [moving] {
     bool timeToTravel { return (current_date.hour = start_h and current_date.minute >= start_min) and !(self overlaps target_point); }
     	//Should we leave for work/home? Only if it is time, and we are not already there
     
-    state wander initial: true {
+    state wandering initial: true {
     	//Watch netflix at home (and/or work)
     	enter {
     		if peopleEventLog or peopleTripLog {ask logger { do logEnterState; }} // trips are logged by the eventlogger
@@ -229,7 +229,7 @@ species people control: fsm skills: [moving] {
 		transition to: walking when: host.requestBike(self, final_destination) {
 			target <- closestIntersection;
 		}
-		transition to: wander {
+		transition to: wandering {
 			if peopleEventLog {ask logger { do logEvent( "Used another mode, wait too long" ); }}
 			location <- final_destination;
 		}
@@ -268,7 +268,7 @@ species people control: fsm skills: [moving] {
 		enter {
 			if peopleEventLog or peopleTripLog {ask logger { do logEnterState; }}
 		}
-		transition to: wander when: location = final_destination {}
+		transition to: wandering when: location = final_destination {}
 		transition to: awaiting_bike when: location = target {}
 		exit {
 			if peopleEventLog {ask logger { do logExitState; }}
@@ -285,7 +285,7 @@ species bike control: fsm skills: [moving] {
 	rgb color;
 	
 	map<string, rgb> color_map <- [
-		"wander"::#purple,
+		"wandering"::#purple,
 		
 		"low_battery":: #red,
 		"getting_charge":: #pink,
@@ -319,14 +319,14 @@ species bike control: fsm skills: [moving] {
 	bike follower;
 	people rider;
 	
-	list<string> rideStates <- ["wander", "following"];
+	list<string> rideStates <- ["wandering", "following"];
 	bool lowPass <- false;
 
 	bool availableForRide {
 		return (state in rideStates) and !setLowBattery() and rider = nil;
 	}
 	
-	list<string> platoonStates <- ["wander"]; 
+	list<string> platoonStates <- ["wandering"]; 
 	
 	bool availableForPlatoon {
 		if clusteringEnabled { //TODO: I think we can remove this from here, it is redundant
@@ -440,7 +440,7 @@ species bike control: fsm skills: [moving] {
 	tagRFID lastTagOI; //last RFID tag we passed in previous cycle. Useful for deposit pheromones.
 	
 	bool canMove {
-		return state != "awaiting_follower" and ((target != nil and target != location) or state="wander") and batteryLife > 0;
+		return state != "awaiting_follower" and ((target != nil and target != location) or state="wandering") and batteryLife > 0;
 	}
 	
 	
@@ -448,7 +448,7 @@ species bike control: fsm skills: [moving] {
 		if (state="in_use"){return goto(on:roadNetwork, target:target, return_path: true, speed:RidingSpeed);}
 		return goto(on:roadNetwork, target:target, return_path: true, speed:PickUpSpeed);
 	}
-	path wander {
+	path wandering {
 		//construct a plan, so we don't waste time: Where will we turn from the next intersection? If we have time left in the cycle, where will we turn from there? And from the intersection after that?
 		 
 	 	/***NOTE:*** This part is a fix to have a good performance with large time steps during testing but for the final experiments we will use a small time step
@@ -460,7 +460,7 @@ species bike control: fsm skills: [moving] {
 		float distancePlan <- host.distanceInGraph(location, nextTag.location);
 		
 		loop while: distancePlan < distancePerCycle {
-			tagRFID newTag <- chooseWanderTarget(nextTag, lastTag); 
+			tagRFID newTag <- choosewanderingTarget(nextTag, lastTag); 
 			//TODO: This call updates the nextTag
 			
 			lastTag <- nextTag;
@@ -477,7 +477,7 @@ species bike control: fsm skills: [moving] {
 		
 		lastTagOI <- lastTag;
 		if wanderingEnabled {
-			travelledPath <- (state = "wander") ? wander() : moveTowardTarget();
+			travelledPath <- (state = "wandering") ? wandering() : moveTowardTarget();
 		} else {
 			travelledPath <- moveTowardTarget();
 		}
@@ -563,7 +563,7 @@ species bike control: fsm skills: [moving] {
 	}
 	
 	
-	tagRFID chooseWanderTarget(tagRFID fromTag, tagRFID previousTag) { 
+	tagRFID choosewanderingTarget(tagRFID fromTag, tagRFID previousTag) { 
 		
 		do updatePheromones(fromTag);
 		
@@ -636,7 +636,7 @@ species bike control: fsm skills: [moving] {
 	
 	
 	/* ========================================== STATE MACHINE ========================================= */
-	state wander initial: true {
+	state wandering initial: true {
 		//wander the map, follow pheromones. Same as the old searching reflex
 		enter {
 			ask eventLogger { do logEnterState; }
@@ -693,7 +693,7 @@ species bike control: fsm skills: [moving] {
 				bikesToCharge <- bikesToCharge + myself;
 			}
 		}
-		transition to: wander when: batteryLife >= maxBatteryLife {}
+		transition to: wandering when: batteryLife >= maxBatteryLife {}
 		exit {
 			if stationChargeLogs{ask eventLogger { do logExitState("Charged at " + (chargingStation closest_to myself)); }}
 			ask chargingStation closest_to(self) {
@@ -709,7 +709,7 @@ species bike control: fsm skills: [moving] {
 		enter {
 			if bikeEventLog {ask eventLogger { do logEnterState("Awaiting Follower " + myself.follower); }}
 		}
-		transition to: wander when: follower.state = "following" {}
+		transition to: wandering when: follower.state = "following" {}
 		exit {
 			if bikeEventLog {ask eventLogger { do logExitState("Awaited Follower " + myself.follower); }}
 		}
@@ -735,7 +735,7 @@ species bike control: fsm skills: [moving] {
 		enter {
 			ask eventLogger { do logEnterState("Following " + myself.leader); }
 		}
-		transition to: wander when: shouldDecluster(leader) {}
+		transition to: wandering when: shouldDecluster(leader) {}
 		transition to: picking_up when: rider != nil {}
 		exit {
 			if bikeEventLog {ask eventLogger { do logExitState("Followed " + myself.leader); }}
@@ -773,7 +773,7 @@ species bike control: fsm skills: [moving] {
 			target <- (tagRFID closest_to rider.final_destination).location;
 		}
 		
-		transition to: wander when: location=target {
+		transition to: wandering when: location=target {
 			rider <- nil;
 		}
 		exit {

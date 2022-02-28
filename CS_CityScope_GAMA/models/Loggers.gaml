@@ -234,7 +234,7 @@ species peopleLogger parent: Logger mirrors: people {
     string timeStartstr;
     string currentstr;
 	
-	action logEnterState { do logEnterState(""); }
+	//action logEnterState { do logEnterState(""); }
 	action logEnterState(string logmessage) {
 		cycleStartActivity <- cycle;
 		timeStartActivity <- current_date;
@@ -280,9 +280,9 @@ species peopleLogger parent: Logger mirrors: people {
 		}}
 		
 	}
-	action logExitState {
-		do logExitState("");
-	}
+	//action logExitState {
+		//do logExitState("");
+	//}
 	action logExitState(string logmessage) {
 		
 		if timeStartActivity= nil {timeStartstr <- nil;}else{timeStartstr <- string(timeStartActivity,"HH:mm:ss");}
@@ -484,7 +484,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 	
 	//string lowPass;
 	
-	action logEnterState { do logEnterState(""); }
+	//action logEnterState { do logEnterState(""); }
 	action logEnterState(string logmessage) {
 		cycleStartActivity <- cycle;
 		timeStartActivity <- current_date;
@@ -496,7 +496,7 @@ species bikeLogger_event parent: Logger mirrors: bike {
 		currentState <- biketarget.state;
 		do log( ['START: ' + biketarget.state] + [logmessage]);
 	}
-	action logExitState { do logExitState(""); }
+	//action logExitState { do logExitState(""); }
 	action logExitState(string logmessage) {
 		float d <- biketarget.travelLogger.totalDistance - distanceStartActivity;
 		string timeStartstr;
