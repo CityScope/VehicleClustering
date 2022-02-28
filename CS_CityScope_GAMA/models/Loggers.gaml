@@ -234,7 +234,7 @@ species peopleLogger parent: Logger mirrors: people {
     string timeStartstr;
     string currentstr;
 	
-	//action logEnterState { do logEnterState(""); }
+	//faction logEnterState { do logEnterState(""); }
 	action logEnterState(string logmessage) {
 		cycleStartActivity <- cycle;
 		timeStartActivity <- current_date;
@@ -256,7 +256,7 @@ species peopleLogger parent: Logger mirrors: people {
 				departureCycle <- cycle;
 				served <- true;
 			}
-			match "wander" {
+			match "wandering" {
 				//trip has ended
 				if tripdistance = 0 {
 					tripdistance <- topology(roadNetwork) distance_between [persontarget.start_point, persontarget.target_point];
