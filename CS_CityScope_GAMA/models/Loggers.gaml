@@ -259,7 +259,8 @@ species peopleLogger parent: Logger mirrors: people {
 			match "wandering" {
 				//trip has ended
 				if tripdistance = 0 {
-					tripdistance <- topology(roadNetwork) distance_between [persontarget.start_point, persontarget.target_point];
+					//tripdistance <- topology(roadNetwork) distance_between [persontarget.start_point, persontarget.target_point];
+					tripdistance <- persontarget.start_point distance_to persontarget.target_point;
 				}
 				
 				if cycle != 0 {

@@ -6,9 +6,10 @@ import "./clustering.gaml"
 global {
 
 	float distanceInGraph (point origin, point destination) {
-			using topology(roadNetwork) {
-			return origin distance_to destination;
-		}
+		//using topology(roadNetwork) {
+			//return origin distance_to destination;
+		//}
+		return origin distance_to destination;	
 	}
 	list<bike> availableBikes(people person) {
 		return bike where (each.availableForRide());
@@ -54,6 +55,7 @@ global {
 	
 	bool bikeClose(people person, bike b){
 		float d <- distanceInGraph(b.location,person.location);
+		//float d <- person distance_to b;
 		//write "Time "+ current_date +"bike "+ b.name+ " distance to "+ person.name + ": "+d+ " < "+ maxDistance;
 		if d<maxDistance { 
 			return true;
