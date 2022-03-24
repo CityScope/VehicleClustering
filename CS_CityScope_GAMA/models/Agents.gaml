@@ -416,11 +416,11 @@ species bike control: fsm skills: [moving] {
 		return distance;
 	}
 	action reduceBattery(float distance) {
-		batteryLife <- batteryLife - energyCost(distance);
+		//batteryLife <- batteryLife - energyCost(distance);
     
 		if follower != nil and follower.state = "following" {
 			ask follower {
-				do reduceBattery(distance);
+				//do reduceBattery(distance);
 			}
 		}
 	}
