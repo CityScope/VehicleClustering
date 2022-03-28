@@ -420,7 +420,7 @@ species bike control: fsm skills: [moving] {
     
 		if follower != nil and follower.state = "following" {
 			ask follower {
-				//do reduceBattery(distance);
+				do reduceBattery(distance);
 			}
 		}
 	}
