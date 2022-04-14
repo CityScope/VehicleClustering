@@ -106,30 +106,99 @@ global {
 		// -------------------------------------------The People -----------------------------------------
 	    
 	    create people from: demand_csv with:
-			[start_hour::date(get("starttime")),  //'yyyy-MM-dd hh:mm:s'
-				start_lat::float(get("start_lat")),
+			[start_hour::date(get("starttime")) //'yyyy-MM-dd hh:mm:s'
+				/*start_lat::float(get("start_lat")),
 				start_lon::float(get("start_lon")),
 				target_lat::float(get("target_lat")),
-				target_lon::float(get("target_lon")) 
+				target_lon::float(get("target_lon"))*/
 				/*start_lat::float(42.369732),
 				start_lon::float(-71.090101),
 				target_lat::float(42.368263),
 				target_lon::float(-71.080622)*/
 				
 			]{
-	
-	        speed <- peopleSpeed;
-	        start_point  <- to_GAMA_CRS({start_lon,start_lat},"EPSG:4326").location; // (lon, lat) var0 equals a geometry corresponding to the agent geometry transformed into the GAMA CRS
-			target_point <- to_GAMA_CRS({target_lon,target_lat},"EPSG:4326").location;
-			location <- start_point;
-			
+				
+				
 			string start_h_str <- string(start_hour,'kk');
 			start_h <- int(start_h_str);
 			string start_min_str <- string(start_hour,'mm');
 			start_min <- int(start_min_str);
 			
+			int rd;
+			if start_h < 12{
+				//rd <- rnd(1,4); //morning
+				rd <-1 ;
+			}else{
+				//rd <- rnd(5,8); //afternoon
+				rd <-5;
+			}
 			
-			//write "cycle: " + cycle + ", time "+ self.start_h + ":" + self.start_min + ", "+ string(self) + " will travel from " + self.start_point + " to "+ self.target_point;
+			if rd =1 {	
+				start_lat <- 42.369732;
+				start_lon <- -71.090101;
+				target_lat <- 42.368494;
+				target_lon <- -71.082084;
+			} else if rd =5 {	
+				target_lat <- 42.369732;
+				target_lon <- -71.090101;
+				start_lat <- 42.368494;
+				start_lon <- -71.082084;
+			}
+			/*if rd =1 {	
+				start_lat <- 42.369732;
+				start_lon <- -71.090101;
+				target_lat <- 42.360789;
+				target_lon <- -71.087856;	
+			}else if rd=2 {
+				start_lat <- 42.368494;
+				start_lon <- -71.082084;
+				target_lat <- 42.361708;
+				target_lon <- -71.094186;	
+			} else if rd =3 {	
+				start_lat <- 42.369732;
+				start_lon <- -71.090101;
+				target_lat <- 42.360789;
+				target_lon <- -71.087856;
+			}else if rd=4 {
+				start_lat <- 42.368494;
+				start_lon <- -71.082084;
+				target_lat <- 42.368263;
+				target_lon <- -71.080622;
+	
+			}else if rd =5 {	
+				target_lat <- 42.369732;
+				target_lon <- -71.090101;
+				start_lat <- 42.368263;
+				start_lon <- -71.080622;	
+			}else if rd=6 {
+				target_lat <- 42.368494;
+				target_lon <- -71.082084;
+				start_lat <- 42.360789;
+				start_lon <- -71.087856;	
+			} else if rd =7 {	
+				target_lat <- 42.369732;
+				target_lon <- -71.090101;
+				start_lat <- 42.360789;
+				start_lon <- -71.087856;
+			}else if rd=8 {
+				target_lat <- 42.368494;
+				target_lon <- -71.082084;
+				start_lat <- 42.368263;
+				start_lon <- -71.080622;
+			}*/
+			
+	        speed <- peopleSpeed;
+	        start_point  <- to_GAMA_CRS({start_lon,start_lat},"EPSG:4326").location; // (lon, lat) var0 equals a geometry corresponding to the agent geometry transformed into the GAMA CRS
+			target_point <- to_GAMA_CRS({target_lon,target_lat},"EPSG:4326").location;
+			location <- start_point;
+			
+			/*string start_h_str <- string(start_hour,'kk');
+			start_h <- int(start_h_str);
+			string start_min_str <- string(start_hour,'mm');
+			start_min <- int(start_min_str);*/
+			
+			
+			write "rnd: " + rd + ", time "+ self.start_h + ":" + self.start_min + ", "+ string(self) + " will travel from " + self.start_point + " to "+ self.target_point;
 			
 			}
 						
@@ -168,7 +237,7 @@ experiment batch_experiments_headless type: batch repeat: 5 until: (cycle >= num
 	//parameter var: maxWaitTime among: [5#mn,10#mn,15#mn];
 }
 
-experiment batch_fine_grane type: batch repeat: 3 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+experiment batch_fine_grane type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
 	parameter var: evaporation among: [0.05,0.10, 0.15,0.2, 0.25, 0.3,0.5,0.75];
 	parameter var: exploitationRate among: [0,0.25,0.6,0.65,0.7, 0.75,0.8,0.85, 0.9, 0.95];
 }
