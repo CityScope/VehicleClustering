@@ -106,18 +106,19 @@ global {
 		// -------------------------------------------The People -----------------------------------------
 	    
 	    create people from: demand_csv with:
-			[start_hour::date(get("starttime")),  //'yyyy-MM-dd hh:mm:s'
+		[start_hour::date(get("starttime")), //'yyyy-MM-dd hh:mm:s'
 				start_lat::float(get("start_lat")),
 				start_lon::float(get("start_lon")),
 				target_lat::float(get("target_lat")),
-				target_lon::float(get("target_lon")) 
+				target_lon::float(get("target_lon"))
 				/*start_lat::float(42.369732),
 				start_lon::float(-71.090101),
 				target_lat::float(42.368263),
 				target_lon::float(-71.080622)*/
 				
 			]{
-	
+
+				
 	        speed <- peopleSpeed;
 	        start_point  <- to_GAMA_CRS({start_lon,start_lat},"EPSG:4326").location; // (lon, lat) var0 equals a geometry corresponding to the agent geometry transformed into the GAMA CRS
 			target_point <- to_GAMA_CRS({target_lon,target_lat},"EPSG:4326").location;
@@ -130,6 +131,7 @@ global {
 			
 			
 			//write "cycle: " + cycle + ", time "+ self.start_h + ":" + self.start_min + ", "+ string(self) + " will travel from " + self.start_point + " to "+ self.target_point;
+
 			
 			}
 						

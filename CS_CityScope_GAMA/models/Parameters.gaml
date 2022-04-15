@@ -13,7 +13,9 @@ global {
 	
 	//Date for log files
 	//date logDate <- #now;
-	date logDate <- date("2022-03-29 00:00:00");
+
+	date logDate <- date("2022-04-25 00:00:00");
+	
 	date nowDate <- #now;
 	//Duration of the simulation
 	int numberOfDays <- 1; //WARNING: If >1 set numberOfHours to 24h
@@ -79,8 +81,9 @@ global {
 	
 	//----------------------numChargingStationsion Parameters------------------------
 	int numChargingStations <- 5 	min: 1 max: 10 parameter: "Num Charging Stations:" category: "Initial";
-	float V2IChargingRate <- maxBatteryLife/(4.5*60*60) #m/#s; //4.5 h of charge
-	int chargingStationCapacity <- 50; //TODO: status of bikes waiting
+	//float V2IChargingRate <- maxBatteryLife/(4.5*60*60) #m/#s; //4.5 h of charge
+	float V2IChargingRate <- maxBatteryLife/(111) #m/#s;  // 111 s battery swapping -> average of the two reported by Fei-Hui Huang 2019 Understanding user acceptancd of battery swapping service of sustainable transport
+	int chargingStationCapacity <- 16; //TODO: status of bikes waiting // average number of docks in bluebikes stations in April 2022
 	
 	//----------------------People Parameters------------------------
 	//int numPeople <- 250 				min: 0 max: 1000 parameter: "Num People:" category: "Initial";
