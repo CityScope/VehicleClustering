@@ -195,6 +195,7 @@ experiment batch_experiments_random type: batch repeat: 5 until: (cycle >= numbe
 	//parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s,8/3.6#m/#s];
 	parameter var: numBikes among: [25, 50, 75, 100, 125];
 	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
+	parameter var: exploitationRate init: 0.0;
 }
 
 
