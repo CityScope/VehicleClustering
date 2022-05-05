@@ -9,7 +9,7 @@ global {
 	//-------------------------------------------------------------------Necessary Variables--------------------------------------------------------------------------------------------------
 
 	// GIS FILES
-	geometry shape <- envelope(bound_shapefile);
+	//geometry shape <- envelope(bound_shapefile);
 	graph roadNetwork;
 	list<int> chargingStationLocation;
 
@@ -19,32 +19,39 @@ global {
     init {
     	// ---------------------------------------Buildings-----------------------------i----------------
 		do logSetUp;
-	    create building from: buildings_shapefile with: [type:string(read (usage))] {
-		 	if(type!=office and type!=residence){ type <- "Other"; }
-		}
+	    create building from: buildings_shapefile;
+	    //with: [type:string(read (usage))] {
+		 	//if(type!=office and type!=residence){ type <- "Other"; }
+		//}
 	        
-	    list<building> residentialBuildings <- building where (each.type=residence);
-	    list<building> officeBuildings <- building where (each.type=office);
+	   // list<building> residentialBuildings <- building where (each.type=residence);
+	   // list<building> officeBuildings <- building where (each.type=office);
 	    
 		// ---------------------------------------The Road Network----------------------------------------------
-		create road from: roads_shapefile;
+		create road from: roads_graph;
 		
-		roadNetwork <- as_edge_graph(road) ;   
+		roadNetwork <- as_edge_graph(road);   
+		//graph g;
+		//g <- graphml_file("./../includes/City/Boston/greater_boston_walk.graphml").contents;
+		
+		//roadNetwork <- as_edge_graph(g);  
+		
 		// Next move to the shortest path between each point in the graph
-		matrix allPairs <- all_pairs_shortest_path (roadNetwork);    
+		//matrix allPairs <- all_pairs_shortest_path (roadNetwork);   TODO: Not used now 
 	    
 		// -------------------------------------Location of the charging stations----------------------------------------   
 	    //from charging locations to closest intersection
 	    list<int> tmpDist;
 
 		loop vertex over: roadNetwork.vertices {
+			write "vertex : " + vertex;
 			create tagRFID {
 				id <- roadNetwork.vertices index_of vertex;
 				location <- point(vertex);
 			}
 		}
 
-		//K-Means		
+		/*//K-Means		
 		//Create a list of x,y coordinate for each intersection
 		list<list> instances <- tagRFID collect ([each.location.x, each.location.y]);
 
@@ -81,7 +88,7 @@ global {
 			create chargingStation{
 				location <- point(roadNetwork.vertices[chargingStationLocation[i]]);
 			}
-		}
+		}*/
 		
 	    
 		// -------------------------------------------The Bikes -----------------------------------------
