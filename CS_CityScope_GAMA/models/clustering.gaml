@@ -189,7 +189,7 @@ experiment batch_experiments_ref type: batch repeat: 5 until: (cycle >= numberOf
 	parameter var: numBikes among: [25, 50, 75, 100, 125];
 
 }
-//********TODO: UPDATE EXPLOITATION !!!!!!!!!!!!****
+
 experiment batch_experiments_random type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
 	//parameter var: numBikes among: [25, 50, 75,100, 125, 150];
 	//parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s,8/3.6#m/#s];
