@@ -9,7 +9,7 @@ global {
 	//-------------------------------------------------------------------Necessary Variables--------------------------------------------------------------------------------------------------
 
 	// GIS FILES
-	//geometry shape <- envelope(bound_shapefile);
+	geometry shape <- envelope(bound_shapefile);
 	graph roadNetwork;
 	list<int> chargingStationLocation;
 
@@ -28,30 +28,37 @@ global {
 	   // list<building> officeBuildings <- building where (each.type=office);
 	    
 		// ---------------------------------------The Road Network----------------------------------------------
-		create road from: roads_graph;
-		
-		roadNetwork <- as_edge_graph(road);   
+		//create road from: roads_shapefile;
+		//roadNetwork <- as_edge_graph(road);  
+		 
 		//graph g;
 		//g <- graphml_file("./../includes/City/Boston/greater_boston_walk.graphml").contents;
 		
 		//roadNetwork <- as_edge_graph(g);  
 		
+		//create road from: file("./../includes/City/Boston/greater_boston_walk.graphml");
 		// Next move to the shortest path between each point in the graph
 		//matrix allPairs <- all_pairs_shortest_path (roadNetwork);   TODO: Not used now 
+	    
+		// ---------------------------------------The Road Network----------------------------------------------
+		create road from: roads_shapefile;
+		
+		roadNetwork <- as_edge_graph(road) ;   
+		// Next move to the shortest path between each point in the graph
+		matrix allPairs <- all_pairs_shortest_path (roadNetwork);    
 	    
 		// -------------------------------------Location of the charging stations----------------------------------------   
 	    //from charging locations to closest intersection
 	    list<int> tmpDist;
 
 		loop vertex over: roadNetwork.vertices {
-			write "vertex : " + vertex;
 			create tagRFID {
 				id <- roadNetwork.vertices index_of vertex;
 				location <- point(vertex);
 			}
 		}
 
-		/*//K-Means		
+		//K-Means		
 		//Create a list of x,y coordinate for each intersection
 		list<list> instances <- tagRFID collect ([each.location.x, each.location.y]);
 
@@ -88,8 +95,9 @@ global {
 			create chargingStation{
 				location <- point(roadNetwork.vertices[chargingStationLocation[i]]);
 			}
-		}*/
+		}
 		
+	    
 	    
 		// -------------------------------------------The Bikes -----------------------------------------
 		create bike number:numBikes{						
@@ -144,7 +152,7 @@ global {
 						
 	 	// ----------------------------------The RFIDs tag on each road intersection------------------------
 		
-		ask tagRFID {
+	ask tagRFID {
 			location <- point(roadNetwork.vertices[id]); 
 			pheromoneMap <- map( neighbors_of(roadNetwork,roadNetwork.vertices[id]) collect (each::0.0) );  //to know what edge is related to that amount of pheromone
 			
