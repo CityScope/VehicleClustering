@@ -117,7 +117,7 @@ global {
 	string usage <- "Category";*/
 	
 	//Case 3 - Boston 
-	string cityScopeCity <- "UrbanSwarm";
+	string cityScopeCity <- "Boston";
 	string residence <- "Residential";
 	string office <- "Office";
 	string usage <- "Category";
@@ -126,13 +126,14 @@ global {
     
 	//GIS FILES To Upload
 	string cityGISFolder <- "./../includes/City/"+cityScopeCity;
-	file bound_shapefile <- file(cityGISFolder + "/Bounds.shp")			parameter: "Bounds Shapefile:" category: "GIS";
+	//file bound_shapefile <- file(cityGISFolder + "/Bounds.shp")			parameter: "Bounds Shapefile:" category: "GIS";
 	//file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
-	file roads_shapefile <- file(cityGISFolder + "/Roads.shp")			parameter: "Road Shapefile:" category: "GIS";
+	//file roads_shapefile <- file(cityGISFolder + "/Roads.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
 	//file roads_graph <- file(cityGISFolder + "/greater_boston_walk.graphml");
-	//file roads_shapefile <- file (cityGISFolder + "/boston_road/edges.shp");
-	file buildings_shapefile <- file(cityGISFolder + "/buildings.shp");		
+	file roads_shapefile <- file (cityGISFolder + "/boston_road/edges.shp");
+	file buildings_shapefile <- file(cityGISFolder + "/buildings.shp");	
+	file bound_shapefile <- file(cityGISFolder + "/greater-boston-boundary.shp");	
 	//Case Cambridge Map
 	//file chargingStations <- file(cityGISFolder + "/chargingStations.shp");
 	//file chargingStations <- file("./../includes/City/clustering" + "/chargingStations.shp");
