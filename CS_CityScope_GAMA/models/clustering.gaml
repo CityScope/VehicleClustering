@@ -106,11 +106,16 @@ global {
 		// -------------------------------------------The People -----------------------------------------
 	    
 	    create people from: demand_csv with:
-		[start_hour::date(get("starttime")), //'yyyy-MM-dd hh:mm:s'
+		[/*start_hour::date(get("starttime")), //'yyyy-MM-dd hh:mm:s'
 				start_lat::float(get("start_lat")),
 				start_lon::float(get("start_lon")),
 				target_lat::float(get("target_lat")),
-				target_lon::float(get("target_lon"))
+				target_lon::float(get("target_lon"))*/
+				start_hour::date(get("start_timestamp")), //'yyyy-MM-dd hh:mm:s'
+				start_lat::float(get("origin_bgrp_lat")),
+				start_lon::float(get("origin_bgrp_lng")),
+				target_lat::float(get("destination_bgrp_lat")),
+				target_lon::float(get("destination_bgrp_lng"))
 				/*start_lat::float(42.369732),
 				start_lon::float(-71.090101),
 				target_lat::float(42.368263),

@@ -92,7 +92,7 @@ global {
    
     //Demand 
     string cityDemandFolder <- "./../includes/Demand";
-    csv_file demand_csv <- csv_file (cityDemandFolder+ "/user_trips_new.csv",true);
+    csv_file demand_csv <- csv_file (cityDemandFolder+ "/bike.csv",true);
     //csv_file f <- csv_file("file.csv", ";",int,true, {5, 100});//TODO: Set a limit equivalent to numPeople¿
     
     //For many demand files:
@@ -116,6 +116,7 @@ global {
 	string office <- "Office";
 	string usage <- "Category";*/
 
+
     map<string, rgb> color_map <- [residence::#white, office::#gray, "Other"::#black];
     
 	//GIS FILES To Upload
@@ -124,6 +125,7 @@ global {
 	file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
 	file roads_shapefile <- file(cityGISFolder + "/Roads.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
+
 	//Case Cambridge Map
 	//file chargingStations <- file(cityGISFolder + "/chargingStations.shp");
 	//file chargingStations <- file("./../includes/City/clustering" + "/chargingStations.shp");
