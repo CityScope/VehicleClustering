@@ -1,6 +1,6 @@
 .metadata/
 CS_CityScope_GAMA/data/
-
+CS_CityScope_GAMA/includes/Demand/bike.csv
 .DS_Store
 .gama_application_workspace
 .built_in_models_*
