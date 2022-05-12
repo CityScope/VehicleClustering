@@ -4,7 +4,7 @@ import os
 import glob
 
 #CHANGE folder  
-os.chdir("../../../../results/CORRECT_VERSIONS/latestresults_nominal")
+os.chdir("../../../../results/CORRECT_VERSIONS/CORRECT_BLUEBIKES/pheromone")
 
 
 if True: #Load all csv files in directory and concat just once 
@@ -36,7 +36,7 @@ if True: #Load all csv files in directory and concat just once
 bike_df=pd.read_csv('bike_concat.csv')
 user_df=pd.read_csv('user_concat.csv')
 
-if False:
+if True:
 
     bike_df.drop(bike_df.loc[bike_df['Num Bikes']=='Num Bikes'].index, inplace=True)
     user_df.drop(user_df.loc[user_df['Num Bikes']=='Num Bikes'].index, inplace=True)
