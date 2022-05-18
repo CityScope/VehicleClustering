@@ -106,16 +106,16 @@ global {
 		// -------------------------------------------The People -----------------------------------------
 	    
 	    create people from: demand_csv with:
-		[/*start_hour::date(get("starttime")), //'yyyy-MM-dd hh:mm:s'
-				start_lat::float(get("start_lat")),
+		[start_hour::date(get("starttime"))//, //'yyyy-MM-dd hh:mm:s'
+				/*start_lat::float(get("start_lat")),
 				start_lon::float(get("start_lon")),
 				target_lat::float(get("target_lat")),
-				target_lon::float(get("target_lon"))*/
-				start_hour::date(get("start_timestamp")), //'yyyy-MM-dd hh:mm:s'
+				target_lon::float(get("target_lon"))
+				/*start_hour::date(get("start_timestamp")), //'yyyy-MM-dd hh:mm:s'
 				start_lat::float(get("origin_bgrp_lat")),
 				start_lon::float(get("origin_bgrp_lng")),
 				target_lat::float(get("destination_bgrp_lat")),
-				target_lon::float(get("destination_bgrp_lng"))
+				target_lon::float(get("destination_bgrp_lng"))*/
 				/*start_lat::float(42.369732),
 				start_lon::float(-71.090101),
 				target_lat::float(42.368263),
@@ -123,16 +123,44 @@ global {
 				
 			]{
 
-				
-	        speed <- peopleSpeed;
-	        start_point  <- to_GAMA_CRS({start_lon,start_lat},"EPSG:4326").location; // (lon, lat) var0 equals a geometry corresponding to the agent geometry transformed into the GAMA CRS
-			target_point <- to_GAMA_CRS({target_lon,target_lat},"EPSG:4326").location;
-			location <- start_point;
 			
 			string start_h_str <- string(start_hour,'kk');
 			start_h <- int(start_h_str);
 			string start_min_str <- string(start_hour,'mm');
 			start_min <- int(start_min_str);
+			
+			// ONLY for localized manual
+			////////////////////////////////
+			int rd;
+			if start_h < 12{
+			//rd <- rnd(1,4); //morning
+			rd <-1 ;
+			}else{
+			//rd <- rnd(5,8); //afternoon
+			rd <-5;
+			}
+			
+			if rd =1 {
+			start_lat <- 42.369732;
+			start_lon <- -71.090101;
+			target_lat <- 42.368494;
+			target_lon <- -71.082084;
+			} else if rd =5 {
+			target_lat <- 42.369732;
+			target_lon <- -71.090101;
+			start_lat <- 42.368494;
+			start_lon <- -71.082084;
+			}
+			///////////////////////////////////
+			
+			
+	        speed <- peopleSpeed;
+	        start_point  <- to_GAMA_CRS({start_lon,start_lat},"EPSG:4326").location; // (lon, lat) var0 equals a geometry corresponding to the agent geometry transformed into the GAMA CRS
+			target_point <- to_GAMA_CRS({target_lon,target_lat},"EPSG:4326").location;
+			location <- start_point;
+			
+	
+			
 			
 			
 			//write "cycle: " + cycle + ", time "+ self.start_h + ":" + self.start_min + ", "+ string(self) + " will travel from " + self.start_point + " to "+ self.target_point;
