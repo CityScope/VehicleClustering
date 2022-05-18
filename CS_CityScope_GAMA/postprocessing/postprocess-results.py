@@ -4,7 +4,7 @@ import os
 import glob
 
 #CHANGE folder  
-os.chdir("../../../../results/CORRECT_VERSIONS/CORRECT_BLUEBIKES/pheromone")
+os.chdir("../../../../results/CORRECT_VERSIONS/localized_demand_nominal")
 
 
 if True: #Load all csv files in directory and concat just once 
