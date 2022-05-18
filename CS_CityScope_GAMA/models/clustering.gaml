@@ -106,16 +106,16 @@ global {
 		// -------------------------------------------The People -----------------------------------------
 	    
 	    create people from: demand_csv with:
-		[start_hour::date(get("starttime"))//, //'yyyy-MM-dd hh:mm:s'
-				/*start_lat::float(get("start_lat")),
+		[/*start_hour::date(get("starttime")), //'yyyy-MM-dd hh:mm:s'
+				start_lat::float(get("start_lat")),
 				start_lon::float(get("start_lon")),
 				target_lat::float(get("target_lat")),
-				target_lon::float(get("target_lon"))
-				/*start_hour::date(get("start_timestamp")), //'yyyy-MM-dd hh:mm:s'
+				target_lon::float(get("target_lon"))*/
+				start_hour::date(get("start_timestamp")), //'yyyy-MM-dd hh:mm:s'
 				start_lat::float(get("origin_bgrp_lat")),
 				start_lon::float(get("origin_bgrp_lng")),
 				target_lat::float(get("destination_bgrp_lat")),
-				target_lon::float(get("destination_bgrp_lng"))*/
+				target_lon::float(get("destination_bgrp_lng"))
 				/*start_lat::float(42.369732),
 				start_lon::float(-71.090101),
 				target_lat::float(42.368263),
@@ -131,7 +131,7 @@ global {
 			
 			// ONLY for localized manual
 			////////////////////////////////
-			int rd;
+			/*int rd;
 			if start_h < 12{
 			//rd <- rnd(1,4); //morning
 			rd <-1 ;
@@ -150,7 +150,7 @@ global {
 			target_lon <- -71.090101;
 			start_lat <- 42.368494;
 			start_lon <- -71.082084;
-			}
+			}*/
 			///////////////////////////////////
 			
 			
@@ -191,8 +191,28 @@ reflex stop_simulation when: cycle >= numberOfDays * numberOfHours * 3600 / step
 
 }
 
+experiment batch_pheromone_small type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
+	parameter var: exploitationRate init: 0.95; 
+	parameter var: numBikes among: [50, 75, 100];
+	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
+
+}
+
+experiment batch_nominal_small type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	//parameter var: numBikes among: [25, 50, 75,100, 125, 150];
+	parameter var: numBikes among: [50, 75, 100];
+
+}
+
+experiment batch_random_small type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	parameter var: numBikes among: [50, 75, 100];
+	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
+	parameter var: exploitationRate init: 0.0;
+}
+
 //experiment batch_experiments_headless type: batch until: (cycle = 300) {
-experiment batch_experiments_headless type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+/*experiment batch_experiments_headless type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
 	//parameter var: evaporation among: [0.05, 0.15, 0.3];
 	parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
 	//parameter var: exploitationRate among: [0.6, 0.75, 0.9];
@@ -202,6 +222,9 @@ experiment batch_experiments_headless type: batch repeat: 5 until: (cycle >= num
 	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
 	//parameter var: maxWaitTime among: [5#mn,10#mn,15#mn];
 }
+
+
+
 
 experiment batch_fine_grane type: batch repeat: 3 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
 	parameter var: evaporation among: [0.05,0.10, 0.15,0.2, 0.25, 0.3,0.5,0.75];
@@ -266,7 +289,7 @@ experiment clustering_headless {
 	parameter var: numBikes init: numBikes;
 	//parameter var: numPeople init: 250;
 }
-
+*/
 /*//TODO: fill this out with tests to verify that all functions work properly
 //Also, figure out how to even use tests
 species Tester {

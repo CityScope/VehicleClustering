@@ -42,11 +42,11 @@ global {
 
 	
 	//----------------------Pheromone Parameters------------------------
-	bool pheromonesEnabled <- false ; // If false the PheromoneMark will always be zero and the bikes will just wander
-	bool wanderingEnabled <- false; // Sets WanderingSpeed to zero
+	bool pheromonesEnabled <-true ; // If false the PheromoneMark will always be zero and the bikes will just wander
+	bool wanderingEnabled <- true; // Sets WanderingSpeed to zero
 	
     float singlePheromoneMark <- 0.01; //0.5 in ours, 0.01 as a param in original code, set to 0.5 for SwarmBot
-	float evaporation <- 0.05; //0.05%, *0.15%,* and 0.3% in the paper but we changed evaporation to be proportional to time instead of just cycles
+	float evaporation <- 0.15; //0.05%, *0.15%,* and 0.3% in the paper but we changed evaporation to be proportional to time instead of just cycles
 	float exploitationRate <- 0.95; // Paper values: *0.6*, 0.75, and 0.9. Note: 0.8 means 0.2 of randomness  (exploration)	//*****
 	//float diffusion <- (1-exploitationRate) * 0.5;  // the more they explore randomly, they are less 'trustable' so they have to diffuse less for system convergence
 	float diffusion <- exploitationRate*0.5 ; // the more exploit vs expore the more trustable
@@ -92,7 +92,7 @@ global {
    
     //Demand 
     string cityDemandFolder <- "./../includes/Demand";
-    csv_file demand_csv <- csv_file (cityDemandFolder+ "/user_trips_new.csv",true);
+    csv_file demand_csv <- csv_file (cityDemandFolder+ "/bike.csv",true);
     //bike.csv
     //user_trips_new.csv
     
@@ -127,7 +127,7 @@ global {
 	string cityGISFolder <- "./../includes/City/"+cityScopeCity;
 	file bound_shapefile <- file(cityGISFolder + "/Bounds.shp")			parameter: "Bounds Shapefile:" category: "GIS";
 	file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
-	file roads_shapefile <- file(cityGISFolder + "/Roads.shp")			parameter: "Road Shapefile:" category: "GIS";
+	file roads_shapefile <- file(cityGISFolder + "/layers/POLYLINE.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
 
 	//Case Cambridge Map
