@@ -84,7 +84,7 @@ species chargingStation {
 	list<bike> bikesToCharge;
 	
 	aspect base {
-		draw circle(10) color:#blue;		
+		draw circle(15) color:#orangered;		
 	}
 	
 	reflex chargeBikes {
@@ -127,12 +127,12 @@ species tagRFID {
 		float avg <- average();
 		
 		
-		rgb color_1 <- rgb(254,235,226); 
-		rgb color_2 <- rgb(252,197,192);
-		rgb color_3 <- rgb(250,159,181);
-		rgb color_4 <- rgb(247,104,161);
-		rgb color_5 <- rgb(197,27,138); 
-		rgb color_6 <- rgb(122,1,119);
+		rgb color_6 <- rgb(16, 131, 167); 
+		rgb color_5 <- rgb(23, 182, 233);
+		rgb color_4 <- rgb(90, 203, 239);
+		rgb color_3 <- rgb(123, 214, 242);
+		rgb color_2 <- rgb(156, 224, 245); 
+		rgb color_1 <- rgb(222, 245, 252);
 		
 		
 		float q1<- minPheromoneLevel+singlePheromoneMark/5;
