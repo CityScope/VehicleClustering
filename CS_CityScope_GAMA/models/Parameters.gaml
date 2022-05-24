@@ -143,7 +143,7 @@ global {
 	//file roads_shapefile <- file(cityGISFolder + "../HalfCambridge/halfcambridge_road.shp/edges.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
 	
-	file bound_shapefile <- file( "./../includes/City/Cambridge/Bounds.shp")			parameter: "Bounds Shapefile:" category: "GIS";
+	file bound_shapefile <- file( "./../includes/City/HalfCambridge/halfcambridge-boundary/halfcambridge-boundary.shp")			parameter: "Bounds Shapefile:" category: "GIS";
 	file buildings_shapefile <- file( "./../includes/City/UrbanSwarm/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
 	file roads_shapefile <- file( "./../includes/City/HalfCambridge/halfcambridge_road.shp/edges.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
