@@ -13,7 +13,7 @@ global {
 	
 	//Date for log files
 	//date logDate <- #now;
-	date logDate <- date("2022-04-25 00:00:00");
+	date logDate <- date("2022-06-03 00:00:00");
 	
 	date nowDate <- #now;
 	//Duration of the simulation
@@ -93,7 +93,8 @@ global {
     //Demand 
     string cityDemandFolder <- "./../includes/Demand";
 
-    csv_file demand_csv <- csv_file (cityDemandFolder+ "/demand_halfcambridge.csv",true);
+    csv_file demand_csv <- csv_file (cityDemandFolder+ "/user_trips_new.csv",true);
+    //demand_halfcambridge.csv
     //bike.csv
     //user_trips_new.csv
     
@@ -122,7 +123,7 @@ global {
 	string usage <- "Category";*/
 	
 	//Case 3 - Boston 
-	string cityScopeCity <- "Boston";
+	string cityScopeCity <- "UrbanSwarm";
 	string residence <- "Residential";
 	string office <- "Office";
 	string usage <- "Category";
@@ -132,9 +133,9 @@ global {
 	//GIS FILES To Upload
 
 	string cityGISFolder <- "./../includes/City/"+cityScopeCity;
-	//file bound_shapefile <- file(cityGISFolder + "/Bounds.shp")			parameter: "Bounds Shapefile:" category: "GIS";
-	//file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
-	//file roads_shapefile <- file(cityGISFolder + "/Roads.shp")			parameter: "Road Shapefile:" category: "GIS";
+	file bound_shapefile <- file(cityGISFolder + "/Bounds.shp")			parameter: "Bounds Shapefile:" category: "GIS";
+	file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
+	file roads_shapefile <- file(cityGISFolder + "/Roads.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
 
 	// cityGISFolder <- "./../includes/City/"+cityScopeCity;
@@ -143,9 +144,9 @@ global {
 	//file roads_shapefile <- file(cityGISFolder + "../HalfCambridge/halfcambridge_road.shp/edges.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
 	
-	file bound_shapefile <- file( "./../includes/City/HalfCambridge/halfcambridge-boundary/halfcambridge-boundary.shp")			parameter: "Bounds Shapefile:" category: "GIS";
-	file buildings_shapefile <- file( "./../includes/City/UrbanSwarm/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
-	file roads_shapefile <- file( "./../includes/City/HalfCambridge/halfcambridge_road.shp/edges.shp")			parameter: "Road Shapefile:" category: "GIS";
+	//file bound_shapefile <- file( "./../includes/City/HalfCambridge/halfcambridge-boundary/halfcambridge-boundary.shp")			parameter: "Bounds Shapefile:" category: "GIS";
+	//file buildings_shapefile <- file( "./../includes/City/UrbanSwarm/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
+	//file roads_shapefile <- file( "./../includes/City/HalfCambridge/halfcambridge_road.shp/edges.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
 
 	//Case Cambridge Map
