@@ -13,7 +13,9 @@ global {
 	graph roadNetwork;
 	list<int> chargingStationLocation;
 
-	
+	int nb_people <-0;
+	float sum_wait <-0;
+	float avg_wait;
 	
     // ---------------------------------------Agent Creation----------------------------------------------
     init {
@@ -146,7 +148,7 @@ global {
 			
 			
 			//write "cycle: " + cycle + ", time "+ self.start_h + ":" + self.start_min + ", "+ string(self) + " will travel from " + self.start_point + " to "+ self.target_point;
-
+			//nb_people  <- nb_people + 1;
 			
 			}
 						
@@ -171,6 +173,27 @@ reflex stop_simulation when: cycle >= numberOfDays * numberOfHours * 3600 / step
 	do pause ;
 }
 
+}
+
+
+experiment pheromone_hillclimbing type: batch repeat: 2 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	//parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
+	parameter var: evaporation among: [ 0.15, 0.2,0.25];
+	parameter var: exploitationRate among: [0.92, 0.95, 0.98];
+	//parameter var: numBikes among: [25, 50, 75, 100, 125];
+	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
+	
+	method hill_climbing iter_max: 50  minimize: avg_wait;
+	
+	reflex save_results {
+		
+		//ask simulations {
+			//write "evap: " + evaporation + "expl:"+ exploitationRate + "wanderSpeed:"+WanderingSpeed +"wait: " + avg_wait;
+		
+		save [evaporation,exploitationRate ,WanderingSpeed,avg_wait ] type: csv to:"./../data/results.csv" ;
+		//rewrite: (int(self) = 0) ? true : false header: true ;
+		//}
+	}
 }
 
 experiment repeat100 type: batch repeat: 100 until:  (cycle >= numberOfDays * numberOfHours * 3600 / step) {

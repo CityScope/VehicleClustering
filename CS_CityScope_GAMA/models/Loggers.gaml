@@ -195,6 +195,11 @@ species peopleLogger_trip parent: Logger mirrors: people {
 		
 		if arrival = nil {des <- nil;} else {des <- string(arrival,"HH:mm:ss");}
 		
+		nb_people  <- nb_people + 1;
+		sum_wait <- sum_wait + waitTime;
+		avg_wait <- sum_wait /nb_people;
+		//write(avg_wait);
+		
 		do log([served, waitTime,dep ,des, tripduration, origin_WGS84.x, origin_WGS84.y, destination_WGS84.x, destination_WGS84.y, distance]);
 	} 
 	
