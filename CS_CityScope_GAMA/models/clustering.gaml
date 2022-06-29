@@ -176,23 +176,72 @@ reflex stop_simulation when: cycle >= numberOfDays * numberOfHours * 3600 / step
 }
 
 
-experiment pheromone_hillclimbing type: batch repeat: 2 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+experiment pheromone_hillclimbing type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
 	//parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
 	parameter var: evaporation among: [ 0.15, 0.2,0.25];
 	parameter var: exploitationRate among: [0.92, 0.95, 0.98];
 	//parameter var: numBikes among: [25, 50, 75, 100, 125];
-	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
+	//parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
 	
 	method hill_climbing iter_max: 50  minimize: avg_wait;
 	
 	reflex save_results {
 		
-		//ask simulations {
+		ask simulations {
 			//write "evap: " + evaporation + "expl:"+ exploitationRate + "wanderSpeed:"+WanderingSpeed +"wait: " + avg_wait;
-		
-		save [evaporation,exploitationRate ,WanderingSpeed,avg_wait ] type: csv to:"./../data/results.csv" ;
+			save [numBikes,evaporation,exploitationRate ,WanderingSpeed,avg_wait ] type: csv to:"./../data/results_hillclimbing.csv" rewrite: (int(self) = 0) ? true : false header: true ;
 		//rewrite: (int(self) = 0) ? true : false header: true ;
-		//}
+		}
+	}
+}
+
+experiment pheromone_annealing type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+
+	parameter var: evaporation among: [ 0.15, 0.2,0.25];
+	parameter var: exploitationRate among: [0.92, 0.95, 0.98];
+	
+	method annealing 
+        temp_init: 100  temp_end: 1 
+        temp_decrease: 0.5 nb_iter_cst_temp: 5   minimize: avg_wait;
+	
+	reflex save_results {
+		ask simulations {
+			save [numBikes,evaporation,exploitationRate ,WanderingSpeed,avg_wait ] type: csv to:"./../data/results_annealing.csv" rewrite: (int(self) = 0) ? true : false header: true ;
+		}
+	}
+}
+
+
+experiment pheromone_reactivetabu type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+
+	parameter var: evaporation among: [ 0.15, 0.2,0.25];
+	parameter var: exploitationRate among: [0.92, 0.95, 0.98];
+	
+	method reactive_tabu 
+        iter_max: 50 tabu_list_size_init: 5 tabu_list_size_min: 2 tabu_list_size_max: 10 
+        nb_tests_wthout_col_max: 20 cycle_size_min: 2 cycle_size_max: 20    minimize: avg_wait;
+	
+	reflex save_results {
+		ask simulations {
+			save [numBikes,evaporation,exploitationRate ,WanderingSpeed,avg_wait ] type: csv to:"./../data/results_reactivetabu.csv" rewrite: (int(self) = 0) ? true : false header: true ;
+		}
+	}
+}
+
+
+experiment pheromone_genetic type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+
+	parameter var: evaporation among: [ 0.15, 0.2,0.25];
+	parameter var: exploitationRate among: [0.92, 0.95, 0.98];
+	
+	method genetic 
+        pop_dim: 5 crossover_prob: 0.7 mutation_prob: 0.1 
+        nb_prelim_gen: 1 max_gen: 20  minimize: avg_wait;
+	
+	reflex save_results {
+		ask simulations {
+			save [numBikes,evaporation,exploitationRate ,WanderingSpeed,avg_wait ] type: csv to:"./../data/results_genetic.csv" rewrite: (int(self) = 0) ? true : false header: true ;
+		}
 	}
 }
 
