@@ -13,7 +13,8 @@ global {
 	
 	//Date for log files
 	//date logDate <- #now;
-	date logDate <- date("2022-06-03 00:00:00");
+
+	date logDate <- date("2022-06-29 00:00:00");
 	
 	date nowDate <- #now;
 	//Duration of the simulation
@@ -78,7 +79,7 @@ global {
 
 	
 	//----------------------numChargingStationsion Parameters------------------------
-	int numChargingStations <- 5 	min: 1 max: 10 parameter: "Num Charging Stations:" category: "Initial";
+	int numChargingStations <- 21 	min: 1 max: 10 parameter: "Num Charging Stations:" category: "Initial";
 	//float V2IChargingRate <- maxBatteryLife/(4.5*60*60) #m/#s; //4.5 h of charge
 	float V2IChargingRate <- maxBatteryLife/(111) #m/#s;  // 111 s battery swapping -> average of the two reported by Fei-Hui Huang 2019 Understanding user acceptancd of battery swapping service of sustainable transport
 	int chargingStationCapacity <- 16; //TODO: status of bikes waiting // average number of docks in bluebikes stations in April 2022
@@ -93,7 +94,7 @@ global {
     //Demand 
     string cityDemandFolder <- "./../includes/Demand";
 
-    csv_file demand_csv <- csv_file (cityDemandFolder+ "/user_trips_new.csv",true);
+    csv_file demand_csv <- csv_file (cityDemandFolder+ "/demand_halfcambridge.csv",true);
     //demand_halfcambridge.csv
     //bike.csv
     //user_trips_new.csv
@@ -123,7 +124,7 @@ global {
 	string usage <- "Category";*/
 	
 	//Case 3 - Boston 
-	string cityScopeCity <- "UrbanSwarm";
+	string cityScopeCity <- "HalfCambridge";
 	string residence <- "Residential";
 	string office <- "Office";
 	string usage <- "Category";
@@ -133,9 +134,9 @@ global {
 	//GIS FILES To Upload
 
 	string cityGISFolder <- "./../includes/City/"+cityScopeCity;
-	file bound_shapefile <- file(cityGISFolder + "/Bounds.shp")			parameter: "Bounds Shapefile:" category: "GIS";
-	file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
-	file roads_shapefile <- file(cityGISFolder + "/Roads.shp")			parameter: "Road Shapefile:" category: "GIS";
+	//file bound_shapefile <- file(cityGISFolder + "/Bounds.shp")			parameter: "Bounds Shapefile:" category: "GIS";
+	//file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
+	//file roads_shapefile <- file(cityGISFolder + "/Roads.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
 
 	// cityGISFolder <- "./../includes/City/"+cityScopeCity;
@@ -144,9 +145,9 @@ global {
 	//file roads_shapefile <- file(cityGISFolder + "../HalfCambridge/halfcambridge_road.shp/edges.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
 	
-	//file bound_shapefile <- file( "./../includes/City/HalfCambridge/halfcambridge-boundary/halfcambridge-boundary.shp")			parameter: "Bounds Shapefile:" category: "GIS";
-	//file buildings_shapefile <- file( "./../includes/City/UrbanSwarm/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
-	//file roads_shapefile <- file( "./../includes/City/HalfCambridge/halfcambridge_road.shp/edges.shp")			parameter: "Road Shapefile:" category: "GIS";
+	file bound_shapefile <- file( "./../includes/City/HalfCambridge/halfcambridge-boundary/halfcambridge-boundary.shp")			parameter: "Bounds Shapefile:" category: "GIS";
+	file buildings_shapefile <- file( "./../includes/City/UrbanSwarm/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
+	file roads_shapefile <- file( "./../includes/City/HalfCambridge/halfcambridge_road.shp/edges.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
 
 	//Case Cambridge Map
