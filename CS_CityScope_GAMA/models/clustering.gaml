@@ -90,10 +90,11 @@ global {
 			}	
 		}
 	    
-
+		
 	    loop i from: 0 to: length(chargingStationLocation) - 1 {
 			create chargingStation{
 				location <- point(roadNetwork.vertices[chargingStationLocation[i]]);
+				//write location;
 			}
 		}
 		
@@ -181,12 +182,14 @@ experiment repeat100 type: batch repeat: 100 until:  (cycle >= numberOfDays * nu
 }
 
 //experiment batch_experiments_headless type: batch until: (cycle = 300) {
-experiment batch_experiments_headless type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+experiment batch_experiments_headless type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
 	//parameter var: evaporation among: [0.05, 0.15, 0.3];
 	parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
+	//parameter var: evaporation among: [0.15, 0.2,0.25];
 	//parameter var: exploitationRate among: [0.6, 0.75, 0.9];
-	parameter var: exploitationRate among: [0.92, 0.95, 0.98];
-	parameter var: numBikes among: [25, 50, 75, 100, 125];
+	parameter var: exploitationRate among: [0.6,0.75,0.9, 0.95, 0.98];
+	//parameter var: numBikes among: [25, 50, 75, 100, 125];
+	parameter var: numBikes among: [300, 900, 1500];
 	//parameter var: PickUpSpeed among: [4/3.6#m/#s,8/3.6#m/#s,12/3.6#m/#s];
 	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
 	//parameter var: maxWaitTime among: [5#mn,10#mn,15#mn];
@@ -206,17 +209,20 @@ experiment batch_demand_r type: batch repeat: 5 until: (cycle >= numberOfDays * 
 	parameter var: exploitationRate init: 0.0;
 }
 
-experiment batch_experiments_ref type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+experiment batch_experiments_ref type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
 	//parameter var: numBikes among: [25, 50, 75,100, 125, 150];
-	parameter var: numBikes among: [25, 50, 75, 100, 125];
+	//parameter var: numBikes among: [25, 50, 75, 100, 125];
+	//parameter var: numBikes among: [300, 600, 900, 1200, 1500];
+	parameter var: numBikes among: [300, 900, 1500];
 
 }
 
-experiment batch_experiments_random type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+experiment batch_experiments_random type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
 	//parameter var: numBikes among: [25, 50, 75,100, 125, 150];
-	//parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s,8/3.6#m/#s];
-	parameter var: numBikes among: [25, 50, 75, 100, 125];
 	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
+	//parameter var: numBikes among: [25, 50, 75, 100, 125];
+	parameter var: numBikes among: [300, 900, 1500];
+	//*********////parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
 	parameter var: exploitationRate init: 0.0;
 }
 

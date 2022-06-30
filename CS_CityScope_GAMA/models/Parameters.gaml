@@ -6,7 +6,7 @@ global {
 	//----------------------Simulation Parameters------------------------
 	
 	//Simulation time step
-	float step <- 2 #sec; //For tangible we need about 0.1s
+	float step <- 5 #sec; //For tangible we need about 0.1s
 	
 	//Simulation starting date
 	date starting_date <- date("2021-10-12 00:00:00"); //TODO: Change to 00:00:00
@@ -14,7 +14,7 @@ global {
 	//Date for log files
 	//date logDate <- #now;
 
-	date logDate <- date("2022-06-29 00:00:00");
+	date logDate <- date("2022-06-29 03:00:00");
 	
 	date nowDate <- #now;
 	//Duration of the simulation
@@ -61,7 +61,7 @@ global {
 	float readUpdateRate <- 0.5 ; //tune this so our average updates at desired speed
 	
 	//----------------------Bike Parameters------------------------
-	int numBikes <- 100 				min: 0 max: 500 parameter: "Num Bikes:" category: "Initial";
+	int numBikes <- 300 				min: 0 max: 3000 parameter: "Num Bikes:" category: "Initial";
 	float maxBatteryLife <- 30000.0 #m	min: 10000#m max: 300000#m parameter: "Battery Capacity (m):" category: "Bike"; //battery capacity in m
 	float WanderingSpeed <- 3/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Bike Wandering  Speed (m/s):" category:  "Bike";
 	float PickUpSpeed <-  8/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Bike Pick-up Speed (m/s):" category:  "Bike";
@@ -79,7 +79,7 @@ global {
 
 	
 	//----------------------numChargingStationsion Parameters------------------------
-	int numChargingStations <- 21 	min: 1 max: 10 parameter: "Num Charging Stations:" category: "Initial";
+	int numChargingStations <- 21 	min: 1 max: 100 parameter: "Num Charging Stations:" category: "Initial";
 	//float V2IChargingRate <- maxBatteryLife/(4.5*60*60) #m/#s; //4.5 h of charge
 	float V2IChargingRate <- maxBatteryLife/(111) #m/#s;  // 111 s battery swapping -> average of the two reported by Fei-Hui Huang 2019 Understanding user acceptancd of battery swapping service of sustainable transport
 	int chargingStationCapacity <- 16; //TODO: status of bikes waiting // average number of docks in bluebikes stations in April 2022
@@ -133,7 +133,7 @@ global {
     
 	//GIS FILES To Upload
 
-	string cityGISFolder <- "./../includes/City/"+cityScopeCity;
+	//string cityGISFolder <- "./../includes/City/"+cityScopeCity;
 	//file bound_shapefile <- file(cityGISFolder + "/Bounds.shp")			parameter: "Bounds Shapefile:" category: "GIS";
 	//file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
 	//file roads_shapefile <- file(cityGISFolder + "/Roads.shp")			parameter: "Road Shapefile:" category: "GIS";
