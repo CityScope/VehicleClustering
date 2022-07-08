@@ -14,6 +14,9 @@ global {
 	list<int> chargingStationLocation;
 
 	
+	int nb_people <-0;
+	float sum_wait <-0;
+	float avg_wait;
 	
     // ---------------------------------------Agent Creation----------------------------------------------
     init {
@@ -174,112 +177,192 @@ reflex stop_simulation when: cycle >= numberOfDays * numberOfHours * 3600 / step
 
 }
 
-experiment repeat100 type: batch repeat: 100 until:  (cycle >= numberOfDays * numberOfHours * 3600 / step) {
-	parameter var: evaporation init: 0.15;
-	parameter var: exploitationRate init: 0.95;
-	parameter var: numBikes init: 100;
-	parameter var: WanderingSpeed init: 3/3.6#m/#s;
-}
 
-//experiment batch_experiments_headless type: batch until: (cycle = 300) {
-experiment batch_experiments_headless type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
-	//parameter var: evaporation among: [0.05, 0.15, 0.3];
+
+experiment pheromone_genetic_300_1 type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	
+	parameter var: numBikes init: 300;
+	parameter var: WanderingSpeed init: 1/3.6#m/#s;
+	
 	parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
-	//parameter var: evaporation among: [0.15, 0.2,0.25];
-	//parameter var: exploitationRate among: [0.6, 0.75, 0.9];
-	parameter var: exploitationRate among: [0.6,0.75,0.9, 0.95, 0.98];
-	//parameter var: numBikes among: [25, 50, 75, 100, 125];
-	parameter var: numBikes among: [300, 900, 1500];
-	//parameter var: PickUpSpeed among: [4/3.6#m/#s,8/3.6#m/#s,12/3.6#m/#s];
-	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
-	//parameter var: maxWaitTime among: [5#mn,10#mn,15#mn];
-}
-
-experiment batch_fine_grane type: batch repeat: 3 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
-	parameter var: evaporation among: [0.05,0.10, 0.15,0.2, 0.25, 0.3,0.5,0.75];
-	parameter var: exploitationRate among: [0,0.25,0.6,0.65,0.7, 0.75,0.8,0.85, 0.9, 0.95];
-}
-
-experiment batch_demand_p type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
-	parameter var: evaporation among: [0.05, 0.15, 0.3];
-	parameter var: exploitationRate among: [0.6, 0.75, 0.9];
-}
-
-experiment batch_demand_r type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
-	parameter var: exploitationRate init: 0.0;
-}
-
-experiment batch_experiments_ref type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
-	//parameter var: numBikes among: [25, 50, 75,100, 125, 150];
-	//parameter var: numBikes among: [25, 50, 75, 100, 125];
-	//parameter var: numBikes among: [300, 600, 900, 1200, 1500];
-	parameter var: numBikes among: [300, 900, 1500];
-
-}
-
-experiment batch_experiments_random type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
-	//parameter var: numBikes among: [25, 50, 75,100, 125, 150];
-	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
-	//parameter var: numBikes among: [25, 50, 75, 100, 125];
-	parameter var: numBikes among: [300, 900, 1500];
-	//*********////parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
-	parameter var: exploitationRate init: 0.0;
-}
-
-
-experiment batch_task_switch type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
-	parameter var: chargingPheromoneThreshold among:[0.0000001,0.000001,0.00001,0.01];
-	parameter var: pLowPheromoneCharge among: [0.001,0.01,0.02,0.05];
-	parameter var: readUpdateRate among: [0.1, 0.3, 0.5, 0.8];
+	parameter var: exploitationRate among: [0.6,0.65,0.7,0.75,0.8];
 	
-}
-
-//If we do 3^5=243 experiments each 3 times = 749 sims * 12.3 min that's 6 days with step 1s and 3 days with step 2s
-
-experiment clustering type: gui {
-	parameter var: numBikes init: numBikes;
-	//parameter var: numPeople init: 250;
-    output {
-		display city_display type:opengl background: #black draw_env: false{	
-			species tagRFID aspect: base; 
-			species building aspect: type ;
-			species road aspect: base ;
-			species people aspect: base ;
-			species chargingStation aspect: base ;
-			species bike aspect: realistic trace: 10 ; //TODO: make proportional to pheromone
-			graphics "text" {
-				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
-				{world.shape.width * 0.8, world.shape.height * 0.975};
-				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
-			}
-		}
 	
-    }
-}
-
-experiment clustering_headless {
-	parameter var: numBikes init: numBikes;
-	//parameter var: numPeople init: 250;
-}
-
-/*//TODO: fill this out with tests to verify that all functions work properly
-//Also, figure out how to even use tests
-species Tester {
-	setup {	
-	}
+	method genetic 
+        pop_dim: 5 crossover_prob: 0.7 mutation_prob: 0.1 
+        nb_prelim_gen: 1 max_gen: 20  minimize: avg_wait;
 	
-	test  test1 {	
-	}
-}
-//TODO fill this out with benchmarks for each function, to be evaluated at different populations
-experiment benchmarks { 
-	init {
-		benchmark message: 'arithmetic operation' repeat: 5 {
-			//benchmark code will be run 'repeat' times, and report min,max,avg runtime
-			int a <- int(1*54.2);
+	reflex save_results {
+		ask simulations {
+			save [numBikes,evaporation,exploitationRate ,WanderingSpeed,avg_wait ] type: csv to:"./../data/results_genetic_300_1.csv" rewrite: (int(self) = 0) ? true : false header: true ;
 		}
 	}
-}*/
+}
 
+
+experiment pheromone_genetic_300_3 type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	
+	parameter var: numBikes init: 300;
+	parameter var: WanderingSpeed init: 3/3.6#m/#s;
+	
+	parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
+	parameter var: exploitationRate among: [0.6,0.65,0.7,0.75,0.8];
+	
+	
+	method genetic 
+        pop_dim: 5 crossover_prob: 0.7 mutation_prob: 0.1 
+        nb_prelim_gen: 1 max_gen: 20  minimize: avg_wait;
+	
+	reflex save_results {
+		ask simulations {
+			save [numBikes,evaporation,exploitationRate ,WanderingSpeed,avg_wait ] type: csv to:"./../data/results_genetic_300_3.csv" rewrite: (int(self) = 0) ? true : false header: true ;
+		}
+	}
+}
+
+
+experiment pheromone_genetic_300_5 type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	
+	parameter var: numBikes init: 300;
+	parameter var: WanderingSpeed init: 5/3.6#m/#s;
+	
+	parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
+	parameter var: exploitationRate among: [0.6,0.65,0.7,0.75,0.8];
+	
+	
+	method genetic 
+        pop_dim: 5 crossover_prob: 0.7 mutation_prob: 0.1 
+        nb_prelim_gen: 1 max_gen: 20  minimize: avg_wait;
+	
+	reflex save_results {
+		ask simulations {
+			save [numBikes,evaporation,exploitationRate ,WanderingSpeed,avg_wait ] type: csv to:"./../data/results_genetic_300_5.csv" rewrite: (int(self) = 0) ? true : false header: true ;
+		}
+	}
+}
+
+experiment pheromone_genetic_900_1 type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	
+	parameter var: numBikes init: 900;
+	parameter var: WanderingSpeed init: 1/3.6#m/#s;
+	
+	parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
+	parameter var: exploitationRate among: [0.6,0.65,0.7,0.75,0.8];
+	
+	
+	method genetic 
+        pop_dim: 5 crossover_prob: 0.7 mutation_prob: 0.1 
+        nb_prelim_gen: 1 max_gen: 20  minimize: avg_wait;
+	
+	reflex save_results {
+		ask simulations {
+			save [numBikes,evaporation,exploitationRate ,WanderingSpeed,avg_wait ] type: csv to:"./../data/results_genetic_900_1.csv" rewrite: (int(self) = 0) ? true : false header: true ;
+		}
+	}
+}
+
+
+experiment pheromone_genetic_900_3 type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	
+	parameter var: numBikes init: 900;
+	parameter var: WanderingSpeed init: 3/3.6#m/#s;
+	
+	parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
+	parameter var: exploitationRate among: [0.6,0.65,0.7,0.75,0.8];
+	
+	
+	method genetic 
+        pop_dim: 5 crossover_prob: 0.7 mutation_prob: 0.1 
+        nb_prelim_gen: 1 max_gen: 20  minimize: avg_wait;
+	
+	reflex save_results {
+		ask simulations {
+			save [numBikes,evaporation,exploitationRate ,WanderingSpeed,avg_wait ] type: csv to:"./../data/results_genetic_900_3.csv" rewrite: (int(self) = 0) ? true : false header: true ;
+		}
+	}
+}
+
+
+experiment pheromone_genetic_900_5 type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	
+	parameter var: numBikes init: 900;
+	parameter var: WanderingSpeed init: 5/3.6#m/#s;
+	
+	parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
+	parameter var: exploitationRate among: [0.6,0.65,0.7,0.75,0.8];
+	
+	
+	method genetic 
+        pop_dim: 5 crossover_prob: 0.7 mutation_prob: 0.1 
+        nb_prelim_gen: 1 max_gen: 20  minimize: avg_wait;
+	
+	reflex save_results {
+		ask simulations {
+			save [numBikes,evaporation,exploitationRate ,WanderingSpeed,avg_wait ] type: csv to:"./../data/results_genetic_900_5.csv" rewrite: (int(self) = 0) ? true : false header: true ;
+		}
+	}
+}
+
+experiment pheromone_genetic_1500_1 type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	
+	parameter var: numBikes init: 1500;
+	parameter var: WanderingSpeed init: 1/3.6#m/#s;
+	
+	parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
+	parameter var: exploitationRate among: [0.6,0.65,0.7,0.75,0.8];
+	
+	
+	method genetic 
+        pop_dim: 5 crossover_prob: 0.7 mutation_prob: 0.1 
+        nb_prelim_gen: 1 max_gen: 20  minimize: avg_wait;
+	
+	reflex save_results {
+		ask simulations {
+			save [numBikes,evaporation,exploitationRate ,WanderingSpeed,avg_wait ] type: csv to:"./../data/results_genetic_1500_1.csv" rewrite: (int(self) = 0) ? true : false header: true ;
+		}
+	}
+}
+
+
+experiment pheromone_genetic_1500_3 type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	
+	parameter var: numBikes init: 1500;
+	parameter var: WanderingSpeed init: 3/3.6#m/#s;
+	
+	parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
+	parameter var: exploitationRate among: [0.6,0.65,0.7,0.75,0.8];
+	
+	
+	method genetic 
+        pop_dim: 5 crossover_prob: 0.7 mutation_prob: 0.1 
+        nb_prelim_gen: 1 max_gen: 20  minimize: avg_wait;
+	
+	reflex save_results {
+		ask simulations {
+			save [numBikes,evaporation,exploitationRate ,WanderingSpeed,avg_wait ] type: csv to:"./../data/results_genetic_1500_3.csv" rewrite: (int(self) = 0) ? true : false header: true ;
+		}
+	}
+}
+
+
+experiment pheromone_genetic_1500_5 type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	
+	parameter var: numBikes init: 1500;
+	parameter var: WanderingSpeed init: 5/3.6#m/#s;
+	
+	parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
+	parameter var: exploitationRate among: [0.6,0.65,0.7,0.75,0.8];
+	
+	
+	method genetic 
+        pop_dim: 5 crossover_prob: 0.7 mutation_prob: 0.1 
+        nb_prelim_gen: 1 max_gen: 20  minimize: avg_wait;
+	
+	reflex save_results {
+		ask simulations {
+			save [numBikes,evaporation,exploitationRate ,WanderingSpeed,avg_wait ] type: csv to:"./../data/results_genetic_1500_5.csv" rewrite: (int(self) = 0) ? true : false header: true ;
+		}
+	}
+}
 
 
