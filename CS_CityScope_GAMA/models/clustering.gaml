@@ -187,7 +187,7 @@ experiment batch_experiments_headless type: batch repeat: 1 until: (cycle >= num
 	parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
 	//parameter var: evaporation among: [0.15, 0.2,0.25];
 	//parameter var: exploitationRate among: [0.6, 0.75, 0.9];
-	parameter var: exploitationRate among: [0.6,0.75,0.9, 0.95, 0.98];
+	parameter var: exploitationRate among: [0.6,0.65,0.7, 0.75, 0.8];
 	//parameter var: numBikes among: [25, 50, 75, 100, 125];
 	parameter var: numBikes among: [300, 900, 1500];
 	//parameter var: PickUpSpeed among: [4/3.6#m/#s,8/3.6#m/#s,12/3.6#m/#s];

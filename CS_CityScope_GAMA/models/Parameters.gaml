@@ -48,7 +48,7 @@ global {
 	
     float singlePheromoneMark <- 0.01; //0.5 in ours, 0.01 as a param in original code, set to 0.5 for SwarmBot
 	float evaporation <- 0.15; //0.05%, *0.15%,* and 0.3% in the paper but we changed evaporation to be proportional to time instead of just cycles
-	float exploitationRate <- 0.95; // Paper values: *0.6*, 0.75, and 0.9. Note: 0.8 means 0.2 of randomness  (exploration)	//*****
+	float exploitationRate <- 0.6; // Paper values: *0.6*, 0.75, and 0.9. Note: 0.8 means 0.2 of randomness  (exploration)	//*****
 	//float diffusion <- (1-exploitationRate) * 0.5;  // the more they explore randomly, they are less 'trustable' so they have to diffuse less for system convergence
 	float diffusion <- exploitationRate*0.5 ; // the more exploit vs expore the more trustable
 	float maxPheromoneLevel <- 50*singlePheromoneMark; //satutration
