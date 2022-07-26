@@ -4,7 +4,11 @@ import os
 import glob
 
 #CHANGE folder  
+<<<<<<< Updated upstream
 os.chdir("../../../../results/CORRECT_VERSIONS/localized_demand_nominal")
+=======
+os.chdir("../../../../results/CORRECT_VERSIONS/FINAL_FINAL")
+>>>>>>> Stashed changes
 
 
 if True: #Load all csv files in directory and concat just once 
@@ -36,7 +40,11 @@ if True: #Load all csv files in directory and concat just once
 bike_df=pd.read_csv('bike_concat.csv')
 user_df=pd.read_csv('user_concat.csv')
 
+<<<<<<< Updated upstream
 if True:
+=======
+if False:
+>>>>>>> Stashed changes
 
     bike_df.drop(bike_df.loc[bike_df['Num Bikes']=='Num Bikes'].index, inplace=True)
     user_df.drop(user_df.loc[user_df['Num Bikes']=='Num Bikes'].index, inplace=True)
