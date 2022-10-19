@@ -269,18 +269,29 @@ experiment clustering type: gui {
 	//parameter var: numPeople init: 250;
     output {
 		display city_display type:opengl background: #black draw_env: false{	
-			species tagRFID aspect: base; 
-			species building aspect: type ;
-			species road aspect: base ;
-			species people aspect: base ;
-			species chargingStation aspect: base ;
-			species bike aspect: realistic trace: 40 ; //TODO: make proportional to pheromone
+
+			species tagRFID aspect: base visible:showtagRFID transparency:cos(cycle*5); 
+			species building aspect: type visible:show_building;
+			species road aspect: base visible:show_road;
+		
+			species chargingStation aspect: base visible:show_chargingStation;
+			species bike aspect: realistic visible:show_velo; //TODO: make proportional to pheromone
+			species bike aspect: deposingPheromon trace: 30 fading:true visible:show_velo; //TODO: make proportional to pheromone
+			species people aspect: base visible:show_people;
+
 			graphics "text" {
 				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
 				{world.shape.width * 0.8, world.shape.height * 0.975};
 				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
 			}
+		event["b"] {show_building<-!show_building;}
+		event["t"] {showtagRFID<-!showtagRFID;}
+		event["r"] {show_road<-!show_road;}
+		event["p"] {show_people<-!show_people;}
+		event["v"] {show_velo<-!show_velo;}
+		event["c"] {show_chargingStation<-!show_chargingStation;}
 		}
+		
 	
     }
 }

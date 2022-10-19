@@ -74,8 +74,9 @@ species road {
 
 
 species building {
+	rgb color<-rgb(25,25,25);
     aspect type {
-		draw shape color: color_map[type];
+		draw shape color: color border:color+50;
 	}
 	string type; 
 }
@@ -84,7 +85,7 @@ species chargingStation {
 	list<bike> bikesToCharge;
 	
 	aspect base {
-		draw circle(15) color:#orangered;		
+		draw circle(15) color:rgb(230,95,53);		
 	}
 	
 	reflex chargeBikes {
@@ -132,7 +133,7 @@ species tagRFID {
 		rgb color_4 <- rgb(90, 203, 239);
 		rgb color_3 <- rgb(123, 214, 242);
 		rgb color_2 <- rgb(156, 224, 245); 
-		rgb color_1 <- rgb(222, 245, 252);
+		rgb color_1 <- rgb(18, 35, 44);
 		
 		
 		float q1<- minPheromoneLevel+singlePheromoneMark/5;
@@ -148,7 +149,7 @@ species tagRFID {
 		else if avg < q5 {tag_color <-  color_5;}
 		else {tag_color <-  color_6;}
 	
-		draw circle(10) color:tag_color;
+		draw square(15) color:tag_color;
 	}
 	
 }
@@ -303,8 +304,15 @@ species bike control: fsm skills: [moving] {
 	aspect realistic {
 		color <- color_map[state];
 		draw triangle(25) color:color border:color rotate: heading + 90 ;
-
 	} 
+	
+	aspect deposingPheromon{
+		if(state="picking_up" or state="in_use"){
+		  color <- color_map[state];
+		  draw triangle(25) color:color border:color rotate: heading + 90 ;	
+		}
+		
+	}
 
 	
 	//loggers

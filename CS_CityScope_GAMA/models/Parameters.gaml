@@ -60,7 +60,7 @@ global {
 	float readUpdateRate <- 0.5 ; //tune this so our average updates at desired speed
 	
 	//----------------------Bike Parameters------------------------
-	int numBikes <- 100 				min: 0 max: 500 parameter: "Num Bikes:" category: "Initial";
+	int numBikes <- 50 				min: 0 max: 500 parameter: "Num Bikes:" category: "Initial";
 	float maxBatteryLife <- 30000.0 #m	min: 10000#m max: 300000#m parameter: "Battery Capacity (m):" category: "Bike"; //battery capacity in m
 	float WanderingSpeed <- 3/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Bike Wandering  Speed (m/s):" category:  "Bike";
 	float PickUpSpeed <-  8/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Bike Pick-up Speed (m/s):" category:  "Bike";
@@ -136,5 +136,15 @@ global {
 	 
 	//Image File
 	file imageRaster <- file('./../images/gama_black.png');
+	
+	
+	//-----------------------UI parameters--------------------------
+		//UI
+	bool show_building<-true;
+	bool showtagRFID<-true;
+	bool show_road<-true;
+	bool show_people<-true;
+	bool show_velo<-true;
+	bool show_chargingStation<-true;
 			
 }	
