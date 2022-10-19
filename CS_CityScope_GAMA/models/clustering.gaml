@@ -106,16 +106,16 @@ global {
 		// -------------------------------------------The People -----------------------------------------
 	    
 	    create people from: demand_csv with:
-		[/*start_hour::date(get("starttime")), //'yyyy-MM-dd hh:mm:s'
+		[start_hour::date(get("starttime")), //'yyyy-MM-dd hh:mm:s'
 				start_lat::float(get("start_lat")),
 				start_lon::float(get("start_lon")),
 				target_lat::float(get("target_lat")),
-				target_lon::float(get("target_lon"))*/
-				start_hour::date(get("start_timestamp")), //'yyyy-MM-dd hh:mm:s'
+				target_lon::float(get("target_lon"))
+				/*start_hour::date(get("start_timestamp")), //'yyyy-MM-dd hh:mm:s'
 				start_lat::float(get("origin_bgrp_lat")),
 				start_lon::float(get("origin_bgrp_lng")),
 				target_lat::float(get("destination_bgrp_lat")),
-				target_lon::float(get("destination_bgrp_lng"))
+				target_lon::float(get("destination_bgrp_lng"))*/
 				/*start_lat::float(42.369732),
 				start_lon::float(-71.090101),
 				target_lat::float(42.368263),
@@ -274,7 +274,7 @@ experiment clustering type: gui {
 			species road aspect: base ;
 			species people aspect: base ;
 			species chargingStation aspect: base ;
-			species bike aspect: realistic trace: 10 ; //TODO: make proportional to pheromone
+			species bike aspect: realistic trace: 40 ; //TODO: make proportional to pheromone
 			graphics "text" {
 				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
 				{world.shape.width * 0.8, world.shape.height * 0.975};

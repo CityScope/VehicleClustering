@@ -159,11 +159,11 @@ species people control: fsm skills: [moving] {
 	rgb color;
 	
     map<string, rgb> color_map <- [
-		"idle"::#lavender,
+		"wandering"::#transparent,
 		"requesting_bike":: #springgreen,
 		"awaiting_bike":: #springgreen,
-		"riding":: #gamagreen,
-		"walking":: #magenta
+		"riding":: #springgreen,
+		"walking":: #springgreen
 
 	];
 	
@@ -287,17 +287,17 @@ species bike control: fsm skills: [moving] {
 	rgb color;
 	
 	map<string, rgb> color_map <- [
-		"wandering"::#purple,
+		"wandering":: rgb(143,103,164),
 		
-		"low_battery":: #red,
+		"low_battery":: #orangered,
 		"getting_charge":: #pink,
 		
 		"awaiting_follower"::#lightcyan,
 		"seeking_leader"::#lightcyan,
 		"following"::#skyblue,
 		
-		"picking_up"::#springgreen,
-		"in_use"::#gamagreen
+		"picking_up"::#skyblue,
+		"in_use"::#skyblue
 	];
 	
 	aspect realistic {

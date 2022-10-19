@@ -9,7 +9,7 @@ global {
 	float step <- 2 #sec; //For tangible we need about 0.1s
 	
 	//Simulation starting date
-	date starting_date <- date("2021-10-12 00:00:00"); //TODO: Change to 00:00:00
+	date starting_date <- date("2021-10-12 06:00:00"); //TODO: Change to 00:00:00
 	
 	//Date for log files
 	//date logDate <- #now;
@@ -92,7 +92,7 @@ global {
    
     //Demand 
     string cityDemandFolder <- "./../includes/Demand";
-    csv_file demand_csv <- csv_file (cityDemandFolder+ "/bike.csv",true);
+    csv_file demand_csv <- csv_file (cityDemandFolder+ "/user_trips_new.csv",true);
     //bike.csv
     //user_trips_new.csv
     
@@ -121,7 +121,7 @@ global {
 	string usage <- "Category";*/
 
 
-    map<string, rgb> color_map <- [residence::#white, office::#gray, "Other"::#black];
+    map<string, rgb> color_map <- [residence::#silver, office::#silver, "Other"::#silver];
     
 	//GIS FILES To Upload
 	string cityGISFolder <- "./../includes/City/"+cityScopeCity;
