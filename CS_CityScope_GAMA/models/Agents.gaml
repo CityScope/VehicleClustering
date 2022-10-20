@@ -133,7 +133,7 @@ species tagRFID {
 		rgb color_4 <- rgb(90, 203, 239);
 		rgb color_3 <- rgb(123, 214, 242);
 		rgb color_2 <- rgb(156, 224, 245); 
-		rgb color_1 <- rgb(18, 35, 44);
+		rgb color_1 <- #dimgray;
 		
 		
 		float q1<- minPheromoneLevel+singlePheromoneMark/5;
@@ -161,10 +161,10 @@ species people control: fsm skills: [moving] {
 	
     map<string, rgb> color_map <- [
 		"wandering"::#transparent,
-		"requesting_bike":: #springgreen,
-		"awaiting_bike":: #springgreen,
-		"riding":: #springgreen,
-		"walking":: #springgreen
+		"requesting_bike":: #greenyellow,
+		"awaiting_bike":: #greenyellow,
+		"riding":: #greenyellow,
+		"walking":: #greenyellow
 
 	];
 	
@@ -288,17 +288,17 @@ species bike control: fsm skills: [moving] {
 	rgb color;
 	
 	map<string, rgb> color_map <- [
-		"wandering":: rgb(143,103,164),
+		"wandering":: #mediumpurple,
 		
-		"low_battery":: #orangered,
+		"low_battery":: #tomato,
 		"getting_charge":: #pink,
 		
 		"awaiting_follower"::#lightcyan,
 		"seeking_leader"::#lightcyan,
-		"following"::#skyblue,
+		"following"::#cyan,
 		
-		"picking_up"::#skyblue,
-		"in_use"::#skyblue
+		"picking_up"::#cyan,
+		"in_use"::#cyan
 	];
 	
 	aspect realistic {

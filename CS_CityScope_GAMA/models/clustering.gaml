@@ -270,7 +270,8 @@ experiment clustering type: gui {
     output {
 		display city_display type:opengl background: #black draw_env: false{	
 
-			species tagRFID aspect: base visible:showtagRFID transparency:cos(cycle*5); 
+			species tagRFID aspect: base visible:showtagRFID transparency:cos(cycle*5);
+			//species tagRFID aspect: base visible:showtagRFID;  
 			species building aspect: type visible:show_building;
 			species road aspect: base visible:show_road;
 		
@@ -279,11 +280,11 @@ experiment clustering type: gui {
 			species bike aspect: deposingPheromon trace: 30 fading:true visible:show_velo; //TODO: make proportional to pheromone
 			species people aspect: base visible:show_people;
 
-			graphics "text" {
-				draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
-				{world.shape.width * 0.8, world.shape.height * 0.975};
-				draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
-			}
+			//graphics "text" {
+				//draw "day" + string(current_date.day) + " - " + string(current_date.hour) + "h" color: #white font: font("Helvetica", 25, #italic) at:
+				//{world.shape.width * 0.8, world.shape.height * 0.975};
+				//draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
+			//}
 		event["b"] {show_building<-!show_building;}
 		event["t"] {showtagRFID<-!showtagRFID;}
 		event["r"] {show_road<-!show_road;}

@@ -9,7 +9,7 @@ global {
 	float step <- 2 #sec; //For tangible we need about 0.1s
 	
 	//Simulation starting date
-	date starting_date <- date("2021-10-12 06:00:00"); //TODO: Change to 00:00:00
+	date starting_date <- date("2021-10-12 07:00:00"); //TODO: Change to 00:00:00
 	
 	//Date for log files
 	//date logDate <- #now;
