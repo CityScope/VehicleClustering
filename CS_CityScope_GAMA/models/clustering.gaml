@@ -19,13 +19,13 @@ global {
     init {
     	// ---------------------------------------Buildings-----------------------------i----------------
 		do logSetUp;
-	    create building from: buildings_shapefile with: [type:string(read (usage))] {
+	    /*create building from: buildings_shapefile with: [type:string(read (usage))] {
 		 	if(type!=office and type!=residence){ type <- "Other"; }
 		}
 	        
 	    list<building> residentialBuildings <- building where (each.type=residence);
 	    list<building> officeBuildings <- building where (each.type=office);
-	    
+	    */
 		// ---------------------------------------The Road Network----------------------------------------------
 		create road from: roads_shapefile;		
 		roadNetwork <- as_edge_graph(road) ;   
@@ -168,7 +168,7 @@ global {
 						
 	 	// ----------------------------------The RFIDs tag on each road intersection------------------------
 		
-		ask tagRFID {
+	ask tagRFID {
 			location <- point(roadNetwork.vertices[id]); 
 			pheromoneMap <- map( neighbors_of(roadNetwork,roadNetwork.vertices[id]) collect (each::0.0) );  //to know what edge is related to that amount of pheromone
 			
@@ -181,7 +181,7 @@ global {
 		//write "Max trip distance"+maxDistance;
 		
 		write "FINISH INITIALIZATION";
-    }
+}
 
 reflex stop_simulation when: cycle >= numberOfDays * numberOfHours * 3600 / step {
 	do pause ;

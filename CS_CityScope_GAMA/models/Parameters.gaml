@@ -95,7 +95,7 @@ global {
       
     //----------------------Map Parameters------------------------	
 	//Case 1 - Urban Swarms Map
-	string cityScopeCity <- "Cambridge";
+	string cityScopeCity <- "Boston";
 	string residence <- "R";
 	string office <- "O";
 	string usage <- "Usage";
@@ -115,7 +115,7 @@ global {
 	//GIS FILES To Upload
 	string cityGISFolder <- "./../includes/City/"+cityScopeCity;
 	file bound_shapefile <- file(cityGISFolder + "/Bounds.shp")			parameter: "Bounds Shapefile:" category: "GIS";
-	file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
+	//file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
 	file roads_shapefile <- file(cityGISFolder + "/Roads.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
 
