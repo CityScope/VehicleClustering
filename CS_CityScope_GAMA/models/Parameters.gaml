@@ -6,14 +6,15 @@ global {
 	//----------------------Simulation Parameters------------------------
 	
 	//Simulation time step
-	float step <- 2 #sec; //For tangible we need about 0.1s
+	float step <- 5 #sec; //For tangible we need about 0.1s
 	
 	//Simulation starting date
 	date starting_date <- date("2021-10-12 07:00:00"); //TODO: Change to 00:00:00
 	
 	//Date for log files
 	//date logDate <- #now;
-	date logDate <- date("2022-04-25 00:00:00");
+
+	date logDate <- date("2022-06-29 03:00:00");
 	
 	date nowDate <- #now;
 	//Duration of the simulation
@@ -47,7 +48,7 @@ global {
 	
     float singlePheromoneMark <- 0.01; //0.5 in ours, 0.01 as a param in original code, set to 0.5 for SwarmBot
 	float evaporation <- 0.15; //0.05%, *0.15%,* and 0.3% in the paper but we changed evaporation to be proportional to time instead of just cycles
-	float exploitationRate <- 0.95; // Paper values: *0.6*, 0.75, and 0.9. Note: 0.8 means 0.2 of randomness  (exploration)	//*****
+	float exploitationRate <- 0.6; // Paper values: *0.6*, 0.75, and 0.9. Note: 0.8 means 0.2 of randomness  (exploration)	//*****
 	//float diffusion <- (1-exploitationRate) * 0.5;  // the more they explore randomly, they are less 'trustable' so they have to diffuse less for system convergence
 	float diffusion <- exploitationRate*0.5 ; // the more exploit vs expore the more trustable
 	float maxPheromoneLevel <- 50*singlePheromoneMark; //satutration
@@ -60,7 +61,7 @@ global {
 	float readUpdateRate <- 0.5 ; //tune this so our average updates at desired speed
 	
 	//----------------------Bike Parameters------------------------
-	int numBikes <- 50 				min: 0 max: 500 parameter: "Num Bikes:" category: "Initial";
+	int numBikes <- 300 				min: 0 max: 3000 parameter: "Num Bikes:" category: "Initial";
 	float maxBatteryLife <- 30000.0 #m	min: 10000#m max: 300000#m parameter: "Battery Capacity (m):" category: "Bike"; //battery capacity in m
 	float WanderingSpeed <- 3/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Bike Wandering  Speed (m/s):" category:  "Bike";
 	float PickUpSpeed <-  8/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Bike Pick-up Speed (m/s):" category:  "Bike";
@@ -78,7 +79,7 @@ global {
 
 	
 	//----------------------numChargingStationsion Parameters------------------------
-	int numChargingStations <- 5 	min: 1 max: 10 parameter: "Num Charging Stations:" category: "Initial";
+	int numChargingStations <- 21 	min: 1 max: 100 parameter: "Num Charging Stations:" category: "Initial";
 	//float V2IChargingRate <- maxBatteryLife/(4.5*60*60) #m/#s; //4.5 h of charge
 	float V2IChargingRate <- maxBatteryLife/(111) #m/#s;  // 111 s battery swapping -> average of the two reported by Fei-Hui Huang 2019 Understanding user acceptancd of battery swapping service of sustainable transport
 	int chargingStationCapacity <- 16; //TODO: status of bikes waiting // average number of docks in bluebikes stations in April 2022
@@ -110,6 +111,28 @@ global {
     
     //csv_file demand_csv <- csv_file (cityDemandFolder+ "/user_trips_"+ demand_i +".csv",true);
     //int demand_i <- 0 min: 0 max: 5 parameter: "Demand File:" category "Pepole";
+    
+     
+     
+    //----------------------Map Parameters------------------------
+	
+	//Case 1 - Urban Swarms Map
+	/*string cityScopeCity <- "UrbanSwarm";
+	string residence <- "R";
+	string office <- "O";
+	string usage <- "Usage";*/
+	
+	//Case 2 - Cambridge Map
+	/*string cityScopeCity <- "Cambridge";
+	string residence <- "Residential";
+	string office <- "Office";
+	string usage <- "Category";*/
+	
+	//Case 3 - Boston 
+	string cityScopeCity <- "HalfCambridge";
+	string residence <- "Residential";
+	string office <- "Office";
+	string usage <- "Category";
 
     map<string, rgb> color_map <- [residence::#silver, office::#silver, "Other"::#silver];    
 	//GIS FILES To Upload
