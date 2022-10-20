@@ -113,26 +113,7 @@ global {
     //int demand_i <- 0 min: 0 max: 5 parameter: "Demand File:" category "Pepole";
     
      
-     
-    //----------------------Map Parameters------------------------
-	
-	//Case 1 - Urban Swarms Map
-	/*string cityScopeCity <- "UrbanSwarm";
-	string residence <- "R";
-	string office <- "O";
-	string usage <- "Usage";*/
-	
-	//Case 2 - Cambridge Map
-	/*string cityScopeCity <- "Cambridge";
-	string residence <- "Residential";
-	string office <- "Office";
-	string usage <- "Category";*/
-	
-	//Case 3 - Boston 
-	string cityScopeCity <- "HalfCambridge";
-	string residence <- "Residential";
-	string office <- "Office";
-	string usage <- "Category";
+    
 
     map<string, rgb> color_map <- [residence::#silver, office::#silver, "Other"::#silver];    
 	//GIS FILES To Upload

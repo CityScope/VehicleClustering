@@ -19,7 +19,7 @@ global {
     init {
     	// ---------------------------------------Buildings-----------------------------i----------------
 		do logSetUp;
-	    create building from: buildings_shapefile;
+	    //create building from: buildings_shapefile;
 	    //with: [type:string(read (usage))] {
 		 	//if(type!=office and type!=residence){ type <- "Other"; }
 		//}
