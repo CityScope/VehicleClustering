@@ -90,39 +90,28 @@ global {
     float peopleSpeed <- 5/3.6 #m/#s	min: 1/3.6 #m/#s max: 10/3.6 #m/#s parameter: "People Speed (m/s):" category: "People";
     float bikeCostBatteryCoef <- 200.0; //(see global.bikeCost)relative importance of batterylife when selecting bikes to ride
    
-    //Demand 
-    string cityDemandFolder <- "./../includes/Demand";
-    csv_file demand_csv <- csv_file (cityDemandFolder+ "/user_trips_new.csv",true);
-    //bike.csv
-    //user_trips_new.csv
+
     
-    
-    //csv_file f <- csv_file("file.csv", ";",int,true, {5, 100});//TODO: Set a limit equivalent to numPeople¿
-    
-    //For many demand files:
-    
-    //csv_file demand_csv <- csv_file (cityDemandFolder+ "/user_trips_"+ demand_i +".csv",true);
-    //int demand_i <- 0 min: 0 max: 5 parameter: "Demand File:" category "Pepole";
-    
-     
-     
-    //----------------------Map Parameters------------------------
-	
+      
+    //----------------------Map Parameters------------------------	
 	//Case 1 - Urban Swarms Map
 	string cityScopeCity <- "Cambridge";
 	string residence <- "R";
 	string office <- "O";
 	string usage <- "Usage";
 	
-	//Case 2 - Cambridge Map
-	/*string cityScopeCity <- "Cambridge";
-	string residence <- "Residential";
-	string office <- "Office";
-	string usage <- "Category";*/
-
-
-    map<string, rgb> color_map <- [residence::#silver, office::#silver, "Other"::#silver];
+	//Demand 
+    string cityDemandFolder <- "./../includes/Demand";
+    csv_file demand_csv <- csv_file (cityDemandFolder+ "/"+cityScopeCity+".csv",true);
+   
+    //csv_file f <- csv_file("file.csv", ";",int,true, {5, 100});//TODO: Set a limit equivalent to numPeople¿
     
+    //For many demand files:
+    
+    //csv_file demand_csv <- csv_file (cityDemandFolder+ "/user_trips_"+ demand_i +".csv",true);
+    //int demand_i <- 0 min: 0 max: 5 parameter: "Demand File:" category "Pepole";
+
+    map<string, rgb> color_map <- [residence::#silver, office::#silver, "Other"::#silver];    
 	//GIS FILES To Upload
 	string cityGISFolder <- "./../includes/City/"+cityScopeCity;
 	file bound_shapefile <- file(cityGISFolder + "/Bounds.shp")			parameter: "Bounds Shapefile:" category: "GIS";
