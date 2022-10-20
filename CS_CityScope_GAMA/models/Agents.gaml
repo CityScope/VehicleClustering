@@ -97,7 +97,7 @@ species chargingStation {
 
 species tagRFID {
 	int id;
-	
+	float avg;
 	map<tagRFID,float> pheromoneMap;
 	
 	int lastUpdate; //Cycle
@@ -118,15 +118,13 @@ species tagRFID {
 			length <- length + 1;
 			
 		}
-		float avg <- sum/length;
-		return avg;
+		return sum/length;
 	}
 	
 	//list<string> var0 <- list<string> palettes <- brewer_palettes(3);
 	aspect base {
 		
-		float avg <- average();
-		
+		avg <- average();
 		
 		rgb color_6 <- rgb(16, 131, 167); 
 		rgb color_5 <- rgb(23, 182, 233);
@@ -134,8 +132,7 @@ species tagRFID {
 		rgb color_3 <- rgb(123, 214, 242);
 		rgb color_2 <- rgb(156, 224, 245); 
 		rgb color_1 <- #dimgray;
-		
-		
+				
 		float q1<- minPheromoneLevel+singlePheromoneMark/5;
 		float q2<- minPheromoneLevel+2*singlePheromoneMark/5;
 		float q3<- minPheromoneLevel+3*singlePheromoneMark/5;
@@ -149,7 +146,7 @@ species tagRFID {
 		else if avg < q5 {tag_color <-  color_5;}
 		else {tag_color <-  color_6;}
 	
-		draw square(15) color:tag_color;
+		draw square(15 + (avg *100)*10) color:tag_color;
 	}
 	
 }

@@ -61,7 +61,7 @@ global {
 	float readUpdateRate <- 0.5 ; //tune this so our average updates at desired speed
 	
 	//----------------------Bike Parameters------------------------
-	int numBikes <- 300 				min: 0 max: 3000 parameter: "Num Bikes:" category: "Initial";
+	int numBikes <- 100 				min: 0 max: 3000 parameter: "Num Bikes:" category: "Initial";
 	float maxBatteryLife <- 30000.0 #m	min: 10000#m max: 300000#m parameter: "Battery Capacity (m):" category: "Bike"; //battery capacity in m
 	float WanderingSpeed <- 3/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Bike Wandering  Speed (m/s):" category:  "Bike";
 	float PickUpSpeed <-  8/3.6 #m/#s min: 1/3.6 #m/#s max: 15/3.6 #m/#s parameter: "Bike Pick-up Speed (m/s):" category:  "Bike";
@@ -139,5 +139,6 @@ global {
 	bool show_people<-true;
 	bool show_velo<-true;
 	bool show_chargingStation<-true;
+	bool show_blinking<-false;
 			
 }	

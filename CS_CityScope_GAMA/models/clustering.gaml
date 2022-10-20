@@ -289,7 +289,7 @@ experiment clustering type: gui {
 	//parameter var: numPeople init: 250;
     output {
 		display city_display type:opengl background: #black draw_env: false{	
-			species tagRFID aspect: base visible:showtagRFID transparency:cos(cycle*5);
+			species tagRFID aspect: base visible:showtagRFID transparency:(show_blinking ? cos(cycle*5) : 0.0);
 			//species tagRFID aspect: base visible:showtagRFID;  
 			species building aspect: type visible:show_building;
 			species road aspect: base visible:show_road;
@@ -308,6 +308,7 @@ experiment clustering type: gui {
 			event["p"] {show_people<-!show_people;}
 			event["v"] {show_velo<-!show_velo;}
 			event["c"] {show_chargingStation<-!show_chargingStation;}
+			event["x"] {show_blinking<-!show_blinking;}
 		}
 		
 	
