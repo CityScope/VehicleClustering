@@ -27,11 +27,9 @@ global {
 	    list<building> officeBuildings <- building where (each.type=office);
 	    
 		// ---------------------------------------The Road Network----------------------------------------------
-		create road from: roads_shapefile;
-		
+		create road from: roads_shapefile;		
 		roadNetwork <- as_edge_graph(road) ;   
-		// Next move to the shortest path between each point in the graph
-		matrix allPairs <- all_pairs_shortest_path (roadNetwork);    
+   
 	    
 		// -------------------------------------Location of the charging stations----------------------------------------   
 	    //from charging locations to closest intersection

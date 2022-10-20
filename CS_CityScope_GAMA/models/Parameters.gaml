@@ -109,7 +109,7 @@ global {
     //----------------------Map Parameters------------------------
 	
 	//Case 1 - Urban Swarms Map
-	string cityScopeCity <- "UrbanSwarm";
+	string cityScopeCity <- "Cambridge";
 	string residence <- "R";
 	string office <- "O";
 	string usage <- "Usage";
@@ -127,7 +127,7 @@ global {
 	string cityGISFolder <- "./../includes/City/"+cityScopeCity;
 	file bound_shapefile <- file(cityGISFolder + "/Bounds.shp")			parameter: "Bounds Shapefile:" category: "GIS";
 	file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
-	file roads_shapefile <- file(cityGISFolder + "/layers/POLYLINE.shp")			parameter: "Road Shapefile:" category: "GIS";
+	file roads_shapefile <- file(cityGISFolder + "/Roads.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
 
 	//Case Cambridge Map
