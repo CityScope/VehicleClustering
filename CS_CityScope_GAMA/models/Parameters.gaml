@@ -96,7 +96,7 @@ global {
       
     //----------------------Map Parameters------------------------	
 	//Case 1 - Urban Swarms Map
-	string cityScopeCity <- "Cambridge";
+	string cityScopeCity <- "Boston";
 	string residence <- "R";
 	string office <- "O";
 	string usage <- "Usage";
