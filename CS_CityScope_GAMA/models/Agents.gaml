@@ -76,7 +76,7 @@ species road {
 species building {
 	rgb color<-rgb(25,25,25);
     aspect type {
-		draw shape color: color border:color+50;
+		draw shape depth: 0 #m color: color border:color+50;
 	}
 	string type; 
 }
@@ -131,7 +131,7 @@ species tagRFID {
 		rgb color_4 <- rgb(90, 203, 239);
 		rgb color_3 <- rgb(123, 214, 242);
 		rgb color_2 <- rgb(156, 224, 245); 
-		rgb color_1 <- #dimgray;
+		rgb color_1 <- #black;
 				
 		float q1<- minPheromoneLevel+singlePheromoneMark/5;
 		float q2<- minPheromoneLevel+2*singlePheromoneMark/5;
@@ -285,10 +285,10 @@ species bike control: fsm skills: [moving] {
 	rgb color;
 	
 	map<string, rgb> color_map <- [
-		"wandering":: #mediumpurple,
+		"wandering"::  #transparent,//#mediumpurple,
 		
-		"low_battery":: #tomato,
-		"getting_charge":: #pink,
+		"low_battery":: #transparent,//#tomato,
+		"getting_charge":: #transparent,// #pink,
 		
 		"awaiting_follower"::#lightcyan,
 		"seeking_leader"::#lightcyan,
