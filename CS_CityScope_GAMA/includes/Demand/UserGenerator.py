@@ -38,8 +38,8 @@ df_trips = df_trips[df_trips["start station id"] != df_trips["end station id"]]
 
 lat_min = 42.356444 
 lat_max = 42.372361
-lon_min= -71.093386 #71.100729 // 
-lon_max = -71.073392 #71.069872
+lon_min= -71.100729  
+lon_max = -71.069872
 
 df_trips = df_trips[
     df_trips["start station longitude"].between(lon_min, lon_max) & 
@@ -127,7 +127,7 @@ for i in range(1):
     df_trips["target_time"] = (pd.to_datetime(df_trips["stoptime"]) - start_time).astype("timedelta64[s]")
 
     # df_trips.drop(columns = [])
-    df_trips.to_csv("user_trips_new.csv", index=False)
+    df_trips.to_csv("user_trips_sept8.csv", index=False)
     #df_trips.to_csv("./user_trips_" + str(i) + ".csv", index=False)
 
 # %% PLOT DATA
