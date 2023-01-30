@@ -6,15 +6,15 @@ global {
 	//----------------------Simulation Parameters------------------------
 	
 	//Simulation time step
-	float step <- 5 #sec; //For tangible we need about 0.1s
+	float step <- 2 #sec; //For tangible we need about 0.1s
 	
 	//Simulation starting date
-	date starting_date <- date("2021-10-12 07:00:00"); //TODO: Change to 00:00:00
+	date starting_date <- date("2021-10-12 00:00:00"); //TODO: Change to 00:00:00
 	
 	//Date for log files
 	//date logDate <- #now;
 
-	date logDate <- date("2022-06-29 03:00:00");
+	date logDate <- date("2023-01-30 05:00:00");
 	
 	date nowDate <- #now;
 	//Duration of the simulation
@@ -96,7 +96,7 @@ global {
       
     //----------------------Map Parameters------------------------	
 	//Case 1 - Urban Swarms Map
-	string cityScopeCity <- "Cambridge";
+	string cityScopeCity <- "HalfCambridge";
 	string residence <- "R";
 	string office <- "O";
 	string usage <- "Usage";
@@ -119,7 +119,7 @@ global {
 	//GIS FILES To Upload
 	string cityGISFolder <- "./../includes/City/"+cityScopeCity;
 	file bound_shapefile <- file(cityGISFolder + "/Bounds.shp")			parameter: "Bounds Shapefile:" category: "GIS";
-	file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
+	//file buildings_shapefile <- file(cityGISFolder + "/Buildings.shp")	parameter: "Building Shapefile:" category: "GIS";
 	file roads_shapefile <- file(cityGISFolder + "/Roads.shp")			parameter: "Road Shapefile:" category: "GIS";
 	
 

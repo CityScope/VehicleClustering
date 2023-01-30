@@ -19,7 +19,7 @@ global {
     init {
     	// ---------------------------------------Buildings-----------------------------i----------------
 		do logSetUp;
-	    create building from: buildings_shapefile;
+	    //create building from: buildings_shapefile;
 	    //with: [type:string(read (usage))] {
 		 	//if(type!=office and type!=residence){ type <- "Other"; }
 		//}
@@ -205,38 +205,30 @@ reflex stop_simulation when: cycle >= numberOfDays * numberOfHours * 3600 / step
 
 }
 
-/*experiment batch_pheromone_small type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
-	parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
-	parameter var: exploitationRate init: 0.95; 
-	parameter var: numBikes among: [50, 75, 100];
-	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
-
+experiment batch_numreps type: batch repeat: 100 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	parameter var: evaporation init: 0.15;
+	parameter var: exploitationRate init: 0.7;
+	parameter var: numBikes init: 90;
+	parameter var: WanderingSpeed init: 3/3.6 #m/#s;
 }
 
-experiment batch_nominal_small type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
-	//parameter var: numBikes among: [25, 50, 75,100, 125, 150];
-	parameter var: numBikes among: [50, 75, 100];
-
-}
-
-experiment batch_random_small type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
-	parameter var: numBikes among: [50, 75, 100];
-	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
-	parameter var: exploitationRate init: 0.0;
-}*/
-
-//experiment batch_experiments_headless type: batch until: (cycle = 300) {
-experiment batch_experiments_headless type: batch repeat: 15 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
-	//parameter var: evaporation among: [0.05, 0.15, 0.3];
+experiment batch_experiments_pheromone type: batch repeat: 15 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
 	parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
-	//parameter var: evaporation among: [0.15, 0.2,0.25];
-	//parameter var: exploitationRate among: [0.6, 0.75, 0.9];
 	parameter var: exploitationRate among: [0.6,0.65,0.7, 0.75, 0.8];
-	//parameter var: numBikes among: [25, 50, 75, 100, 125];
-	parameter var: numBikes among: [300, 900, 1500];
-	//parameter var: PickUpSpeed among: [4/3.6#m/#s,8/3.6#m/#s,12/3.6#m/#s];
+	parameter var: numBikes among: [30, 90, 150];
 	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
-	//parameter var: maxWaitTime among: [5#mn,10#mn,15#mn];
+
+}
+
+experiment batch_experiments_nominal type: batch repeat: 15 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	parameter var: numBikes among: [30, 90, 150];
+
+}
+
+experiment batch_experiments_random type: batch repeat: 15 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
+	parameter var: numBikes among: [30, 90, 150];
+	parameter var: exploitationRate init: 0.0;
 }
 
 
@@ -256,22 +248,6 @@ experiment batch_demand_r type: batch repeat: 5 until: (cycle >= numberOfDays * 
 	parameter var: exploitationRate init: 0.0;
 }
 
-experiment batch_experiments_ref type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
-	//parameter var: numBikes among: [25, 50, 75,100, 125, 150];
-	//parameter var: numBikes among: [25, 50, 75, 100, 125];
-	//parameter var: numBikes among: [300, 600, 900, 1200, 1500];
-	parameter var: numBikes among: [300, 900, 1500];
-
-}
-
-experiment batch_experiments_random type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
-	//parameter var: numBikes among: [25, 50, 75,100, 125, 150];
-	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
-	//parameter var: numBikes among: [25, 50, 75, 100, 125];
-	parameter var: numBikes among: [300, 900, 1500];
-	//*********////parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
-	parameter var: exploitationRate init: 0.0;
-}
 
 
 experiment batch_task_switch type: batch repeat: 5 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
@@ -315,29 +291,6 @@ experiment clustering type: gui {
     }
 }
 
-experiment clustering_headless {
-	parameter var: numBikes init: numBikes;
-	//parameter var: numPeople init: 250;
-}
-
-/*//TODO: fill this out with tests to verify that all functions work properly
-//Also, figure out how to even use tests
-species Tester {
-	setup {	
-	}
-	
-	test  test1 {	
-	}
-}
-//TODO fill this out with benchmarks for each function, to be evaluated at different populations
-experiment benchmarks { 
-	init {
-		benchmark message: 'arithmetic operation' repeat: 5 {
-			//benchmark code will be run 'repeat' times, and report min,max,avg runtime
-			int a <- int(1*54.2);
-		}
-	}
-}*/
 
 
 
