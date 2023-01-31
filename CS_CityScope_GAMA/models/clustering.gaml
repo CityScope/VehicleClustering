@@ -208,7 +208,7 @@ reflex stop_simulation when: cycle >= numberOfDays * numberOfHours * 3600 / step
 experiment batch_numreps type: batch repeat: 100 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
 	parameter var: evaporation init: 0.15;
 	parameter var: exploitationRate init: 0.7;
-	parameter var: numBikes init: 90;
+	parameter var: numBikes init: 270;
 	parameter var: WanderingSpeed init: 3/3.6 #m/#s;
 }
 
