@@ -212,22 +212,29 @@ experiment batch_numreps type: batch repeat: 100 until: (cycle >= numberOfDays *
 	parameter var: WanderingSpeed init: 3/3.6 #m/#s;
 }
 
+experiment testfleet type: batch repeat: 1 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
+	parameter var: evaporation init: 0.15;
+	parameter var: exploitationRate init: 0.7;
+	parameter var: numBikes among: [150, 300, 450];
+	parameter var: WanderingSpeed init: 3/3.6 #m/#s;
+}
+
 experiment batch_experiments_pheromone type: batch repeat: 15 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
 	parameter var: evaporation among: [0.05, 0.1, 0.15, 0.2,0.25,0.3];
 	parameter var: exploitationRate among: [0.6,0.65,0.7, 0.75, 0.8];
-	parameter var: numBikes among: [30, 90, 150];
+	parameter var: numBikes among: [150, 300, 450];
 	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
 
 }
 
 experiment batch_experiments_nominal type: batch repeat: 15 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
-	parameter var: numBikes among: [30, 90, 150];
+	parameter var: numBikes among: [150, 300, 450];
 
 }
 
 experiment batch_experiments_random type: batch repeat: 15 until: (cycle >= numberOfDays * numberOfHours * 3600 / step) {
 	parameter var: WanderingSpeed among: [1/3.6#m/#s,3/3.6#m/#s,5/3.6#m/#s];
-	parameter var: numBikes among: [30, 90, 150];
+	parameter var: numBikes among: [150, 300, 450];
 	parameter var: exploitationRate init: 0.0;
 }
 
