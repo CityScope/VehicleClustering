@@ -14,7 +14,7 @@ global {
 	//Date for log files
 	//date logDate <- #now;
 
-	date logDate <- date("2023-01-31 10:00:00");
+	date logDate <- date("2023-01-31 07:00:00");
 	
 	date nowDate <- #now;
 	//Duration of the simulation
@@ -96,7 +96,7 @@ global {
       
     //----------------------Map Parameters------------------------	
 	//Case 1 - Urban Swarms Map
-	string cityScopeCity <- "Cambridge";
+	string cityScopeCity <- "HalfCambridge";
 	string residence <- "R";
 	string office <- "O";
 	string usage <- "Usage";
