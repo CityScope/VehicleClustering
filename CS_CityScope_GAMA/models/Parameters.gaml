@@ -14,7 +14,7 @@ global {
 	//Date for log files
 	//date logDate <- #now;
 
-	date logDate <- date("2023-02-01 01:00:00");
+	date logDate <- date("2023-02-07 03:00:00");
 	
 	date nowDate <- #now;
 	//Duration of the simulation
@@ -32,7 +32,7 @@ global {
 	bool peopleTripLog <-true parameter: "People Trip Log" category: "Logs";
 	bool peopleEventLog <-false parameter: "People Event Log" category: "Logs";
 	
-	bool stationChargeLogs <- true parameter: "Station Charge Log" category: "Logs";
+	bool stationChargeLogs <- false parameter: "Station Charge Log" category: "Logs";
 	
 	bool pheromoneLogs <- false  parameter: "Pheromone Log" category: "Logs";
 	bool clusteringLogs <- true parameter: "Clustering Charge Log" category: "Logs";
