@@ -281,7 +281,7 @@ experiment clustering type: gui {
 	parameter var: numBikes init: numBikes;
 	//parameter var: numPeople init: 250;
     output {
-		display city_display type:opengl background: #black draw_env: false{	
+		display city_display type:opengl background: #black axes: false{	
 			species tagRFID aspect: base visible:showtagRFID transparency:(show_blinking ? cos(cycle*5) : 0.0);
 			//species tagRFID aspect: base visible:showtagRFID;  
 			species building aspect: type visible:show_building;
@@ -295,13 +295,13 @@ experiment clustering type: gui {
 				//{world.shape.width * 0.8, world.shape.height * 0.975};
 				//draw imageRaster size: 40 #px at: {world.shape.width * 0.98, world.shape.height * 0.95};
 			//}
-			event["b"] {show_building<-!show_building;}
-			event["t"] {showtagRFID<-!showtagRFID;}
-			event["r"] {show_road<-!show_road;}
-			event["p"] {show_people<-!show_people;}
-			event["v"] {show_velo<-!show_velo;}
-			event["c"] {show_chargingStation<-!show_chargingStation;}
-			event["x"] {show_blinking<-!show_blinking;}
+			event "b" {show_building<-!show_building;}
+			event "t" {showtagRFID<-!showtagRFID;}
+			event "r" {show_road<-!show_road;}
+			event "p" {show_people<-!show_people;}
+			event "v" {show_velo<-!show_velo;}
+			event "c" {show_chargingStation<-!show_chargingStation;}
+			event "x" {show_blinking<-!show_blinking;}
 		}
 		
 	
