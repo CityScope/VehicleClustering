@@ -5,16 +5,16 @@ import glob
 import matplotlib.pyplot as plt
 
 #CHANGE folder  
-os.chdir("../data/2021-02-03 12.00.00")
+os.chdir("../data/FullC-Random")
 
 if True: #Load all csv files in directory and concat just once 
     extension = 'csv'
 
     #Charging
-    charge_filenames = [i for i in glob.glob('bike_station_charge*.{}'.format(extension))]
-    charge_df_temp= pd.concat([pd.read_csv(f) for f in charge_filenames ])
-    print(charge_df_temp.head())
-    charge_df_temp.to_csv('charge_concat.csv',index=False)
+    #charge_filenames = [i for i in glob.glob('bike_station_charge*.{}'.format(extension))]
+    #charge_df_temp= pd.concat([pd.read_csv(f) for f in charge_filenames ])
+    #print(charge_df_temp.head())
+    #charge_df_temp.to_csv('charge_concat.csv',index=False)
 
     #Bike trips
     bike_filenames =[i for i in glob.glob('bike_trip_event*.{}'.format(extension))]
@@ -30,7 +30,7 @@ if True: #Load all csv files in directory and concat just once
 
 
 #Read already concat .csv
-charge_df=pd.read_csv('charge_concat.csv')
+#charge_df=pd.read_csv('charge_concat.csv')
 bike_df=pd.read_csv('bike_concat.csv')
 user_df=pd.read_csv('user_concat.csv')
 
@@ -93,7 +93,10 @@ for i in range(i_size):
                 #Compute average percentage of served trips
                 count_served=temp.loc[temp['Trip Served']==True].shape[0]
                 count_unserved=temp.loc[temp['Trip Served']==False].shape[0]
-                average_served=(count_served)/(count_served+count_unserved)*100
+                if (count_served+count_unserved) == 0:
+                    average_served = 0
+                else:
+                    average_served=(count_served)/(count_served+count_unserved)*100
                 served_matrix[u,v]=average_served #Save in matrix
 
                 v+=1
